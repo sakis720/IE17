@@ -1,6 +1,7 @@
 #include "main.h"
 
 bool g_fSlew = false;
+bool m_about = false;
 bool g_fGhostViewer = false;
 char* g_modBase = nullptr;
 
@@ -9,6 +10,23 @@ _SlewFun Slew;
 
 typedef void(__cdecl* _GhostViewerFunc)();
 _GhostViewerFunc GhostViewer;
+
+int (*DisplayText)(int, const char*);
+
+
+void AboutMod()
+{
+    if (m_about)
+    {
+        m_about = false;
+        DisplayText(TEXT_HelpMessage, "IE17 is a project aimed to reverse enginner some functions from Ghostbusters The Video Game Remaster. by sakis720");
+    }
+    else
+    {
+        m_about = true;
+        DisplayText(TEXT_HelpMessage, "IE17 is a project aimed to reverse enginner some functions from Ghostbusters The Video Game Remaster. by sakis720");
+    }
+}
 
 void SlewEnableDisable()
 {
@@ -50,6 +68,10 @@ void RunMod()
         {
             Slew();
         }
+        if (GetAsyncKeyState('V') & 1)
+        {
+            AboutMod();
+        }
         if (GetAsyncKeyState(VK_TAB) & 1)
         {
             break; //bgale to dll
@@ -61,6 +83,7 @@ DWORD WINAPI DLLAttach(HMODULE hModule)
 {
     MH_Initialize();
     g_modBase = (char*)GetModuleHandle(NULL);
+    DisplayText = (int(*)(int, const char*))(g_modBase + 0x2494A0);
 
     RunMod();
 
