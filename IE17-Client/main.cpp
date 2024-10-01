@@ -19,12 +19,12 @@ void AboutMod()
     if (m_about)
     {
         m_about = false;
-        DisplayText(TEXT_HelpMessage, "IE17 is a project aimed to reverse enginner some functions from Ghostbusters The Video Game Remaster. by sakis720");
+        DisplayText(TEXT_GenericText, "IE17 v0.01 Compiled at: Oct 1 2024");
     }
     else
     {
         m_about = true;
-        DisplayText(TEXT_HelpMessage, "IE17 is a project aimed to reverse enginner some functions from Ghostbusters The Video Game Remaster. by sakis720");
+        DisplayText(TEXT_HelpMessage, "IE17 is a project aimed to reverse enginner some functions from Ghostbusters The Video Game Remaster. by sakis720 ");
     }
 }
 
@@ -59,23 +59,25 @@ void RunMod()
 
     while (true)
     {
-        if (GetAsyncKeyState(VK_BACK) & 1)
+        if (GetAsyncKeyState(VK_F2) & 1)
         {
             GhostViewer();
         }
 
-        if (GetAsyncKeyState(VK_UP) & 1)
+        if (GetAsyncKeyState(VK_F1) & 1)
         {
             Slew();
         }
-        if (GetAsyncKeyState('V') & 1)
+        if (GetAsyncKeyState(VK_F3) & 1)
         {
             AboutMod();
         }
+        /*
         if (GetAsyncKeyState(VK_TAB) & 1)
         {
             break; //bgale to dll
         }
+        */
     }
 }
 
