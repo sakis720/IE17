@@ -15,6 +15,7 @@ enum EHudTypes
 extern bool g_fSlew;
 extern bool m_about;
 extern bool g_fGhostViewer;
+extern bool g_fRestartLevel;
 extern char* g_modBase;
 
 extern int (*DisplayText)(int, const char*);
@@ -22,5 +23,6 @@ extern int (*DisplayText)(int, const char*);
 DWORD WINAPI DLLAttach(HMODULE hModule);
 void SlewEnableDisable();
 void AboutMod();
+void ResLevel();
 void GhostViewerFun();
 void RunMod();
