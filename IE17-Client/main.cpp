@@ -16,7 +16,7 @@ typedef void(__cdecl* _GhostViewerFunc)();
 _GhostViewerFunc GhostViewer;
 
 
-int (*DisplayText)(int, const char*);
+int (*DisplayText)(int, const char*, float);
 
 
 void ResLevel()
@@ -31,14 +31,14 @@ void ResLevel()
         g_fRestartLevel = false;
         ResLevelFun();
         Sleep(7000);
-        DisplayText(TEXT_HelpMessage, "Level Has Been Restarted");
+        DisplayText(TEXT_HelpMessage, "Level Has Been Restarted", 10.0f);
     }
     else
     {
         g_fRestartLevel = true;
         ResLevelFun();
         Sleep(7000);
-        DisplayText(TEXT_HelpMessage, "Level Has Been Restarted");
+        DisplayText(TEXT_HelpMessage, "Level Has Been Restarted", 10.0f);
     }
 }
 
@@ -48,12 +48,12 @@ void AboutMod()
     if (m_about)
     {
         m_about = false;
-        DisplayText(TEXT_GenericText, "IE17 v0.02 Compiled at: Oct 3 2024");
+        DisplayText(TEXT_HelpMessage, "IE17 v0.02 Compiled at: Oct 4", 150.0f);
     }
     else
     {
         m_about = true;
-        DisplayText(TEXT_HelpMessage, "IE17 is a project aimed to reverse enginner some functions from Ghostbusters The Video Game Remaster. by sakis720 ");
+        DisplayText(TEXT_HelpMessage, "IE17 is a project aimed to reverse enginner some functions from Ghostbusters The Video Game Remaster. by sakis720 ", 10.0f);
     }
 }
 
@@ -123,7 +123,7 @@ DWORD WINAPI DLLAttach(HMODULE hModule)
 {
     MH_Initialize();
     g_modBase = (char*)GetModuleHandle(NULL);
-    DisplayText = (int(*)(int, const char*))(g_modBase + 0x2494A0);
+    DisplayText = (int(*)(int, const char*, float))(g_modBase + 0x2494A0);
 
     RunMod();
 

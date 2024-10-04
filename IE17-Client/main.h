@@ -18,11 +18,11 @@ extern bool g_fGhostViewer;
 extern bool g_fRestartLevel;
 extern char* g_modBase;
 
-extern int (*DisplayText)(int, const char*);
+extern int (*DisplayText)(int, const char*, float);
 
 DWORD WINAPI DLLAttach(HMODULE hModule);
-void SlewEnableDisable();
+//void SlewEnableDisable();
 void AboutMod();
 void ResLevel();
-void GhostViewerFun();
+//void GhostViewerFun();
 void RunMod();
