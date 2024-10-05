@@ -163,7 +163,7 @@ DWORD WINAPI DLLAttach(HMODULE hModule)
 {
     MH_Initialize();
     g_modBase = (char*)GetModuleHandle(NULL);
-    DisplayText = (int(*)(int, const char*, float))(g_modBase + 0x2494A0);
+    DisplayText = (int(*)(int, const char*, float))(g_modBase + 0x2494A0); //hudtype msg duration
     DisplayTextLegacy = (int(*)(int, const char*, const char*, char))(g_modBase + 0x2A6C90);
 
     RunMod();
