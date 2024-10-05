@@ -1,7 +1,9 @@
-#pragma once
 #include <windows.h>
 #include "include/MinHook.h"
 #include <cstdio>
+#define STR_(X) #X
+#define IE17ver v0.02
+#define STR(X) STR_(X)
 
 enum ETextHudTypes
 {

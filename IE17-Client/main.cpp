@@ -1,5 +1,6 @@
 #include "main.h"
 #include <stdio.h>
+#include <iostream>
 
 using namespace std;
 
@@ -69,7 +70,7 @@ void AboutMod()
     if (m_about)
     {
         m_about = false;
-        DisplayText(TEXT_HelpMessage, "IE17 v0.02 Compiled at: Oct 5", 150.0f);
+        DisplayText(TEXT_HelpMessage, "IE17 " STR(IE17ver) " Compiled at : " STR(__DATE__) " in " STR(__TIME__), 150.0f);
     }
     else
     {
@@ -132,11 +133,13 @@ void RunMod()
         if (GetAsyncKeyState(VK_F2) & 1)
         {
             GhostViewer();
+           //cout << "Ghost Viewer Function Was Called \n";
         }
 
         if (GetAsyncKeyState(VK_F1) & 1)
         {
             Slew();
+            //cout << "Slew Function Was Called \n";
         }
         if (GetAsyncKeyState(VK_F3) & 1)
         {
@@ -145,10 +148,12 @@ void RunMod()
         if (GetAsyncKeyState(VK_F4) & 1)
         {
             ResLevel();
+            //cout << "The Level has been restarted \n";
         }
         if (GetAsyncKeyState(VK_F5) & 1)
         {
             TestLegacyText();
+            //cout << "Legacy Display was called. Game crashed :( \n";
         }
         /*
         if (GetAsyncKeyState(VK_TAB) & 1)
@@ -162,6 +167,25 @@ void RunMod()
 DWORD WINAPI DLLAttach(HMODULE hModule)
 {
     MH_Initialize();
+    AllocConsole();
+    SetConsoleTitleA("IE17 Build " STR(IE17ver));
+
+    freopen_s((FILE**)stdin, "CONIN$", "r", stdin);
+    freopen_s((FILE**)stdout, "CONOUT$", "w", stdout);
+
+    cout << "*************************** \n";
+    cout << "     IE17 is hooked! \n";
+    cout << "*************************** \n";
+    cout << "Version: " STR(IE17ver) "\n";
+    cout << "\n";
+    cout << "Controls: \n";
+        cout << "\n";
+    cout << "Slew(Noclip): F1 \n";
+    cout << "Ghost Viewer: F2 \n";
+    cout << "About: F3 \n";
+    cout << "Restart Level: F4 \n";
+    cout << "Display Legacy Print (IT WILL CRASH YOUR GAME): F5 \n";
+
     g_modBase = (char*)GetModuleHandle(NULL);
     DisplayText = (int(*)(int, const char*, float))(g_modBase + 0x2494A0); //hudtype msg duration
     DisplayTextLegacy = (int(*)(int, const char*, const char*, char))(g_modBase + 0x2A6C90);
@@ -169,6 +193,9 @@ DWORD WINAPI DLLAttach(HMODULE hModule)
     RunMod();
 
     MH_Uninitialize();
+    fclose((FILE*)stdin);
+    fclose((FILE*)stdout);
+    FreeConsole();
     FreeLibraryAndExitThread(hModule, 0);
     return 1;
 }
