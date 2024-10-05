@@ -5,6 +5,7 @@ using namespace std;
 
 bool g_fSlew = false;
 bool m_about = false;
+bool m_legacycrash = false;
 bool g_fGhostViewer = false;
 bool g_fRestartLevel = false;
 char* g_modBase = nullptr;
@@ -17,6 +18,7 @@ _GhostViewerFunc GhostViewer;
 
 
 int (*DisplayText)(int, const char*, float);
+int (*DisplayTextLegacy)(int, const char*, const char*, char);
 
 
 void ResLevel()
@@ -29,6 +31,16 @@ void ResLevel()
     if (g_fRestartLevel)
     {
         g_fRestartLevel = false;
+        DisplayText(TEXT_HelpMessage, "Restarting Level In: 5 sec", 1.0f);
+        Sleep(1000);
+        DisplayText(TEXT_HelpMessage, "Restarting Level In: 4 sec", 1.0f);
+        Sleep(1000);
+        DisplayText(TEXT_HelpMessage, "Restarting Level In: 3 sec", 1.0f);
+        Sleep(1000);
+        DisplayText(TEXT_HelpMessage, "Restarting Level In: 2 sec", 1.0f);
+        Sleep(1000);
+        DisplayText(TEXT_HelpMessage, "Restarting Level In: 1 sec", 1.0f);
+        Sleep(1000);
         ResLevelFun();
         Sleep(7000);
         DisplayText(TEXT_HelpMessage, "Level Has Been Restarted", 10.0f);
@@ -36,24 +48,48 @@ void ResLevel()
     else
     {
         g_fRestartLevel = true;
+        DisplayText(TEXT_HelpMessage, "Restarting Level In: 5 sec", 1.0f);
+        Sleep(1000);
+        DisplayText(TEXT_HelpMessage, "Restarting Level In: 4 sec", 1.0f);
+        Sleep(1000);
+        DisplayText(TEXT_HelpMessage, "Restarting Level In: 3 sec", 1.0f);
+        Sleep(1000);
+        DisplayText(TEXT_HelpMessage, "Restarting Level In: 2 sec", 1.0f);
+        Sleep(1000);
+        DisplayText(TEXT_HelpMessage, "Restarting Level In: 1 sec", 1.0f);
+        Sleep(1000);
         ResLevelFun();
         Sleep(7000);
         DisplayText(TEXT_HelpMessage, "Level Has Been Restarted", 10.0f);
     }
 }
 
-
 void AboutMod()
 {
     if (m_about)
     {
         m_about = false;
-        DisplayText(TEXT_HelpMessage, "IE17 v0.02 Compiled at: Oct 4", 150.0f);
+        DisplayText(TEXT_HelpMessage, "IE17 v0.02 Compiled at: Oct 5", 150.0f);
     }
     else
     {
         m_about = true;
         DisplayText(TEXT_HelpMessage, "IE17 is a project aimed to reverse enginner some functions from Ghostbusters The Video Game Remaster. by sakis720 ", 10.0f);
+    }
+}
+
+
+void TestLegacyText()
+{
+    if (m_legacycrash)
+    {
+        m_legacycrash = false;
+        DisplayTextLegacy(TEXT_Default, "Game Crashed", "If you are seeing this the game has crashed, this 'Legacy' print function is parsley broken", 0);
+    }
+    else
+    {
+        m_legacycrash = true;
+        DisplayTextLegacy(TEXT_Default, "Game Crashed", "If you are seeing this the game has crashed, this 'Legacy' print function is parsley broken", 0);
     }
 }
 
@@ -110,6 +146,10 @@ void RunMod()
         {
             ResLevel();
         }
+        if (GetAsyncKeyState(VK_F5) & 1)
+        {
+            TestLegacyText();
+        }
         /*
         if (GetAsyncKeyState(VK_TAB) & 1)
         {
@@ -124,6 +164,7 @@ DWORD WINAPI DLLAttach(HMODULE hModule)
     MH_Initialize();
     g_modBase = (char*)GetModuleHandle(NULL);
     DisplayText = (int(*)(int, const char*, float))(g_modBase + 0x2494A0);
+    DisplayTextLegacy = (int(*)(int, const char*, const char*, char))(g_modBase + 0x2A6C90);
 
     RunMod();
 
