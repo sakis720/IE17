@@ -11,6 +11,13 @@ bool g_fGhostViewer = false;
 bool g_fRestartLevel = false;
 char* g_modBase = nullptr;
 
+//localization
+const char* levelres{ "Level Restarted" };
+const char* aboutbuild{ "IE17 " STR(IE17ver) " Compiled at : " STR(__DATE__) " in " STR(__TIME__) };
+const char* about{ "IE17 is a project aimed to reverse enginner some functions from Ghostbusters The Video Game Remaster. by sakis720 " };
+const char* crashedgametittle{ "Game Crashed" };
+const char* crashedgame{ "If you are seeing this the game has crashed, this 'Legacy' print function is parsley broken" };
+
 typedef void(__cdecl* _SlewFun)();
 _SlewFun Slew;
 
@@ -44,7 +51,7 @@ void ResLevel()
         Sleep(1000);
         ResLevelFun();
         Sleep(7000);
-        DisplayText(TEXT_HelpMessage, "Level Has Been Restarted", 10.0f);
+        DisplayText(TEXT_HelpMessage, levelres, 10.0f);
     }
     else
     {
@@ -61,7 +68,7 @@ void ResLevel()
         Sleep(1000);
         ResLevelFun();
         Sleep(7000);
-        DisplayText(TEXT_HelpMessage, "Level Has Been Restarted", 10.0f);
+        DisplayText(TEXT_HelpMessage, levelres, 10.0f);
     }
 }
 
@@ -70,12 +77,12 @@ void AboutMod()
     if (m_about)
     {
         m_about = false;
-        DisplayText(TEXT_HelpMessage, "IE17 " STR(IE17ver) " Compiled at : " STR(__DATE__) " in " STR(__TIME__), 150.0f);
+        DisplayText(TEXT_HelpMessage, aboutbuild, 150.0f);
     }
     else
     {
         m_about = true;
-        DisplayText(TEXT_HelpMessage, "IE17 is a project aimed to reverse enginner some functions from Ghostbusters The Video Game Remaster. by sakis720 ", 10.0f);
+        DisplayText(TEXT_HelpMessage, about, 10.0f);
     }
 }
 
@@ -85,12 +92,12 @@ void TestLegacyText()
     if (m_legacycrash)
     {
         m_legacycrash = false;
-        DisplayTextLegacy(TEXT_Default, "Game Crashed", "If you are seeing this the game has crashed, this 'Legacy' print function is parsley broken", 0);
+        DisplayTextLegacy(TEXT_Default, crashedgametittle, crashedgame, 0);
     }
     else
     {
         m_legacycrash = true;
-        DisplayTextLegacy(TEXT_Default, "Game Crashed", "If you are seeing this the game has crashed, this 'Legacy' print function is parsley broken", 0);
+        DisplayTextLegacy(TEXT_Default, crashedgametittle, crashedgame, 0);
     }
 }
 
@@ -179,7 +186,7 @@ DWORD WINAPI DLLAttach(HMODULE hModule)
     cout << "Version: " STR(IE17ver) "\n";
     cout << "\n";
     cout << "Controls: \n";
-        cout << "\n";
+    cout << "\n";
     cout << "Slew(Noclip): F1 \n";
     cout << "Ghost Viewer: F2 \n";
     cout << "About: F3 \n";
@@ -188,7 +195,7 @@ DWORD WINAPI DLLAttach(HMODULE hModule)
 
     g_modBase = (char*)GetModuleHandle(NULL);
     DisplayText = (int(*)(int, const char*, float))(g_modBase + 0x2494A0); //hudtype msg duration
-    DisplayTextLegacy = (int(*)(int, const char*, const char*, char))(g_modBase + 0x2A6C90);
+    DisplayTextLegacy = (int(*)(int, const char*, const char*, char))(g_modBase + 0x2A6C90); //int hudtype, const char* msgtittle, const char* msg, int ?(duration??)
 
     RunMod();
 
