@@ -7,6 +7,7 @@ using namespace std;
 bool g_fSlew = false;
 bool m_about = false;
 bool m_legacycrash = false;
+bool b_spawnactor = false;
 bool g_fGhostViewer = false;
 bool g_fRestartLevel = false;
 char* g_modBase = nullptr;
@@ -25,8 +26,11 @@ typedef void(__cdecl* _GhostViewerFunc)();
 _GhostViewerFunc GhostViewer;
 
 
+void (*CreateActor)(const char*, Vector);
 int (*DisplayText)(int, const char*, float);
 int (*DisplayTextLegacy)(int, const char*, const char*, char);
+
+Vector CreateActorPos{3.35, 1.0, -22.22}; //temporary coords, the cords are the player spawn cords for museum level at the docks
 
 
 void ResLevel()
@@ -74,6 +78,7 @@ void ResLevel()
 
 void AboutMod()
 {
+
     if (m_about)
     {
         m_about = false;
@@ -86,18 +91,36 @@ void AboutMod()
     }
 }
 
+void SpawnActor()
+{
+    if (b_spawnactor)
+    {
+        b_spawnactor = false;
+        DisplayText(TEXT_HelpMessage, "Spawned Actor: Ghostbuster", 1.5f);
+        CreateActor("CGhostbuster", CreateActorPos);
+        //cout << "Spawned ACTOR DEBUG \n"; 
+    }
+    else
+    {
+        b_spawnactor = true;
+        DisplayText(TEXT_HelpMessage, "Spawned Actor: Ghosts", 1.5f);
+        CreateActor("CSlimer", CreateActorPos);
+        //cout << "Spawned ACTOR DEBUG \n";
+    }
+}
+
 
 void TestLegacyText()
 {
     if (m_legacycrash)
     {
         m_legacycrash = false;
-        DisplayTextLegacy(TEXT_Default, crashedgametittle, crashedgame, 0);
+        DisplayTextLegacy(TEXTL_Default, crashedgametittle, crashedgame, 0);
     }
     else
     {
         m_legacycrash = true;
-        DisplayTextLegacy(TEXT_Default, crashedgametittle, crashedgame, 0);
+        DisplayTextLegacy(TEXTL_Default, crashedgametittle, crashedgame, 0);
     }
 }
 
@@ -162,6 +185,12 @@ void RunMod()
             TestLegacyText();
             //cout << "Legacy Display was called. Game crashed :( \n";
         }
+        if (GetAsyncKeyState(VK_F6) & 1)
+        {
+            SpawnActor();
+            Sleep(1000); //Cheap method to make it wait until you can recall the function so the game doesn't crash
+            //cout << "Legacy Display was called. Game crashed :( \n";
+        }
         /*
         if (GetAsyncKeyState(VK_TAB) & 1)
         {
@@ -192,8 +221,10 @@ DWORD WINAPI DLLAttach(HMODULE hModule)
     cout << "About: F3 \n";
     cout << "Restart Level: F4 \n";
     cout << "Display Legacy Print (IT WILL CRASH YOUR GAME): F5 \n";
+    cout << "Spawn Actor: F6 \n";
 
     g_modBase = (char*)GetModuleHandle(NULL);
+    CreateActor = (void(*)(const char*, Vector))(g_modBase + 0x2C0D50); //const char class, vector pos(x,y,z)
     DisplayText = (int(*)(int, const char*, float))(g_modBase + 0x2494A0); //hudtype msg duration
     DisplayTextLegacy = (int(*)(int, const char*, const char*, char))(g_modBase + 0x2A6C90); //int hudtype, const char* msgtittle, const char* msg, int ?(duration??)
 
