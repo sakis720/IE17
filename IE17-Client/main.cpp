@@ -25,12 +25,16 @@ _SlewFun Slew;
 typedef void(__cdecl* _GhostViewerFunc)();
 _GhostViewerFunc GhostViewer;
 
-
+//void (*ChainToLevel)(const char*);
+void (*SetGravity)(Vector);
+void (*AddLight)(Vector, float, Vector, float, float, float, float);
 void (*CreateActor)(const char*, Vector);
 int (*DisplayText)(int, const char*, float);
 int (*DisplayTextLegacy)(int, const char*, const char*, char);
 
-Vector CreateActorPos{3.35, 1.0, -22.22}; //temporary coords, the cords are the player spawn cords for museum level at the docks
+Vector CreateActorPos{ 3.35, 1.0, -22.22 }; //temporary coords, the cords are the player spawn cords for museum level at the docks //temporary coords, the cords are the player spawn cords for museum level at the docks
+Vector LightRGB{ 5.35, 1.0, 40.22 };
+Vector gravitytestforce{ 6.35, 2.0, 40.22 };
 
 
 void ResLevel()
@@ -98,6 +102,9 @@ void SpawnActor()
         b_spawnactor = false;
         DisplayText(TEXT_HelpMessage, "Spawned Actor: Ghostbuster", 1.5f);
         CreateActor("CGhostbuster", CreateActorPos);
+        SetGravity(gravitytestforce);
+        //ChainToLevel("hotel1a.lvl");
+        //AddLight(CreateActorPos, 100, LightRGB, 40, 20, 1.0, 2.0);
         //cout << "Spawned ACTOR DEBUG \n"; 
     }
     else
@@ -105,6 +112,8 @@ void SpawnActor()
         b_spawnactor = true;
         DisplayText(TEXT_HelpMessage, "Spawned Actor: Ghosts", 1.5f);
         CreateActor("CSlimer", CreateActorPos);
+        SetGravity(gravitytestforce);
+        //AddLight(CreateActorPos, 100, LightRGB, 40, 20, 1.0, 2.0);
         //cout << "Spawned ACTOR DEBUG \n";
     }
 }
@@ -223,7 +232,10 @@ DWORD WINAPI DLLAttach(HMODULE hModule)
     cout << "Display Legacy Print (IT WILL CRASH YOUR GAME): F5 \n";
     cout << "Spawn Actor: F6 \n";
 
-    g_modBase = (char*)GetModuleHandle(NULL);
+    g_modBase = (char*)GetModuleHandle(NULL); 
+    //ChainToLevel = (void(*)(const char*))(g_modBase + 0x1EF700); //hudtype msg duration
+    SetGravity = (void(*)(Vector))(g_modBase + 0x1ECC40); //sets gravity
+    AddLight = (void(*)(Vector, float, Vector, float, float, float, float))(g_modBase + 0x1ECB20); //vector pos, float radius, vector rgb, float intensity, float duration, float rampUp = 0.0, float rampDown = 0.0
     CreateActor = (void(*)(const char*, Vector))(g_modBase + 0x2C0D50); //const char class, vector pos(x,y,z)
     DisplayText = (int(*)(int, const char*, float))(g_modBase + 0x2494A0); //hudtype msg duration
     DisplayTextLegacy = (int(*)(int, const char*, const char*, char))(g_modBase + 0x2A6C90); //int hudtype, const char* msgtittle, const char* msg, int ?(duration??)

@@ -144,6 +144,9 @@ extern bool b_spawnactor;
 extern bool g_fRestartLevel;
 extern char* g_modBase;
 
+//extern void (*ChainToLevel)(const char*);
+extern void (*SetGravity)(Vector);
+extern void (*AddLight)(Vector, float, Vector, float, float, float, float);
 extern void (*CreateActor)(const char*, Vector);
 extern int (*DisplayText)(int, const char*, float);
 extern int (*DisplayTextLegacy)(int, const char*, const char*, char);
