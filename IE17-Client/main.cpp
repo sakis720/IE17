@@ -29,6 +29,7 @@ _GhostViewerFunc GhostViewer;
 
 //void (*ChainToLevel)(const char*);
 //void (*knockBack)(Vector, float);
+void (*setTeam)(int, int);
 void (*WarpTo)(Vector, float);
 void (*CacheEffect)(const char**);
 int (*StartEffect)(const char*, Vector, Vector);
@@ -86,6 +87,7 @@ void SpawnActor()
     const char* actorType = b_spawnactor ? "CSlimer" : "CGhostbuster";
     const char* messageType = b_spawnactor ? "Spawned Actor: Ghosts" : "Spawned Actor: Ghostbuster";
 
+    //StartEffect("ghostbusters_down.tfb", CreateActorPos, tempEffectOrient);
     DisplayText(TEXT_HelpMessage, messageType, 1.5f);
     CreateActor(actorType, CreateActorPos);
 
@@ -99,6 +101,7 @@ void TestLegacyText()
     DisplayTextLegacy(TEXTL_Default, crashedgametittle, crashedgame, 0);
 
 }
+
 
 void RunMod()
 {
@@ -172,6 +175,7 @@ DWORD WINAPI DLLAttach(HMODULE hModule)
     g_modBase = (char*)GetModuleHandle(NULL); 
     //ChainToLevel = (void(*)(const char*))(g_modBase + 0x1EF700); 
     //knockBack = (void(*)(Vector, float))(g_modBase + 0xED100);
+    setTeam = (void(*)(int, int))(g_modBase + 0x15B40); //filename
     WarpTo = (void(*)(Vector, float))(g_modBase + 0x2C4520); // *********************** broken for the time being ***********************
     CacheEffect = (void(*)(const char**))(g_modBase + 0x35A380); //filename
     StartEffect = (int(*)(const char*, Vector, Vector))(g_modBase + 0x35A730); // filename, pos, orient //needs cacheeffect to work
