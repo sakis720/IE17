@@ -136,6 +136,9 @@ extern char* g_modBase;
 
 //extern void (*ChainToLevel)(const char*);
 //extern void (*knockBack)(Vector, float);
+extern void (*WarpTo)(Vector, float);
+extern void (*CacheEffect)(const char**);
+extern int (*StartEffect)(const char*, Vector, Vector);
 extern void (*SetLevelDescription)(const char**);
 extern void (*CreateExplosion)(Vector, float, float, float);
 extern void (*SetGravity)(Vector);

@@ -11,7 +11,7 @@ bool m_legacycrash = false;
 bool b_spawnactor = false;
 bool g_fGhostViewer = false;
 bool g_fRestartLevel = false;
-
+ 
 char* g_modBase = nullptr;
 
 //localization
@@ -29,6 +29,9 @@ _GhostViewerFunc GhostViewer;
 
 //void (*ChainToLevel)(const char*);
 //void (*knockBack)(Vector, float);
+void (*WarpTo)(Vector, float);
+void (*CacheEffect)(const char**);
+int (*StartEffect)(const char*, Vector, Vector);
 void (*SetLevelDescription)(const char**);
 void (*CreateExplosion)(Vector, float, float, float);
 void (*SetGravity)(Vector);
@@ -40,6 +43,7 @@ int (*DisplayTextLegacy)(int, const char*, const char*, char);
 Vector CreateActorPos{ 3.35, 1.0, -22.22 }; //temporary coords, the cords are the player spawn cords for museum level at the docks //temporary coords, the cords are the player spawn cords for museum level at the docks
 Vector LightRGB{ 5.35, 1.0, 40.22 };
 Vector gravitytestforce{ 6.35, 2.0, 40.22 };
+Vector tempEffectOrient{ 90 };
 
 void TextDisplayCountdown(const char* message, int seconds)
 {
@@ -96,35 +100,6 @@ void TestLegacyText()
 
 }
 
-/*
-
-void SlewEnableDisable()
-{
-    if (g_fSlew)
-    {
-        g_fSlew = false;
-        DisplayText(TEXT_GenericText, "IE17 v0.01 Compiled at: Oct 1 2024");
-    }
-    else
-    {
-        g_fSlew = true;
-    }
-}
-
-void GhostViewerFun()
-{
-    if (g_fGhostViewer)
-    {
-        g_fGhostViewer = false;
-    }
-    else
-    {
-        g_fGhostViewer = true;
-    }
-}
-
-*/
-
 void RunMod()
 {
     Slew = (_SlewFun)(g_modBase + 0x1F9D50);
@@ -161,7 +136,6 @@ void RunMod()
         {
             SpawnActor();
             Sleep(1000); //Cheap method to make it wait until you can recall the function so the game doesn't crash
-            //cout << "Legacy Display was called. Game crashed :( \n";
         }
         /*
         if (GetAsyncKeyState(VK_TAB) & 1)
@@ -197,8 +171,11 @@ DWORD WINAPI DLLAttach(HMODULE hModule)
 
     g_modBase = (char*)GetModuleHandle(NULL); 
     //ChainToLevel = (void(*)(const char*))(g_modBase + 0x1EF700); 
-    //knockBack = (void(*)(Vector, float))(g_modBase + 0xED100); 
-    SetLevelDescription = (void(*)(const char**))(g_modBase + 0x2D8820); //broken for the time being
+    //knockBack = (void(*)(Vector, float))(g_modBase + 0xED100);
+    WarpTo = (void(*)(Vector, float))(g_modBase + 0x2C4520); // *********************** broken for the time being ***********************
+    CacheEffect = (void(*)(const char**))(g_modBase + 0x35A380); //filename
+    StartEffect = (int(*)(const char*, Vector, Vector))(g_modBase + 0x35A730); // filename, pos, orient //needs cacheeffect to work
+    SetLevelDescription = (void(*)(const char**))(g_modBase + 0x2D8820); // *********************** broken for the time being ***********************
     CreateExplosion = (void(*)(Vector, float, float, float))(g_modBase + 0x1E9170); //pos, radius, damageStrength, speed
     SetGravity = (void(*)(Vector))(g_modBase + 0x1ECC40); //sets gravity
     AddLight = (void(*)(Vector, float, Vector, float, float, float, float))(g_modBase + 0x1ECB20); //vector pos, float radius, vector rgb, float intensity, float duration, float rampUp = 0.0, float rampDown = 0.0
