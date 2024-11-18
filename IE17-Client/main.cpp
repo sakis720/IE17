@@ -1,6 +1,7 @@
 #include "main.h"
 #include <stdio.h>
 #include <iostream>
+#include <string>
 
 using namespace std;
 
@@ -10,6 +11,7 @@ bool m_legacycrash = false;
 bool b_spawnactor = false;
 bool g_fGhostViewer = false;
 bool g_fRestartLevel = false;
+
 char* g_modBase = nullptr;
 
 //localization
@@ -19,13 +21,16 @@ const char* about{ "IE17 is a project aimed to reverse enginner some functions f
 const char* crashedgametittle{ "Game Crashed" };
 const char* crashedgame{ "If you are seeing this the game has crashed, this 'Legacy' print function is parsley broken" };
 
-typedef void(__cdecl* _SlewFun)();
-_SlewFun Slew;
+using _SlewFun = void(__cdecl*)();
+using _GhostViewerFunc = void(__cdecl*)();
 
-typedef void(__cdecl* _GhostViewerFunc)();
+_SlewFun Slew;
 _GhostViewerFunc GhostViewer;
 
 //void (*ChainToLevel)(const char*);
+//void (*knockBack)(Vector, float);
+void (*SetLevelDescription)(const char**);
+void (*CreateExplosion)(Vector, float, float, float);
 void (*SetGravity)(Vector);
 void (*AddLight)(Vector, float, Vector, float, float, float, float);
 void (*CreateActor)(const char*, Vector);
@@ -36,101 +41,59 @@ Vector CreateActorPos{ 3.35, 1.0, -22.22 }; //temporary coords, the cords are th
 Vector LightRGB{ 5.35, 1.0, 40.22 };
 Vector gravitytestforce{ 6.35, 2.0, 40.22 };
 
+void TextDisplayCountdown(const char* message, int seconds)
+{
+    for (int i = seconds; i > 0; --i)
+    {
+        DisplayText(TEXT_HelpMessage, (message + to_string(i) + " sec").c_str(), 1.0f);
+        Sleep(1000);
+    }
+}
+
 
 void ResLevel()
 {
 
-    typedef void(__cdecl* _ResLevelFunc)();
-    _ResLevelFunc ResLevelFun;
-    ResLevelFun = (_ResLevelFunc)(g_modBase + 0x1F8180);
+    using ResLevelFunc = void(__cdecl*)();
+    auto ResLevelFun = (ResLevelFunc)(g_modBase + 0x1F8180);
 
-    if (g_fRestartLevel)
-    {
-        g_fRestartLevel = false;
-        DisplayText(TEXT_HelpMessage, "Restarting Level In: 5 sec", 1.0f);
-        Sleep(1000);
-        DisplayText(TEXT_HelpMessage, "Restarting Level In: 4 sec", 1.0f);
-        Sleep(1000);
-        DisplayText(TEXT_HelpMessage, "Restarting Level In: 3 sec", 1.0f);
-        Sleep(1000);
-        DisplayText(TEXT_HelpMessage, "Restarting Level In: 2 sec", 1.0f);
-        Sleep(1000);
-        DisplayText(TEXT_HelpMessage, "Restarting Level In: 1 sec", 1.0f);
-        Sleep(1000);
-        ResLevelFun();
-        Sleep(7000);
-        DisplayText(TEXT_HelpMessage, levelres, 10.0f);
-    }
-    else
-    {
-        g_fRestartLevel = true;
-        DisplayText(TEXT_HelpMessage, "Restarting Level In: 5 sec", 1.0f);
-        Sleep(1000);
-        DisplayText(TEXT_HelpMessage, "Restarting Level In: 4 sec", 1.0f);
-        Sleep(1000);
-        DisplayText(TEXT_HelpMessage, "Restarting Level In: 3 sec", 1.0f);
-        Sleep(1000);
-        DisplayText(TEXT_HelpMessage, "Restarting Level In: 2 sec", 1.0f);
-        Sleep(1000);
-        DisplayText(TEXT_HelpMessage, "Restarting Level In: 1 sec", 1.0f);
-        Sleep(1000);
-        ResLevelFun();
-        Sleep(7000);
-        DisplayText(TEXT_HelpMessage, levelres, 10.0f);
-    }
+    g_fRestartLevel = !g_fRestartLevel;
+
+    TextDisplayCountdown("Restarting Level In: ", 5);
+    ResLevelFun();
+    Sleep(7000);
+    DisplayText(TEXT_HelpMessage, levelres, 10.0f);
+
 }
 
 void AboutMod()
 {
+    m_about = !m_about;
 
-    if (m_about)
-    {
-        m_about = false;
-        DisplayText(TEXT_HelpMessage, aboutbuild, 150.0f);
-    }
-    else
-    {
-        m_about = true;
-        DisplayText(TEXT_HelpMessage, about, 10.0f);
-    }
+    const char* setMsg = m_about ? about : aboutbuild;
+
+    DisplayText(TEXT_HelpMessage, setMsg, 10.0f);
 }
 
 void SpawnActor()
 {
-    if (b_spawnactor)
-    {
-        b_spawnactor = false;
-        DisplayText(TEXT_HelpMessage, "Spawned Actor: Ghostbuster", 1.5f);
-        CreateActor("CGhostbuster", CreateActorPos);
-        SetGravity(gravitytestforce);
-        //ChainToLevel("hotel1a.lvl");
-        //AddLight(CreateActorPos, 100, LightRGB, 40, 20, 1.0, 2.0);
-        //cout << "Spawned ACTOR DEBUG \n"; 
-    }
-    else
-    {
-        b_spawnactor = true;
-        DisplayText(TEXT_HelpMessage, "Spawned Actor: Ghosts", 1.5f);
-        CreateActor("CSlimer", CreateActorPos);
-        SetGravity(gravitytestforce);
-        //AddLight(CreateActorPos, 100, LightRGB, 40, 20, 1.0, 2.0);
-        //cout << "Spawned ACTOR DEBUG \n";
-    }
+    b_spawnactor = !b_spawnactor;
+
+    const char* actorType = b_spawnactor ? "CSlimer" : "CGhostbuster";
+    const char* messageType = b_spawnactor ? "Spawned Actor: Ghosts" : "Spawned Actor: Ghostbuster";
+
+    DisplayText(TEXT_HelpMessage, messageType, 1.5f);
+    CreateActor(actorType, CreateActorPos);
+
 }
 
 
 void TestLegacyText()
 {
-    if (m_legacycrash)
-    {
-        m_legacycrash = false;
-        DisplayTextLegacy(TEXTL_Default, crashedgametittle, crashedgame, 0);
-    }
-    else
-    {
-        m_legacycrash = true;
-        DisplayTextLegacy(TEXTL_Default, crashedgametittle, crashedgame, 0);
-    }
+    m_legacycrash = !m_legacycrash;
+
+    DisplayTextLegacy(TEXTL_Default, crashedgametittle, crashedgame, 0);
+
 }
 
 /*
@@ -233,7 +196,10 @@ DWORD WINAPI DLLAttach(HMODULE hModule)
     cout << "Spawn Actor: F6 \n";
 
     g_modBase = (char*)GetModuleHandle(NULL); 
-    //ChainToLevel = (void(*)(const char*))(g_modBase + 0x1EF700); //hudtype msg duration
+    //ChainToLevel = (void(*)(const char*))(g_modBase + 0x1EF700); 
+    //knockBack = (void(*)(Vector, float))(g_modBase + 0xED100); 
+    SetLevelDescription = (void(*)(const char**))(g_modBase + 0x2D8820); //broken for the time being
+    CreateExplosion = (void(*)(Vector, float, float, float))(g_modBase + 0x1E9170); //pos, radius, damageStrength, speed
     SetGravity = (void(*)(Vector))(g_modBase + 0x1ECC40); //sets gravity
     AddLight = (void(*)(Vector, float, Vector, float, float, float, float))(g_modBase + 0x1ECB20); //vector pos, float radius, vector rgb, float intensity, float duration, float rampUp = 0.0, float rampDown = 0.0
     CreateActor = (void(*)(const char*, Vector))(g_modBase + 0x2C0D50); //const char class, vector pos(x,y,z)

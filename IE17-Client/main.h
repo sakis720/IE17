@@ -118,16 +118,6 @@ enum Classes
 };
 */
 
-/*
-enum ETextHudTypes
-{
-    TEXT_DebugText = 0,
-    TEXT_GenericText = 1,
-    TEXT_SpiritGuideUpdated = 2,
-    TEXT_ObjectivesUpdated = 3,
-    TEXT_HelpMessage = 13,
-};
-*/
 
 enum ETextLegacyPrintTypes
 {
@@ -145,6 +135,9 @@ extern bool g_fRestartLevel;
 extern char* g_modBase;
 
 //extern void (*ChainToLevel)(const char*);
+//extern void (*knockBack)(Vector, float);
+extern void (*SetLevelDescription)(const char**);
+extern void (*CreateExplosion)(Vector, float, float, float);
 extern void (*SetGravity)(Vector);
 extern void (*AddLight)(Vector, float, Vector, float, float, float, float);
 extern void (*CreateActor)(const char*, Vector);
