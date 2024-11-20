@@ -31,6 +31,7 @@ using _QuitLevel = void(__cdecl*)();
 using _animation = void(__cdecl*)();
 using _cinemat = void(__cdecl*)();
 using _channels = void(__cdecl*)();
+using _resgravity = void(__cdecl*)();
 
 
 _SlewFun Slew;
@@ -40,10 +41,13 @@ _QuitLevel quitLevel;
 _animation animDebug;
 _cinemat cinematDebug;
 _channels chanDebug;
+_resgravity resetgravity;
 
 
 //void (*ChainToLevel)(const char*);
 //void (*knockBack)(Vector, float);
+void (*fade)(float, float, float, float, float);
+void (*displaySplashScreen)(const char*, float, bool, bool);
 void (*setTeam)(int, int);
 void (*WarpTo)(Vector, const char*, Vector);
 void (*CacheEffect)(const char**);
@@ -70,6 +74,7 @@ void HandleInput()
     animDebug = (_animation)(g_modBase + 0x1F7FB0);
     cinematDebug = (_cinemat)(g_modBase + 0x1F7FC0);
     chanDebug = (_channels)(g_modBase + 0x1F7FD0);
+    resetgravity = (_resgravity)(g_modBase + 0x1F82E0);
 
     string input;
     while (true)
@@ -120,6 +125,11 @@ void HandleInput()
             GhostViewer();
             cout << "Ghost Viewer toggled.\n";
         }
+        else if (input == "resetgravity")
+        {
+            resetgravity();
+            cout << "Gravity Reseted.\n";
+        }
         else if (input == "about")
         {
             AboutMod();
@@ -130,7 +140,7 @@ void HandleInput()
             ResLevel();
             cout << "Restarting level...\n";
         }
-        else if (input == "legacy")
+        else if (input == "legacytext")
         {
             TestLegacyText();
             cout << "Legacy text display toggled.\n";
@@ -265,12 +275,13 @@ void HandleInput()
             cout << "  ghostviewer           - Toggle Ghost Viewer\n";
             cout << "  about                 - Toggle About\n";
             cout << "  restart               - Restart Level\n";
-            cout << "  legacy                - Toggle Legacy text display\n";
-            cout << "  spawnactor            - Toggle Spawn Actor\n";
+            cout << "  legacytext            - Toggle Legacy text display\n";
+            cout << "  spawnactor            - Toggle Spawn Actor (Doesn't work currently)\n";
             cout << "  explosion             - Creates Explosion\n";
             cout << "  spawnactorat          - Spawn Actor at a given position\n";
             cout << "  createlight           - Create a light source at a given position\n";
             cout << "  createffect           - Create a effect at a given position and orientation\n";
+            cout << "  resetgravity          - Reset the gravity\n";
             cout << "  gravity               - Set gravity\n";
             cout << "  help                  - Show this help message\n";
             cout << "  exit                  - Close the console\n";
@@ -340,6 +351,10 @@ void SpawnActor()
 
     //StartEffect("ghostbusters_down.tfb", CreateActorPos, tempEffectOrient);
     //SetLevelDescription("Testing");
+    //displaySplashScreen("splash_libdemo.tga", 10, false, false);
+    //fade(255, 0, 0, 0, 0);
+    //Sleep(4000);
+    //fade(0, 0, 0, 0, 0);
     DisplayText(TEXT_HelpMessage, messageType, 1.5f);
     CreateActor(actorType, CreateActorPos);
 
@@ -397,6 +412,8 @@ DWORD WINAPI DLLAttach(HMODULE hModule)
     g_modBase = (char*)GetModuleHandle(NULL); 
     //ChainToLevel = (void(*)(const char*))(g_modBase + 0x1EF700); 
     //knockBack = (void(*)(Vector, float))(g_modBase + 0xED100);
+    fade = (void(*)(float, float, float, float, float))(g_modBase + 0x1ECCA0); //float opacity, float r, float g, float b, float duration
+    displaySplashScreen = (void(*)(const char*, float, bool, bool))(g_modBase + 0x1ECD50); //string textureName, float duration, bool stretch = false, bool clear = true
     setTeam = (void(*)(int, int))(g_modBase + 0x15B40); //filename
     WarpTo = (void(*)(Vector, const char*, Vector))(g_modBase + 0x2C4520); // *********************** broken for the time being ***********************
     CacheEffect = (void(*)(const char**))(g_modBase + 0x35A380); //filename

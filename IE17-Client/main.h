@@ -137,6 +137,8 @@ extern char* g_modBase;
 
 //extern void (*ChainToLevel)(const char*);
 //extern void (*knockBack)(Vector, float);
+extern void (*fade)(float, float, float, float, float);
+extern void (*displaySplashScreen)(const char*, float, bool, bool);
 extern void (*setTeam)(int, int);
 extern void (*WarpTo)(Vector, const char*, Vector);
 extern void (*CacheEffect)(const char**);
