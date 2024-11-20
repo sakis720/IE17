@@ -22,15 +22,26 @@ const char* crashedgametittle{ "Game Crashed" };
 const char* crashedgame{ "If you are seeing this the game has crashed, this 'Legacy' print function is parsley broken" };
 
 using _SlewFun = void(__cdecl*)();
-using _GhostViewerFunc = void(__cdecl*)();
+using _GhostViewerFunc = void(__cdecl*)(); 
+using _CancelWalkAll = void(__cdecl*)();
+using _QuitLevel = void(__cdecl*)();
+using _animation = void(__cdecl*)();
+using _cinemat = void(__cdecl*)();
+using _channels = void(__cdecl*)();
 
 _SlewFun Slew;
 _GhostViewerFunc GhostViewer;
+_CancelWalkAll CancelWalkAll;
+_QuitLevel quitLevel;
+_animation animDebug;
+_cinemat cinematDebug;
+_channels chanDebug;
+
 
 //void (*ChainToLevel)(const char*);
 //void (*knockBack)(Vector, float);
 void (*setTeam)(int, int);
-void (*WarpTo)(Vector, float);
+void (*WarpTo)(Vector, const char*, Vector);
 void (*CacheEffect)(const char**);
 int (*StartEffect)(const char*, Vector, Vector);
 void (*SetLevelDescription)(const char**);
@@ -107,6 +118,11 @@ void RunMod()
 {
     Slew = (_SlewFun)(g_modBase + 0x1F9D50);
     GhostViewer = (_GhostViewerFunc)(g_modBase + 0x1F8360);
+    CancelWalkAll = (_CancelWalkAll)(g_modBase + 0x1F81B0);
+    quitLevel = (_QuitLevel)(g_modBase + 0x1F8170);
+    animDebug = (_animation)(g_modBase + 0x1F7FB0);
+    cinematDebug = (_cinemat)(g_modBase + 0x1F7FC0);
+    chanDebug = (_channels)(g_modBase + 0x1F7FD0);
 
     while (true)
     {
@@ -176,7 +192,7 @@ DWORD WINAPI DLLAttach(HMODULE hModule)
     //ChainToLevel = (void(*)(const char*))(g_modBase + 0x1EF700); 
     //knockBack = (void(*)(Vector, float))(g_modBase + 0xED100);
     setTeam = (void(*)(int, int))(g_modBase + 0x15B40); //filename
-    WarpTo = (void(*)(Vector, float))(g_modBase + 0x2C4520); // *********************** broken for the time being ***********************
+    WarpTo = (void(*)(Vector, const char*, Vector))(g_modBase + 0x2C4520); // *********************** broken for the time being ***********************
     CacheEffect = (void(*)(const char**))(g_modBase + 0x35A380); //filename
     StartEffect = (int(*)(const char*, Vector, Vector))(g_modBase + 0x35A730); // filename, pos, orient //needs cacheeffect to work
     SetLevelDescription = (void(*)(const char**))(g_modBase + 0x2D8820); // *********************** broken for the time being ***********************
