@@ -3,5 +3,6 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LocalDebuggerCommand>C:\Users\PC\Desktop\test\GB\ghost.exe</LocalDebuggerCommand>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
+    <LocalDebuggerAttach>false</LocalDebuggerAttach>
   </PropertyGroup>
 </Project>

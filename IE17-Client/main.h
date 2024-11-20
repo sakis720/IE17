@@ -127,6 +127,7 @@ enum ETextLegacyPrintTypes
 
 
 extern bool g_fSlew;
+extern bool g_debugoptions;
 extern bool m_about;
 extern bool g_fGhostViewer;
 extern bool m_legacycrash;
@@ -139,17 +140,18 @@ extern char* g_modBase;
 extern void (*setTeam)(int, int);
 extern void (*WarpTo)(Vector, const char*, Vector);
 extern void (*CacheEffect)(const char**);
-extern int (*StartEffect)(const char* filename, Vector pos, Vector orient);
+extern int (*StartEffect)(const char*, Vector, Vector);
 extern void (*SetLevelDescription)(const char**);
 extern void (*CreateExplosion)(Vector, float, float, float);
 extern void (*SetGravity)(Vector);
 extern void (*AddLight)(Vector, float, Vector, float, float, float, float);
-extern void (*CreateActor)(const char*, Vector);
 extern int (*DisplayText)(int, const char*, float);
 extern int (*DisplayTextLegacy)(int, const char*, const char*, char);
 
 DWORD WINAPI DLLAttach(HMODULE hModule);
 //void SlewEnableDisable();
+void HandleInput();
+void TestSlew();
 void AboutMod();
 void ResLevel();
 void TestLegacyText();
