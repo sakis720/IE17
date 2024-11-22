@@ -46,11 +46,12 @@ _resgravity resetgravity;
 
 //void (*ChainToLevel)(const char*);
 //void (*knockBack)(Vector, float);
+//sint (*diplayTextAdjustable)(int, int, const char*);
 void (*fade)(float, float, float, float, float);
 void (*displaySplashScreen)(const char*, float, bool, bool);
 void (*setTeam)(int, int);
 void (*WarpTo)(Vector, const char*, Vector);
-void (*CacheEffect)(const char**);
+void (*CacheEffect)(const char*);
 int (*StartEffect)(const char*, Vector, Vector);
 void (*SetLevelDescription)(const char**);
 void (*CreateExplosion)(Vector, float, float, float);
@@ -149,6 +150,11 @@ void HandleInput()
         {
             SpawnActor();
             cout << "Spawn Actor toggled.\n";
+        }
+        else if (input == "survivalmode")
+        {
+            RunMod();
+            //cout << "Survival Mode(Prototype).\n";
         }
         else if (input == "explosion")
         {
@@ -282,6 +288,7 @@ void HandleInput()
             cout << "  createlight           - Create a light source at a given position\n";
             cout << "  createffect           - Create a effect at a given position and orientation\n";
             cout << "  resetgravity          - Reset the gravity\n";
+            cout << "  survivalmode          - Starts Survival Mode(Prototype very broken)\n";
             cout << "  gravity               - Set gravity\n";
             cout << "  help                  - Show this help message\n";
             cout << "  exit                  - Close the console\n";
@@ -312,7 +319,7 @@ void TextDisplayCountdown(const char* message, int seconds)
 {
     for (int i = seconds; i > 0; --i)
     {
-        DisplayText(TEXT_HelpMessage, (message + to_string(i) + " sec").c_str(), 1.0f);
+        DisplayText(TEXT_Top, (message + to_string(i) + " sec").c_str(), 1.0f);
         Sleep(1000);
     }
 }
@@ -373,6 +380,71 @@ void TestLegacyText()
 void RunMod()
 {
     /*
+                                    SURVIVAL MODE PROTOTYPE
+    This prototype was made to show what we can achieve from the current functions that have been reversed 
+
+    Note that this prototype is very w.i.p., and the coordinates that are displayed below(GhostSpawner1, GhostSpawner2, GhostSpawner3) are for the
+    first part of the cemetery level
+
+    TODO:
+    *Track the ghost that have been spawned, because now the waves end after 20 seconds
+    *Find player coordinates
+    *Fix CacheEffect function
+    */
+    Vector GhostSpawner1{ -26.0f, 5.02f, -24.5f };
+    Vector GhostSpawner2{ 10.0f, 3.0f, -15.0f };
+    Vector GhostSpawner3{ -15.0f, 7.0f, 20.0f };
+
+    Vector GhostSpawnerOrientation{ 90 };
+
+    int wave = 1;
+    int maxWaves = 10; 
+    int baseGhostsPerWave = 5;  // initial ghost count per wave
+
+    while (wave <= maxWaves)
+    {
+        int ghostsToSpawn = baseGhostsPerWave + (wave - 1) * 2;  // increase ghost count with waves
+        float spawnDelay = 1.0f; 
+
+        TextDisplayCountdown(("Wave " + to_string(wave) + " starting in: ").c_str(), 5);
+
+        DisplayText(TEXT_Top, ("Wave " + to_string(wave) + " begins!").c_str(), 5.0f);
+
+        for (int i = 0; i < ghostsToSpawn; ++i)
+        {
+            // randomize spawn location (pick one of the spawners)
+            Vector selectedSpawner;
+            switch (rand() % 3) {
+            case 0: selectedSpawner = GhostSpawner1; break;
+            case 1: selectedSpawner = GhostSpawner2; break;
+            case 2: selectedSpawner = GhostSpawner3; break;
+            }
+
+            
+            CreateActor("CSlimer", selectedSpawner);
+            StartEffect("blackslime_portal_spawn.tfb", selectedSpawner, GhostSpawnerOrientation);
+
+            Sleep(static_cast<DWORD>(spawnDelay * 1000));
+        }
+
+        // simulate a wave duration (placeholder for actual gameplay mechanics)
+        Sleep(20000); 
+
+        // increment wave
+        ++wave;
+
+       
+        if (wave <= maxWaves)
+        {
+            DisplayText(TEXT_Top, "Prepare for the next wave!", 5.0f);
+            Sleep(5000);
+        }
+    }
+
+   
+    DisplayText(TEXT_Top, "Survival Mode Complete! Well done.", 10.0f);
+
+    /*
     Slew = (_SlewFun)(g_modBase + 0x1F9D50);
     GhostViewer = (_GhostViewerFunc)(g_modBase + 0x1F8360);
     CancelWalkAll = (_CancelWalkAll)(g_modBase + 0x1F81B0);
@@ -412,11 +484,12 @@ DWORD WINAPI DLLAttach(HMODULE hModule)
     g_modBase = (char*)GetModuleHandle(NULL); 
     //ChainToLevel = (void(*)(const char*))(g_modBase + 0x1EF700); 
     //knockBack = (void(*)(Vector, float))(g_modBase + 0xED100);
+    //diplayTextAdjustable = (int(*)(int, int, const char*))(g_modBase + 0x2535A0);
     fade = (void(*)(float, float, float, float, float))(g_modBase + 0x1ECCA0); //float opacity, float r, float g, float b, float duration
     displaySplashScreen = (void(*)(const char*, float, bool, bool))(g_modBase + 0x1ECD50); //string textureName, float duration, bool stretch = false, bool clear = true
     setTeam = (void(*)(int, int))(g_modBase + 0x15B40); //filename
     WarpTo = (void(*)(Vector, const char*, Vector))(g_modBase + 0x2C4520); // *********************** broken for the time being ***********************
-    CacheEffect = (void(*)(const char**))(g_modBase + 0x35A380); //filename
+    CacheEffect = (void(*)(const char*))(g_modBase + 0x35A380); //filename
     StartEffect = (int(*)(const char*, Vector, Vector))(g_modBase + 0x35A730); // filename, pos, orient //needs cacheeffect to work
     SetLevelDescription = (void(*)(const char**))(g_modBase + 0x2D8820); // *********************** broken for the time being ***********************
     CreateExplosion = (void(*)(Vector, float, float, float))(g_modBase + 0x1E9170); //pos, radius, damageStrength, speed
