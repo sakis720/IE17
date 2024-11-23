@@ -136,15 +136,12 @@ extern bool g_fRestartLevel;
 extern char* g_modBase;
 
 //extern void (*ChainToLevel)(const char*);
-//extern void (*knockBack)(Vector, float);
-//extern int (*diplayTextAdjustable)(int, int, const char*);
+extern int** g_LocalPlayer;
+extern void (*setAllowDamageTally)(bool*);
 extern void (*fade)(float, float, float, float, float);
 extern void (*displaySplashScreen)(const char*, float, bool, bool);
-extern void (*setTeam)(int, int);
-extern void (*WarpTo)(Vector, const char*, Vector);
-extern void (*CacheEffect)(const char*);
+extern void (*CacheEffect)(const char**);
 extern int (*StartEffect)(const char*, Vector, Vector);
-extern void (*SetLevelDescription)(const char**);
 extern void (*CreateExplosion)(Vector, float, float, float);
 extern void (*SetGravity)(Vector);
 extern void (*AddLight)(Vector, float, Vector, float, float, float, float);
