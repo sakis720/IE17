@@ -1,6 +1,8 @@
 #include "main.h"
 #include <stdio.h>
 #include <iostream>
+#include <chrono>
+#include <thread>
 #include <string>
 
 using namespace std;
@@ -46,6 +48,7 @@ _resgravity resetgravity;
 
 
 //void (*ChainToLevel)(const char*);
+void (*buttonPrompt)(int, float);
 void (*setAllowDamageTally)(bool*);
 void (*fade)(float, float, float, float, float);
 void (*displaySplashScreen)(const char*, float, bool, bool);
@@ -67,7 +70,7 @@ void HandleInput()
 {
     Slew = (_SlewFun)(g_modBase + 0x1F9D50);
     GhostViewer = (_GhostViewerFunc)(g_modBase + 0x1F8360);
-    CancelWalkAll = (_CancelWalkAll)(g_modBase + 0x1F81B0);
+    CancelWalkAll = (_CancelWalkAll)(g_modBase + 0x1EC8D0);
     quitLevel = (_QuitLevel)(g_modBase + 0x1F8170);
     animDebug = (_animation)(g_modBase + 0x1F7FB0);
     cinematDebug = (_cinemat)(g_modBase + 0x1F7FC0);
@@ -368,6 +371,22 @@ void TestLegacyText()
 
 }
 
+void fadein() {
+
+    float opacity = 255.0f;   
+    float r = 1.0f, g = 1.0f, b = 1.0f;  // You can set any color values here
+    float duration = 0.1f;    // Duration for the fade effect (can be set to a very low value)
+
+    // decrease opacity quickly
+    while (opacity > 0) {
+        fade(opacity, r, g, b, duration);
+        opacity -= 10.0f;  // decrease opacity by 10 (adjust it to your liking)
+        std::this_thread::sleep_for(std::chrono::milliseconds(250));
+    }
+
+    //make it 0.0f to make the game visible again
+    fade(0.0f, r, g, b, duration);
+}
 
 void RunMod()
 {
@@ -393,10 +412,15 @@ void RunMod()
     int maxWaves = 10; 
     int baseGhostsPerWave = 1;  // initial ghost count per wave
 
+    //const char* actorTypes[] = { "CSlimer", "CGhostbuster", "CZombie" }; //comment it until i find what type a ghost i want to spawn example(cultist, cook, viking lady, parade queen) etc.
+    //int index = 0; // You can change this logic based on your needs 
+    //const char* actorType = actorTypes[index];
+
+    fadein();
 
     while (wave <= maxWaves)
     {
-        int ghostsToSpawn = baseGhostsPerWave + (wave - 1) * 2;  // increase ghost count with waves
+        int ghostsToSpawn = baseGhostsPerWave + (wave - 1) * 1;  // increase ghost count with waves
         float spawnDelay = 1.0f; 
 
         TextDisplayCountdown(("Wave " + to_string(wave) + " starting in: ").c_str(), 5);
@@ -419,8 +443,18 @@ void RunMod()
             Sleep(static_cast<DWORD>(spawnDelay * 1000));
         }
 
-        // simulate a wave duration (placeholder for actual gameplay mechanics)
-        Sleep(90000); //90 seconds
+       // if wave is 3 the waveDuration goes to 30 sec, and after 4 onwards all of the waves get 30 sec more
+        DWORD waveDuration = 30000;
+        if (wave == 4 || wave > 4)
+        {
+            waveDuration += 40000; 
+        }
+        else if (wave == 3)
+        {
+            waveDuration += 20000; 
+        }
+
+        Sleep(waveDuration);
 
         // increment wave
         ++wave;
@@ -455,6 +489,7 @@ DWORD WINAPI DLLAttach(HMODULE hModule)
     g_modBase = (char*)GetModuleHandle(NULL); 
     //ChainToLevel = (void(*)(const char*))(g_modBase + 0x1EF700); 
     g_LocalPlayer = (int**)(g_modBase + 0x2390D18); //fix it
+    buttonPrompt = (void(*)(int, float))(g_modBase + 0x2494D0);
     setAllowDamageTally = (void(*)(bool*))(g_modBase + 0x76FD0);
     fade = (void(*)(float, float, float, float, float))(g_modBase + 0x1ECCA0); //float opacity, float r, float g, float b, float duration
     displaySplashScreen = (void(*)(const char*, float, bool, bool))(g_modBase + 0x1ECD50); //string textureName, float duration, bool stretch = false, bool clear = true    

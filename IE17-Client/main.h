@@ -20,7 +20,7 @@ enum ETextHudTypes
     TEXT_SpiritGuideUpdated,
     TEXT_ObjectivesUpdated,
     TEXT_Top = 11,
-    TEXT_Subtittle,
+    TEXT_Subtitle,
     TEXT_HelpMessage,
     TEXT_QuitWarning,
 };
@@ -118,6 +118,43 @@ enum Classes
 };
 */
 
+enum eButtonAction
+{
+    eButtonAction_WrangleSlam = 0,
+    eButtonAction_BlastBeam,
+    eButtonAction_ContainBeam,
+    eButtonAction_BosonDart,
+    eButtonAction_Shotgun,
+    eButtonAction_IceBeam,
+    eButtonAction_Railgun,
+    eButtonAction_RailgunAlt,
+    eButtonAction_SlimeGun,
+    eButtonAction_TetherGun,
+    eButtonAction_Compass,
+    eButtonAction_ManualVent = 11,
+    eButtonAction_DeployTrap,
+    eButtonAction_RecoverTrap,
+    eButtonAction_PKEScan,
+    eButtonAction_PKEEquip,
+    eButtonAction_PKEChirpA,
+    eButtonAction_PKEChirpB,
+    eButtonAction_PKEChirpC,
+    eButtonAction_Medic = 19,
+    eButtonAction_InteractNode,
+    eButtonAction_Jump,
+    eButtonAction_Pole,
+    eButtonAction_AdvanceTutorial,
+    eButtonAction_Quit = 24,
+    eButtonAction_RestartCheckpoint,
+    eButtonAction_AccessSpiritGuide,
+    eButtonAction_AccessUpgradeMenu,
+    eButtonAction_AccessArtifactsMenu,
+    eButtonAction_AccessContainmentViewer,
+    eButtonAction_NewEquipment,
+    eButtonAction_ConfirmQuit,
+    eButtonAction_CancelQuit = 32
+};
+
 
 enum ETextLegacyPrintTypes
 {
@@ -137,6 +174,7 @@ extern char* g_modBase;
 
 //extern void (*ChainToLevel)(const char*);
 extern int** g_LocalPlayer;
+extern void (*buttonPrompt)(int, float);
 extern void (*setAllowDamageTally)(bool*);
 extern void (*fade)(float, float, float, float, float);
 extern void (*displaySplashScreen)(const char*, float, bool, bool);
@@ -149,11 +187,10 @@ extern int (*DisplayText)(int, const char*, float);
 extern int (*DisplayTextLegacy)(int, const char*, const char*, char);
 
 DWORD WINAPI DLLAttach(HMODULE hModule);
-//void SlewEnableDisable();
 void HandleInput();
 void AboutMod();
 void ResLevel();
 void TestLegacyText();
 void SpawnActor();
-//void GhostViewerFun();
+void fadein();
 void RunMod();
