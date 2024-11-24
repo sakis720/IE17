@@ -7,7 +7,6 @@
 
 using namespace std;
 
-int** g_LocalPlayer = nullptr;
 bool g_fSlew = false;
 bool m_about = false;
 bool m_legacycrash = false;
@@ -15,6 +14,7 @@ bool b_spawnactor = false;
 bool g_fGhostViewer = false;
 bool g_fRestartLevel = false;
 bool g_debugoptions = false;
+
  
 char* g_modBase = nullptr;
 
@@ -48,6 +48,7 @@ _resgravity resetgravity;
 
 
 //void (*ChainToLevel)(const char*);
+//void (*setNothingEquipped)(unsigned __int64, bool);
 void (*buttonPrompt)(int, float);
 void (*setAllowDamageTally)(bool*);
 void (*fade)(float, float, float, float, float);
@@ -63,7 +64,6 @@ int (*DisplayTextLegacy)(int, const char*, const char*, char);
 
 Vector CreateActorPos{ 3.35f, 1.0f, -22.22f }; //temporary coords, the cords are the player spawn cords for museum level at the docks //temporary coords, the cords are the player spawn cords for museum level at the docks
 Vector LightRGB{ 5.35f, 1.0f, 40.22f };
-
 
 
 void HandleInput()
@@ -412,20 +412,30 @@ void RunMod()
     int maxWaves = 10; 
     int baseGhostsPerWave = 1;  // initial ghost count per wave
 
-    //const char* actorTypes[] = { "CSlimer", "CGhostbuster", "CZombie" }; //comment it until i find what type a ghost i want to spawn example(cultist, cook, viking lady, parade queen) etc.
-    //int index = 0; // You can change this logic based on your needs 
-    //const char* actorType = actorTypes[index];
+    //const char* ghostTypes[] = { "CSlimer", "CBiped" }; //ghost type CSlime and CBiped
+    //int ghostTypeCount = sizeof(ghostTypes) / sizeof(ghostTypes[0]);
 
     fadein();
 
+
     while (wave <= maxWaves)
     {
+
+
         int ghostsToSpawn = baseGhostsPerWave + (wave - 1) * 1;  // increase ghost count with waves
         float spawnDelay = 1.0f; 
 
         TextDisplayCountdown(("Wave " + to_string(wave) + " starting in: ").c_str(), 5);
 
         DisplayText(TEXT_Top, ("Wave " + to_string(wave) + " begins!").c_str(), 5.0f);
+
+        //const char* selectedGhostType = ghostTypes[(wave - 1) / 2 % ghostTypeCount]; //select ghost type on based wave every 2 waves pick one
+
+        //if ghost type CBiped increase the ghost spawn by 6
+        //if (strcmp(selectedGhostType, "CBiped") == 0)
+        //{
+        //    ghostsToSpawn += 6;
+        //}
 
         for (int i = 0; i < ghostsToSpawn; ++i)
         {
@@ -437,13 +447,14 @@ void RunMod()
             case 2: selectedSpawner = GhostSpawner3; break;
             }
 
+
             CreateActor("CSlimer", selectedSpawner);
-            StartEffect("portal_residual.tfb", selectedSpawner, GhostSpawnerOrientation);
+            StartEffect("explosion_puff_mini.tfb", selectedSpawner, GhostSpawnerOrientation);
 
             Sleep(static_cast<DWORD>(spawnDelay * 1000));
         }
 
-       // if wave is 3 the waveDuration goes to 30 sec, and after 4 onwards all of the waves get 30 sec more
+       // if wave is 3 the waveDuration goes to 50 sec, and after 4 onwards all of the waves get 40 sec more
         DWORD waveDuration = 30000;
         if (wave == 4 || wave > 4)
         {
@@ -453,6 +464,7 @@ void RunMod()
         {
             waveDuration += 20000; 
         }
+
 
         Sleep(waveDuration);
 
@@ -488,7 +500,7 @@ DWORD WINAPI DLLAttach(HMODULE hModule)
 
     g_modBase = (char*)GetModuleHandle(NULL); 
     //ChainToLevel = (void(*)(const char*))(g_modBase + 0x1EF700); 
-    g_LocalPlayer = (int**)(g_modBase + 0x2390D18); //fix it
+    //setNothingEquipped = (void(*)(unsigned __int64, bool))(g_modBase + 0xE45A0);
     buttonPrompt = (void(*)(int, float))(g_modBase + 0x2494D0);
     setAllowDamageTally = (void(*)(bool*))(g_modBase + 0x76FD0);
     fade = (void(*)(float, float, float, float, float))(g_modBase + 0x1ECCA0); //float opacity, float r, float g, float b, float duration

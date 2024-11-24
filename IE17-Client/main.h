@@ -162,7 +162,6 @@ enum ETextLegacyPrintTypes
     TEXTL_YesCancelOption = 2,
 };
 
-
 extern bool g_fSlew;
 extern bool g_debugoptions;
 extern bool m_about;
@@ -173,7 +172,7 @@ extern bool g_fRestartLevel;
 extern char* g_modBase;
 
 //extern void (*ChainToLevel)(const char*);
-extern int** g_LocalPlayer;
+//extern void (*setNothingEquipped)(unsigned __int64, bool);
 extern void (*buttonPrompt)(int, float);
 extern void (*setAllowDamageTally)(bool*);
 extern void (*fade)(float, float, float, float, float);
