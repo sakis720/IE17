@@ -4,6 +4,7 @@
 #include <chrono>
 #include <thread>
 #include <string>
+#include <Windows.h>
 
 using namespace std;
 
@@ -49,6 +50,7 @@ _resgravity resetgravity;
 
 //void (*ChainToLevel)(const char*);
 //void (*setNothingEquipped)(unsigned __int64, bool);
+void (*loadlevel)(const char*);
 void (*buttonPrompt)(int, float);
 void (*setAllowDamageTally)(bool*);
 void (*fade)(float, float, float, float, float);
@@ -62,15 +64,15 @@ void (*CreateActor)(const char*, Vector);
 int (*DisplayText)(int, const char*, float);
 int (*DisplayTextLegacy)(int, const char*, const char*, char);
 
+
 Vector CreateActorPos{ 3.35f, 1.0f, -22.22f }; //temporary coords, the cords are the player spawn cords for museum level at the docks //temporary coords, the cords are the player spawn cords for museum level at the docks
 Vector LightRGB{ 5.35f, 1.0f, 40.22f };
-
 
 void HandleInput()
 {
     Slew = (_SlewFun)(g_modBase + 0x1F9D50);
     GhostViewer = (_GhostViewerFunc)(g_modBase + 0x1F8360);
-    CancelWalkAll = (_CancelWalkAll)(g_modBase + 0x1EC8D0);
+    CancelWalkAll = (_CancelWalkAll)(g_modBase + 0x1F81B0);
     quitLevel = (_QuitLevel)(g_modBase + 0x1F8170);
     animDebug = (_animation)(g_modBase + 0x1F7FB0);
     cinematDebug = (_cinemat)(g_modBase + 0x1F7FC0);
@@ -136,6 +138,12 @@ void HandleInput()
             AboutMod();
             cout << "About information toggled.\n";
         }
+        /*
+        else if (input == "getlevel")
+        {
+            std::string level = GetCurLevel();
+        }
+        */
         else if (input == "restart")
         {
             ResLevel();
@@ -280,6 +288,7 @@ void HandleInput()
             cout << "  cancelwalk            - Disables the walk animation?\n";
             cout << "  ghostviewer           - Toggle Ghost Viewer\n";
             cout << "  about                 - Toggle About\n";
+  //          cout << "  getlevel              - Prints the name of the current level\n";
             cout << "  restart               - Restart Level\n";
             cout << "  legacytext            - Toggle Legacy text display\n";
             cout << "  spawnactor            - Toggle Spawn Actor (Doesn't work currently)\n";
@@ -315,6 +324,7 @@ void HandleInput()
     }
 }
 
+
 void TextDisplayCountdown(const char* message, int seconds)
 {
     for (int i = seconds; i > 0; --i)
@@ -342,6 +352,7 @@ void ResLevel()
 
 void AboutMod()
 {
+
     m_about = !m_about;
 
     const char* setMsg = m_about ? about : aboutbuild;
@@ -362,6 +373,36 @@ void SpawnActor()
 
 }
 
+std::string GetCurLevel()
+{
+    uintptr_t pointeradr = 0x2C70030;
+    uintptr_t offset = 0x370; // Offset
+
+    uintptr_t pointerAddress;
+    SIZE_T bytesRead;
+
+    if (!ReadProcessMemory(GetCurrentProcess(), reinterpret_cast<LPCVOID>(g_modBase + pointeradr),
+        &pointerAddress, sizeof(pointerAddress), &bytesRead)) {
+        std::cout << "Failed to read first pointer. Error: " << GetLastError() << std::endl;
+        return "";
+    }
+
+    uintptr_t finalAddress = pointerAddress + offset; // Final address
+
+    char buffer[17] = { 0 }; // 16 characters + null terminator
+
+    // Read the string at the final address
+    if (!ReadProcessMemory(GetCurrentProcess(), reinterpret_cast<LPCVOID>(finalAddress),
+        buffer, 16, &bytesRead)) {
+        std::cout << "Not on a level." << std::endl;
+        return "";
+    }
+
+    // Print the level name
+    //std::cout << "Level Name : " << buffer << std::endl;
+
+    return std::string(buffer); // return the level name as a std::string
+}
 
 void TestLegacyText()
 {
@@ -408,6 +449,10 @@ void RunMod()
 
     Vector GhostSpawnerOrientation{ 90 };
 
+    const std::string requiredLevel = "timessquare2.lvl"; // Target level name
+
+    std::string currentLevel = GetCurLevel();
+
     int wave = 1;
     int maxWaves = 10; 
     int baseGhostsPerWave = 1;  // initial ghost count per wave
@@ -415,72 +460,81 @@ void RunMod()
     //const char* ghostTypes[] = { "CSlimer", "CBiped" }; //ghost type CSlime and CBiped
     //int ghostTypeCount = sizeof(ghostTypes) / sizeof(ghostTypes[0]);
 
-    fadein();
 
+    if (currentLevel == requiredLevel) {
+        //std::cout << "DEBUG: Correct Level" << std::endl;
 
-    while (wave <= maxWaves)
-    {
+        fadein();
 
-
-        int ghostsToSpawn = baseGhostsPerWave + (wave - 1) * 1;  // increase ghost count with waves
-        float spawnDelay = 1.0f; 
-
-        TextDisplayCountdown(("Wave " + to_string(wave) + " starting in: ").c_str(), 5);
-
-        DisplayText(TEXT_Top, ("Wave " + to_string(wave) + " begins!").c_str(), 5.0f);
-
-        //const char* selectedGhostType = ghostTypes[(wave - 1) / 2 % ghostTypeCount]; //select ghost type on based wave every 2 waves pick one
-
-        //if ghost type CBiped increase the ghost spawn by 6
-        //if (strcmp(selectedGhostType, "CBiped") == 0)
-        //{
-        //    ghostsToSpawn += 6;
-        //}
-
-        for (int i = 0; i < ghostsToSpawn; ++i)
+        while (wave <= maxWaves)
         {
-            // randomize spawn location (pick one of the spawners)
-            Vector selectedSpawner;
-            switch (rand() % 3) {
-            case 0: selectedSpawner = GhostSpawner1; break;
-            case 1: selectedSpawner = GhostSpawner2; break;
-            case 2: selectedSpawner = GhostSpawner3; break;
+
+
+            int ghostsToSpawn = baseGhostsPerWave + (wave - 1) * 1;  // increase ghost count with waves
+            float spawnDelay = 1.0f;
+
+            TextDisplayCountdown(("Wave " + to_string(wave) + " starting in: ").c_str(), 5);
+
+            DisplayText(TEXT_Top, ("Wave " + to_string(wave) + " begins!").c_str(), 5.0f);
+
+            //const char* selectedGhostType = ghostTypes[(wave - 1) / 2 % ghostTypeCount]; //select ghost type on based wave every 2 waves pick one
+
+            //if ghost type CBiped increase the ghost spawn by 6
+            //if (strcmp(selectedGhostType, "CBiped") == 0)
+            //{
+            //    ghostsToSpawn += 6;
+            //}
+
+            for (int i = 0; i < ghostsToSpawn; ++i)
+            {
+                // randomize spawn location (pick one of the spawners)
+                Vector selectedSpawner;
+                switch (rand() % 3) {
+                case 0: selectedSpawner = GhostSpawner1; break;
+                case 1: selectedSpawner = GhostSpawner2; break;
+                case 2: selectedSpawner = GhostSpawner3; break;
+                }
+
+
+                CreateActor("CSlimer", selectedSpawner);
+                StartEffect("explosion_puff_mini.tfb", selectedSpawner, GhostSpawnerOrientation);
+
+                Sleep(static_cast<DWORD>(spawnDelay * 1000));
+            }
+
+            // if wave is 3 the waveDuration goes to 50 sec, and after 4 onwards all of the waves get 40 sec more
+            DWORD waveDuration = 30000;
+            if (wave == 4 || wave > 4)
+            {
+                waveDuration += 40000;
+            }
+            else if (wave == 3)
+            {
+                waveDuration += 20000;
             }
 
 
-            CreateActor("CSlimer", selectedSpawner);
-            StartEffect("explosion_puff_mini.tfb", selectedSpawner, GhostSpawnerOrientation);
+            Sleep(waveDuration);
 
-            Sleep(static_cast<DWORD>(spawnDelay * 1000));
+            // increment wave
+            ++wave;
+
+
+            if (wave <= maxWaves)
+            {
+                DisplayText(TEXT_Top, "Prepare for the next wave!", 5.0f);
+                Sleep(5000);
+            }
         }
-
-       // if wave is 3 the waveDuration goes to 50 sec, and after 4 onwards all of the waves get 40 sec more
-        DWORD waveDuration = 30000;
-        if (wave == 4 || wave > 4)
-        {
-            waveDuration += 40000; 
-        }
-        else if (wave == 3)
-        {
-            waveDuration += 20000; 
-        }
-
-
-        Sleep(waveDuration);
-
-        // increment wave
-        ++wave;
-
-       
-        if (wave <= maxWaves)
-        {
-            DisplayText(TEXT_Top, "Prepare for the next wave!", 5.0f);
-            Sleep(5000);
-        }
+        
+    }
+    else {
+        std::cout << "You are not on the correct level" << std::endl;
+        std::cout << "Current Level: " << currentLevel << std::endl;
     }
 
    
-    DisplayText(TEXT_Top, "Survival Mode Complete! Well done.", 10.0f);
+    //DisplayText(TEXT_Top, "Survival Mode Complete! Well done.", 10.0f);
 
 }
 
@@ -501,6 +555,7 @@ DWORD WINAPI DLLAttach(HMODULE hModule)
     g_modBase = (char*)GetModuleHandle(NULL); 
     //ChainToLevel = (void(*)(const char*))(g_modBase + 0x1EF700); 
     //setNothingEquipped = (void(*)(unsigned __int64, bool))(g_modBase + 0xE45A0);
+    loadlevel = (void(*)(const char*))(g_modBase + 0x2DD820);
     buttonPrompt = (void(*)(int, float))(g_modBase + 0x2494D0);
     setAllowDamageTally = (void(*)(bool*))(g_modBase + 0x76FD0);
     fade = (void(*)(float, float, float, float, float))(g_modBase + 0x1ECCA0); //float opacity, float r, float g, float b, float duration
@@ -513,6 +568,7 @@ DWORD WINAPI DLLAttach(HMODULE hModule)
     CreateActor = (void(*)(const char*, Vector))(g_modBase + 0x2C0D50); //const char class, vector pos(x,y,z)
     DisplayText = (int(*)(int, const char*, float))(g_modBase + 0x2494A0); //hudtype msg duration
     DisplayTextLegacy = (int(*)(int, const char*, const char*, char))(g_modBase + 0x2A6C90); //int hudtype, const char* msgtittle, const char* msg, int ?(duration??)
+    
 
     HANDLE hThread = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)HandleInput, NULL, 0, NULL);
     if (!hThread) {
