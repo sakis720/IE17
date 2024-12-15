@@ -4,7 +4,7 @@
 #include <chrono>
 #include <thread>
 #include <string>
-#include <Windows.h>
+#include <windows.h>
 
 using namespace std;
 
