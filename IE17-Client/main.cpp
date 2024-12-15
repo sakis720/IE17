@@ -8,6 +8,7 @@
 
 using namespace std;
 
+
 bool g_fSlew = false;
 bool m_about = false;
 bool m_legacycrash = false;
@@ -324,7 +325,6 @@ void HandleInput()
     }
 }
 
-
 void TextDisplayCountdown(const char* message, int seconds)
 {
     for (int i = seconds; i > 0; --i)
@@ -333,7 +333,6 @@ void TextDisplayCountdown(const char* message, int seconds)
         Sleep(1000);
     }
 }
-
 
 void ResLevel()
 {
@@ -352,7 +351,6 @@ void ResLevel()
 
 void AboutMod()
 {
-
     m_about = !m_about;
 
     const char* setMsg = m_about ? about : aboutbuild;
@@ -375,7 +373,7 @@ void SpawnActor()
 
 std::string GetCurLevel()
 {
-    uintptr_t pointeradr = 0x2C70030;
+    uintptr_t pointeradr = 0x2C70030; //adr
     uintptr_t offset = 0x370; // Offset
 
     uintptr_t pointerAddress;
@@ -394,7 +392,7 @@ std::string GetCurLevel()
     // Read the string at the final address
     if (!ReadProcessMemory(GetCurrentProcess(), reinterpret_cast<LPCVOID>(finalAddress),
         buffer, 16, &bytesRead)) {
-        std::cout << "Not on a level." << std::endl;
+        std::cout << "Not on a level." << std::endl; //Not on a level
         return "";
     }
 
@@ -441,7 +439,6 @@ void RunMod()
     TODO:
     *Track the ghost that have been spawned, because now the waves end after 20 seconds
     *Find player coordinates
-    *Fix CacheEffect function
     */
     Vector GhostSpawner1{ 703.5f, 95.67f, -816.0f };
     Vector GhostSpawner2{ 719.5f, 95.54f, -907.5f };
@@ -450,6 +447,7 @@ void RunMod()
     Vector GhostSpawnerOrientation{ 90 };
 
     const std::string requiredLevel = "timessquare2.lvl"; // Target level name
+    const char* effectname = "explosion_cake.tfb";
 
     std::string currentLevel = GetCurLevel();
 
@@ -460,11 +458,12 @@ void RunMod()
     //const char* ghostTypes[] = { "CSlimer", "CBiped" }; //ghost type CSlime and CBiped
     //int ghostTypeCount = sizeof(ghostTypes) / sizeof(ghostTypes[0]);
 
-
+    //check if the current level is the same as the required level timessquare2.lvl
     if (currentLevel == requiredLevel) {
         //std::cout << "DEBUG: Correct Level" << std::endl;
 
         fadein();
+        CacheEffect(&effectname);
 
         while (wave <= maxWaves)
         {
@@ -497,7 +496,7 @@ void RunMod()
 
 
                 CreateActor("CSlimer", selectedSpawner);
-                StartEffect("explosion_puff_mini.tfb", selectedSpawner, GhostSpawnerOrientation);
+                StartEffect("explosion_cake.tfb", selectedSpawner, GhostSpawnerOrientation);
 
                 Sleep(static_cast<DWORD>(spawnDelay * 1000));
             }
@@ -528,6 +527,7 @@ void RunMod()
         }
         
     }
+    //if not the same level
     else {
         std::cout << "You are not on the correct level" << std::endl;
         std::cout << "Current Level: " << currentLevel << std::endl;
