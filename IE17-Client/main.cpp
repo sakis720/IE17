@@ -1,4 +1,5 @@
 #include "main.h"
+#include "gameconstants.h"
 #include <stdio.h>
 #include <iostream>
 #include <chrono>
@@ -9,27 +10,29 @@
 using namespace std;
 
 
-bool g_fSlew = false;
 bool m_about = false;
 bool m_legacycrash = false;
 bool b_spawnactor = false;
-bool g_fGhostViewer = false;
 bool g_fRestartLevel = false;
-bool g_debugoptions = false;
 
 // Flag to keep the main thread running
 bool runProgram = true;
  
 char* g_modBase = nullptr;
 
-
-//localization
-const char* levelres{ "Level Restarted" };
-const char* aboutbuild{ "IE17 " STR(IE17ver) " Compiled at : " STR(__DATE__) " in " STR(__TIME__) };
-const char* about{ "IE17 is a project aimed to reverse enginner some functions from Ghostbusters The Video Game Remaster. by sakis720 " };
-const char* crashedgametittle{ "Game Crashed" };
-const char* crashedgame{ "If you are seeing this the game has crashed, this 'Legacy' print function is parsley broken" };
-
+void (*loadlevel)(const char*);
+void (*buttonPrompt)(int, float);
+void (*setAllowDamageTally)(bool*);
+void (*fade)(float, float, float, float, float);
+void (*displaySplashScreen)(const char*, float, bool, bool);
+void (*CacheEffect)(const char**);
+int (*StartEffect)(const char*, Vector, Vector);
+void (*CreateExplosion)(Vector, float, float, float);
+void (*SetGravity)(Vector);
+void (*AddLight)(Vector, float, Vector, float, float, float, float);
+void (*CreateActor)(const char*, Vector);
+int (*DisplayText)(int, const char*, float);
+int (*DisplayTextLegacy)(int, const char*, const char*, char);
 
 using _SlewFun = void(__cdecl*)();
 using _GhostViewerFunc = void(__cdecl*)();
@@ -51,26 +54,6 @@ _channels chanDebug;
 _resgravity resetgravity;
 
 
-//void (*ChainToLevel)(const char*);
-//void (*setNothingEquipped)(unsigned __int64, bool);
-void (*loadlevel)(const char*);
-void (*buttonPrompt)(int, float);
-void (*setAllowDamageTally)(bool*);
-void (*fade)(float, float, float, float, float);
-void (*displaySplashScreen)(const char*, float, bool, bool);
-void (*CacheEffect)(const char**);
-int (*StartEffect)(const char*, Vector, Vector);
-void (*CreateExplosion)(Vector, float, float, float);
-void (*SetGravity)(Vector);
-void (*AddLight)(Vector, float, Vector, float, float, float, float);
-void (*CreateActor)(const char*, Vector);
-int (*DisplayText)(int, const char*, float);
-int (*DisplayTextLegacy)(int, const char*, const char*, char);
-
-
-Vector CreateActorPos{ 3.35f, 1.0f, -22.22f }; //temporary coords, the cords are the player spawn cords for museum level at the docks //temporary coords, the cords are the player spawn cords for museum level at the docks
-Vector LightRGB{ 5.35f, 1.0f, 40.22f };
-
 // Continuously check for key presses in a separate thread
 void HandleKeyPresses()
 {
@@ -90,11 +73,12 @@ void HandleKeyPresses()
             Sleep(500);  // Prevent multiple triggers within a short time
         } else if (GetAsyncKeyState(VK_F2) & 1) {
             animDebug();  // Call the animDebug function
+            AboutMod(); 
             Sleep(500);  // Prevent multiple triggers within a short time
         } else if (GetAsyncKeyState(VK_F3) & 1) {
             chanDebug();  // Call the chanDebug function
             Sleep(500);  // Prevent multiple triggers within a short time
-        } else if (GetAsyncKeyState(VK_F1) & 1) {
+        } else if (GetAsyncKeyState(VK_F4) & 1) { // Why it was F1
             cinematDebug();  // Call the cinematDebug function
             Sleep(500);  // Prevent multiple triggers within a short time
         }
@@ -103,17 +87,9 @@ void HandleKeyPresses()
     }
 }
 
+//need to put this somewhere else takes to much of a space
 void HandleInput()
 {
-    Slew = (_SlewFun)(g_modBase + 0x1F9D50);
-    GhostViewer = (_GhostViewerFunc)(g_modBase + 0x1F8360);
-    CancelWalkAll = (_CancelWalkAll)(g_modBase + 0x1F81B0);
-    quitLevel = (_QuitLevel)(g_modBase + 0x1F8170);
-    animDebug = (_animation)(g_modBase + 0x1F7FB0);
-    cinematDebug = (_cinemat)(g_modBase + 0x1F7FC0);
-    chanDebug = (_channels)(g_modBase + 0x1F7FD0);
-    resetgravity = (_resgravity)(g_modBase + 0x1F82E0);
-
     string input;
     while (runProgram)
     {
@@ -323,7 +299,7 @@ void HandleInput()
             cout << "  cancelwalk            - Disables the walk animation?\n";
             cout << "  ghostviewer           - Toggle Ghost Viewer\n";
             cout << "  about                 - Toggle About\n";
-  //          cout << "  getlevel              - Prints the name of the current level\n";
+            //cout << "  getlevel              - Prints the name of the current level\n";
             cout << "  restart               - Restart Level\n";
             cout << "  legacytext            - Toggle Legacy text display\n";
             cout << "  spawnactor            - Toggle Spawn Actor (Doesn't work currently)\n";
@@ -346,7 +322,7 @@ void HandleInput()
         else if (input == "clear" || input == "cls")
         {
             system("cls");
-            Sleep(100);
+            Sleep(10);
             cout << "*************************** \n"; //Re-print the infromation
             cout << "     IE17 is hooked! \n";
             cout << "*************************** \n";
@@ -379,7 +355,7 @@ void ResLevel()
     TextDisplayCountdown("Restarting Level In: ", 5);
     ResLevelFun();
     Sleep(7000);
-    DisplayText(TEXT_HelpMessage, levelres, 10.0f);
+    DisplayText(TEXT_HelpMessage, info::levelres, 10.0f);
 
 }
 
@@ -387,7 +363,7 @@ void AboutMod()
 {
     m_about = !m_about;
 
-    const char* setMsg = m_about ? about : aboutbuild;
+    const char* setMsg = m_about ? info::about : info::aboutbuild;
 
     DisplayText(TEXT_HelpMessage, setMsg, 10.0f);
 }
@@ -401,7 +377,7 @@ void SpawnActor()
     const char* messageType = b_spawnactor ? "Spawned Actor: Ghosts" : "Spawned Actor: Ghostbuster";
 
     DisplayText(TEXT_HelpMessage, messageType, 1.5f);
-    CreateActor(actorType, CreateActorPos);
+    CreateActor(actorType, coordinates::CreateActorPos);
 
 }
 
@@ -440,7 +416,7 @@ void TestLegacyText()
 {
     m_legacycrash = !m_legacycrash;
 
-    DisplayTextLegacy(TEXTL_Default, crashedgametittle, crashedgame, 0);
+    DisplayTextLegacy(TEXTL_Default, errorMsg::crashedgametittle, errorMsg::crashedgame, 0);
 
 }
 
@@ -480,10 +456,11 @@ void RunMod()
 
     Vector GhostSpawnerOrientation{ 90 };
 
+
     const std::string requiredLevel = "timessquare2.lvl"; // Target level name
     const char* effectname = "explosion_cake.tfb";
 
-    std::string currentLevel = GetCurLevel();
+    std::string currentLevel = GetCurLevel(); //get current level
 
     int wave = 1;
     int maxWaves = 10; 
@@ -497,7 +474,7 @@ void RunMod()
         //std::cout << "DEBUG: Correct Level" << std::endl;
 
         fadein();
-        CacheEffect(&effectname);
+        CacheEffect(&effectname); //cache effect because if not the game will pop up a error
 
         while (wave <= maxWaves)
         {
@@ -530,7 +507,7 @@ void RunMod()
 
 
                 CreateActor("CSlimer", selectedSpawner);
-                StartEffect("explosion_cake.tfb", selectedSpawner, GhostSpawnerOrientation);
+                StartEffect(effectname, selectedSpawner, GhostSpawnerOrientation);
 
                 Sleep(static_cast<DWORD>(spawnDelay * 1000));
             }
@@ -564,7 +541,7 @@ void RunMod()
     //if not the same level
     else {
         std::cout << "You are not on the correct level" << std::endl;
-        std::cout << "Current Level: " << currentLevel << std::endl;
+        std::cout << "Current Level: " << currentLevel << std::endl; //print current level example cemetery1.lvl
     }
 
    
@@ -587,8 +564,6 @@ DWORD WINAPI DLLAttach(HMODULE hModule)
     cout << "Version: " STR(IE17ver) "\n";
 
     g_modBase = (char*)GetModuleHandle(NULL); 
-    //ChainToLevel = (void(*)(const char*))(g_modBase + 0x1EF700); 
-    //setNothingEquipped = (void(*)(unsigned __int64, bool))(g_modBase + 0xE45A0);
     loadlevel = (void(*)(const char*))(g_modBase + 0x2DD820);
     buttonPrompt = (void(*)(int, float))(g_modBase + 0x2494D0);
     setAllowDamageTally = (void(*)(bool*))(g_modBase + 0x76FD0);
@@ -614,7 +589,6 @@ DWORD WINAPI DLLAttach(HMODULE hModule)
 
     WaitForSingleObject(hThread, INFINITE);
 
-    //RunMod();
 
     // Ensure the key press thread finishes before exiting the program
     keyPressThread.join();

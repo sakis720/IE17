@@ -3,7 +3,7 @@
 #include <cstdio>
 #include <string>
 #define STR_(X) #X
-#define IE17ver v0.03
+#define IE17ver v0.04
 #define STR(X) STR_(X)
 
 //most simple vector
@@ -163,17 +163,12 @@ enum ETextLegacyPrintTypes
     TEXTL_YesCancelOption = 2,
 };
 
-extern bool g_fSlew;
-extern bool g_debugoptions;
 extern bool m_about;
-extern bool g_fGhostViewer;
 extern bool m_legacycrash;
 extern bool b_spawnactor;
 extern bool g_fRestartLevel;
 extern char* g_modBase;
 
-//extern void (*ChainToLevel)(const char*);
-//extern void (*setNothingEquipped)(unsigned __int64, bool);
 extern void (*loadlevel)(const char*);
 extern void (*buttonPrompt)(int, float);
 extern void (*setAllowDamageTally)(bool*);
