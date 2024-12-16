@@ -94,7 +94,7 @@ void HandleKeyPresses()
         } else if (GetAsyncKeyState(VK_F3) & 1) {
             chanDebug();  // Call the chanDebug function
             Sleep(500);  // Prevent multiple triggers within a short time
-        } else if (GetAsyncKeyState(VK_F1) & 1) {
+        } else if (GetAsyncKeyState(VK_F4) & 1) {
             cinematDebug();  // Call the cinematDebug function
             Sleep(500);  // Prevent multiple triggers within a short time
         }
