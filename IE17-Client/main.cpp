@@ -4,7 +4,7 @@
 #include <chrono>
 #include <thread>
 #include <string>
-#include <Windows.h>
+#include <windows.h>
 
 using namespace std;
 
@@ -17,6 +17,8 @@ bool g_fGhostViewer = false;
 bool g_fRestartLevel = false;
 bool g_debugoptions = false;
 
+// Flag to keep the main thread running
+bool runProgram = true;
  
 char* g_modBase = nullptr;
 
@@ -69,6 +71,38 @@ int (*DisplayTextLegacy)(int, const char*, const char*, char);
 Vector CreateActorPos{ 3.35f, 1.0f, -22.22f }; //temporary coords, the cords are the player spawn cords for museum level at the docks //temporary coords, the cords are the player spawn cords for museum level at the docks
 Vector LightRGB{ 5.35f, 1.0f, 40.22f };
 
+// Continuously check for key presses in a separate thread
+void HandleKeyPresses()
+{
+    Slew = (_SlewFun)(g_modBase + 0x1F9D50);
+    GhostViewer = (_GhostViewerFunc)(g_modBase + 0x1F8360);
+    CancelWalkAll = (_CancelWalkAll)(g_modBase + 0x1F81B0);
+    quitLevel = (_QuitLevel)(g_modBase + 0x1F8170);
+    animDebug = (_animation)(g_modBase + 0x1F7FB0);
+    cinematDebug = (_cinemat)(g_modBase + 0x1F7FC0);
+    chanDebug = (_channels)(g_modBase + 0x1F7FD0);
+    resetgravity = (_resgravity)(g_modBase + 0x1F82E0);
+
+    while (runProgram)
+    {
+        if (GetAsyncKeyState(VK_F1) & 1) {
+            Slew();  // Call the Slew function
+            Sleep(500);  // Prevent multiple triggers within a short time
+        } else if (GetAsyncKeyState(VK_F2) & 1) {
+            animDebug();  // Call the animDebug function
+            Sleep(500);  // Prevent multiple triggers within a short time
+        } else if (GetAsyncKeyState(VK_F3) & 1) {
+            chanDebug();  // Call the chanDebug function
+            Sleep(500);  // Prevent multiple triggers within a short time
+        } else if (GetAsyncKeyState(VK_F1) & 1) {
+            cinematDebug();  // Call the cinematDebug function
+            Sleep(500);  // Prevent multiple triggers within a short time
+        }
+        // You can check other key presses here in a similar manner
+        Sleep(10);  // Small delay to avoid high CPU usage
+    }
+}
+
 void HandleInput()
 {
     Slew = (_SlewFun)(g_modBase + 0x1F9D50);
@@ -81,7 +115,7 @@ void HandleInput()
     resetgravity = (_resgravity)(g_modBase + 0x1F82E0);
 
     string input;
-    while (true)
+    while (runProgram)
     {
         cout << "> "; 
         if (!getline(cin, input))
@@ -303,11 +337,11 @@ void HandleInput()
             cout << "  help                  - Show this help message\n";
             cout << "  exit                  - Close the console\n";
         }
-        else if (input.find("exit") == 0)
+        else if (input == "exit")
         {
-            cout << "Exiting console input thread.\n";
+            cout << "Exiting program.\n";
             FreeConsole();
-            break;
+            runProgram = false;
         }
         else if (input == "clear" || input == "cls")
         {
@@ -569,7 +603,9 @@ DWORD WINAPI DLLAttach(HMODULE hModule)
     DisplayText = (int(*)(int, const char*, float))(g_modBase + 0x2494A0); //hudtype msg duration
     DisplayTextLegacy = (int(*)(int, const char*, const char*, char))(g_modBase + 0x2A6C90); //int hudtype, const char* msgtittle, const char* msg, int ?(duration??)
     
-
+    // Start the key press detection in a separate thread
+    thread keyPressThread(HandleKeyPresses);
+    
     HANDLE hThread = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)HandleInput, NULL, 0, NULL);
     if (!hThread) {
         MessageBoxA(NULL, "Failed to create input handling thread.", "Error", MB_OK | MB_ICONERROR);
@@ -578,7 +614,10 @@ DWORD WINAPI DLLAttach(HMODULE hModule)
 
     WaitForSingleObject(hThread, INFINITE);
 
-    RunMod();
+    //RunMod();
+
+    // Ensure the key press thread finishes before exiting the program
+    keyPressThread.join();
 
     if (!AllocConsole()) {
         MessageBoxA(NULL, "Failed to allocate console.", "Error", MB_OK | MB_ICONERROR);
