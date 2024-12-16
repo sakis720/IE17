@@ -73,7 +73,6 @@ void HandleKeyPresses()
             Sleep(500);  // Prevent multiple triggers within a short time
         } else if (GetAsyncKeyState(VK_F2) & 1) {
             animDebug();  // Call the animDebug function
-            AboutMod(); 
             Sleep(500);  // Prevent multiple triggers within a short time
         } else if (GetAsyncKeyState(VK_F3) & 1) {
             chanDebug();  // Call the chanDebug function
@@ -87,7 +86,7 @@ void HandleKeyPresses()
     }
 }
 
-//need to put this somewhere else takes to much of a space
+//need to put this somewhere else takes too much of a space
 void HandleInput()
 {
     string input;
@@ -437,6 +436,16 @@ void fadein() {
     fade(0.0f, r, g, b, duration);
 }
 
+void SetTerminalOnTop()
+{
+    HWND consoleWindow = GetConsoleWindow(); //get handle
+    if (consoleWindow != nullptr)
+    {
+        SetWindowPos(consoleWindow, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
+    }
+}
+
+
 void RunMod()
 {
     /*
@@ -578,14 +587,17 @@ DWORD WINAPI DLLAttach(HMODULE hModule)
     DisplayText = (int(*)(int, const char*, float))(g_modBase + 0x2494A0); //hudtype msg duration
     DisplayTextLegacy = (int(*)(int, const char*, const char*, char))(g_modBase + 0x2A6C90); //int hudtype, const char* msgtittle, const char* msg, int ?(duration??)
     
+    SetTerminalOnTop();
     // Start the key press detection in a separate thread
     thread keyPressThread(HandleKeyPresses);
+
     
     HANDLE hThread = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)HandleInput, NULL, 0, NULL);
     if (!hThread) {
         MessageBoxA(NULL, "Failed to create input handling thread.", "Error", MB_OK | MB_ICONERROR);
         return 0;
     }
+
 
     WaitForSingleObject(hThread, INFINITE);
 
