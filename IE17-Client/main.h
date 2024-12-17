@@ -169,6 +169,8 @@ extern bool b_spawnactor;
 extern bool g_fRestartLevel;
 extern char* g_modBase;
 
+extern int** g_pLocalPlayer;
+
 extern void (*loadlevel)(const char*);
 extern void (*buttonPrompt)(int, float);
 extern void (*setAllowDamageTally)(bool*);
@@ -190,4 +192,7 @@ void TestLegacyText();
 void SpawnActor();
 std::string GetCurLevel();
 void fadein();
+void OpenShop(Vector);
+void HandleShopChoice(int, Vector);
+int CheckPlayerInput();
 void RunMod();

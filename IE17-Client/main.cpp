@@ -1,14 +1,17 @@
 #include "main.h"
 #include "gameconstants.h"
 #include <stdio.h>
+#include <conio.h>
 #include <iostream>
 #include <chrono>
 #include <thread>
+#include <cstdint> 
 #include <string>
 #include <windows.h>
 
 using namespace std;
 
+int** g_pLocalPlayer = nullptr;
 
 bool m_about = false;
 bool m_legacycrash = false;
@@ -19,6 +22,8 @@ bool g_fRestartLevel = false;
 bool runProgram = true;
  
 char* g_modBase = nullptr;
+
+int playerCash = 0;
 
 void (*loadlevel)(const char*);
 void (*buttonPrompt)(int, float);
@@ -52,7 +57,6 @@ _animation animDebug;
 _cinemat cinematDebug;
 _channels chanDebug;
 _resgravity resetgravity;
-
 
 // Continuously check for key presses in a separate thread
 void HandleKeyPresses()
@@ -361,7 +365,7 @@ void ResLevel()
 void AboutMod()
 {
     m_about = !m_about;
-
+    
     const char* setMsg = m_about ? info::about : info::aboutbuild;
 
     DisplayText(TEXT_HelpMessage, setMsg, 10.0f);
@@ -436,6 +440,81 @@ void fadein() {
     fade(0.0f, r, g, b, duration);
 }
 
+void OpenShop(Vector GhostbusterSpawn) {
+    DisplayText(TEXT_Top, "Welcome to the Shop!", 5.0f);
+    Sleep(5000);
+    DisplayText(TEXT_HelpMessage, "1. Call Help - $100", 5.0f);
+    Sleep(5000);
+    DisplayText(TEXT_HelpMessage, "2. Skip Shop - Proceed to Next Wave", 5.0f);
+    Sleep(5000);
+
+    const DWORD shopDuration = 20000;
+    DWORD startTime = GetCurrentTime();
+    int choice = -1;
+
+    while (GetCurrentTime() - startTime < shopDuration) {
+        DWORD remainingTime = shopDuration - (GetCurrentTime() - startTime);
+        DisplayText(TEXT_Top, ("Shop closes in: " + to_string(remainingTime / 1000) + " seconds").c_str(), 1.0f);
+
+        // check for player input
+        choice = CheckPlayerInput();
+        if (choice != -1) {
+            break; // exit loop if player makes a choice
+        }
+
+        Sleep(500); // small delay to avoid spamming the display
+    }
+
+    // process the player choice or default to skipping the shop
+    if (choice == -1) {
+        DisplayText(TEXT_Top, "Time's up! No items purchased.", 3.0f);
+        Sleep(3000);
+    }
+    else {
+        HandleShopChoice(choice, GhostbusterSpawn);
+    }
+}
+
+void HandleShopChoice(int choice, Vector pos) {
+    switch (choice) {
+    case 1: 
+        if (playerCash >= 100) { // if player money over 100
+            playerCash -= 100; //players cash - 100
+            CreateActor("CGhostbuster", pos); // spawn actor
+            DisplayText(TEXT_Top, "Help is here!", 3.0f);
+            Sleep(3000);
+        }
+        else {
+            DisplayText(TEXT_Top, "Not enough cash to call for help!", 3.0f); // no money no honey
+            Sleep(3000);
+        }
+        break;
+
+    case 2:
+        DisplayText(TEXT_Top, "No items purchased. Get ready for the next wave!", 3.0f);
+        Sleep(3000);
+        break;
+
+    default:
+        DisplayText(TEXT_Top, "Invalid choice. Proceeding to the next wave.", 3.0f);
+        Sleep(3000);
+        break;
+    }
+
+    DisplayText(TEXT_Top, ("Remaining Cash: $" + to_string(playerCash)).c_str(), 3.0f);
+    Sleep(3000);
+}
+
+int CheckPlayerInput() {
+    int input = -1; // if no input
+
+    if (_kbhit()) { //check key if pressed
+        input = std::cin.get() - '0'; // convert char input to int
+    }
+
+    return input;
+}
+
 void SetTerminalOnTop()
 {
     HWND consoleWindow = GetConsoleWindow(); //get handle
@@ -444,7 +523,6 @@ void SetTerminalOnTop()
         SetWindowPos(consoleWindow, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
     }
 }
-
 
 void RunMod()
 {
@@ -458,16 +536,11 @@ void RunMod()
     TODO:
     *Track the ghost that have been spawned, because now the waves end after 20 seconds
     *Find player coordinates
+    *Make a clear state function that clears everything(Ghostbusters, Ghosts, Objects etc)
     */
-    Vector GhostSpawner1{ 703.5f, 95.67f, -816.0f };
-    Vector GhostSpawner2{ 719.5f, 95.54f, -907.5f };
-    Vector GhostSpawner3{ 724.0f, 95.5f, -823.5f };
 
-    Vector GhostSpawnerOrientation{ 90 };
-
-
-    const std::string requiredLevel = "timessquare2.lvl"; // Target level name
-    const char* effectname = "explosion_cake.tfb";
+    const std::string requiredLevelTimesSquare2 = "timessquare2.lvl"; // Target level name
+    const std::string requiredLevelCemetery2 = "cemetery2.lvl"; // Target level name
 
     std::string currentLevel = GetCurLevel(); //get current level
 
@@ -479,8 +552,16 @@ void RunMod()
     //int ghostTypeCount = sizeof(ghostTypes) / sizeof(ghostTypes[0]);
 
     //check if the current level is the same as the required level timessquare2.lvl
-    if (currentLevel == requiredLevel) {
-        //std::cout << "DEBUG: Correct Level" << std::endl;
+    if (currentLevel == requiredLevelTimesSquare2) {
+       // std::cout << "DEBUG: Level Times Sq 2" << std::endl;
+
+        Vector GhostSpawner1{ 703.5f, 95.67f, -816.0f };
+        Vector GhostSpawner2{ 719.5f, 95.54f, -907.5f };
+        Vector GhostSpawner3{ 724.0f, 95.5f, -823.5f };
+
+        Vector GhostSpawnerOrientation{ 90 };
+
+        const char* effectname = "explosion_cake.tfb";
 
         fadein();
         CacheEffect(&effectname); //cache effect because if not the game will pop up a error
@@ -547,6 +628,88 @@ void RunMod()
         }
         
     }
+    else if (currentLevel == requiredLevelCemetery2) {
+        cout << "DEBUG: Level Cemetery 2 \n";
+
+        Vector GhostSpawner1{ 82.21f, 13.24f, -144.59f };
+        Vector GhostSpawner2{ 97.70f, 16.30f, -235.15f };
+        Vector GhostSpawner3{ 51.86f, 16.21f, -215.04f };
+
+        Vector GhostbusterSpawn{ 31.57f, 8.45f, -134.15f };
+
+        Vector GhostSpawnerOrientation{ 90 };
+
+        const char* effectname = "explosion_cake.tfb";
+
+
+        fadein();
+        CacheEffect(&effectname); //cache effect because if not the game will pop up a error
+        cout << "DEBUG: Effect Cached\n";
+
+        while (wave <= maxWaves)
+        {
+
+
+            int ghostsToSpawn = baseGhostsPerWave + (wave - 1) * 1;  // increase ghost count with waves
+            float spawnDelay = 1.0f;
+
+            TextDisplayCountdown(("Wave " + to_string(wave) + " starting in: ").c_str(), 5);
+
+            DisplayText(TEXT_Top, ("Wave " + to_string(wave) + " begins!").c_str(), 5.0f);
+
+
+            for (int i = 0; i < ghostsToSpawn; ++i)
+            {
+                // randomize spawn location (pick one of the spawners)
+                Vector selectedSpawner;
+                switch (rand() % 3) {
+                case 0: selectedSpawner = GhostSpawner1; break;
+                case 1: selectedSpawner = GhostSpawner2; break;
+                case 2: selectedSpawner = GhostSpawner3; break;
+                }
+
+
+                CreateActor("CSlimer", selectedSpawner);
+                StartEffect(effectname, selectedSpawner, GhostSpawnerOrientation);
+
+                Sleep(static_cast<DWORD>(spawnDelay * 1000));
+            }
+
+            // if wave is 3 the waveDuration goes to 50 sec, and after 4 onwards all of the waves get 40 sec more
+            DWORD waveDuration = 30000;
+            if (wave == 4 || wave > 4)
+            {
+                waveDuration += 40000;
+            }
+            else if (wave == 3)
+            {
+                waveDuration += 20000;
+            }
+
+
+            Sleep(waveDuration);
+
+            // increment wave
+            ++wave;
+
+
+            if (wave <= maxWaves)
+            {
+                int waveCompletionBonus = wave * 50; // Reward scales with wave number
+                playerCash += waveCompletionBonus;
+
+                DisplayText(TEXT_Top, ("Wave " + to_string(wave) + " complete! Bonus: $" + to_string(waveCompletionBonus) + " | Total Cash: $" + to_string(playerCash)).c_str(), 5.0f);
+                Sleep(5000);
+
+                // Open shop for the player
+                OpenShop(GhostbusterSpawn);
+                cout << "DEBUG: OpenShop must be called\n";
+
+                DisplayText(TEXT_Top, "Prepare for the next wave!", 5.0f);
+                Sleep(5000);
+            }
+        }
+    }
     //if not the same level
     else {
         std::cout << "You are not on the correct level" << std::endl;
@@ -573,6 +736,7 @@ DWORD WINAPI DLLAttach(HMODULE hModule)
     cout << "Version: " STR(IE17ver) "\n";
 
     g_modBase = (char*)GetModuleHandle(NULL); 
+    g_pLocalPlayer = (int**)(g_modBase + 0x2314270); //needs to be fixed
     loadlevel = (void(*)(const char*))(g_modBase + 0x2DD820);
     buttonPrompt = (void(*)(int, float))(g_modBase + 0x2494D0);
     setAllowDamageTally = (void(*)(bool*))(g_modBase + 0x76FD0);
