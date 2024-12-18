@@ -23,7 +23,7 @@ enum ETextHudTypes
     TEXT_Top = 11,
     TEXT_Subtitle,
     TEXT_HelpMessage,
-    TEXT_QuitWarning,
+    TEXT_QuitWarning
 };
 
 /*// This is all Classes for Ghosts,Ghostbuster etc..
@@ -171,7 +171,7 @@ extern char* g_modBase;
 
 extern int** g_pLocalPlayer;
 
-extern void (*loadlevel)(const char*);
+extern void (*loadcheckpoint)(const char**);
 extern void (*buttonPrompt)(int, float);
 extern void (*setAllowDamageTally)(bool*);
 extern void (*fade)(float, float, float, float, float);

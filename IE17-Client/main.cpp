@@ -1,7 +1,6 @@
 #include "main.h"
 #include "gameconstants.h"
 #include <stdio.h>
-#include <conio.h>
 #include <iostream>
 #include <chrono>
 #include <thread>
@@ -25,7 +24,7 @@ char* g_modBase = nullptr;
 
 int playerCash = 0;
 
-void (*loadlevel)(const char*);
+void (*loadcheckpoint)(const char**);
 void (*buttonPrompt)(int, float);
 void (*setAllowDamageTally)(bool*);
 void (*fade)(float, float, float, float, float);
@@ -478,8 +477,8 @@ void OpenShop(Vector GhostbusterSpawn) {
 void HandleShopChoice(int choice, Vector pos) {
     switch (choice) {
     case 1: 
-        if (playerCash >= 100) { // if player money over 100
-            playerCash -= 100; //players cash - 100
+        if (playerCash >= 500) { // if player money over 100
+            playerCash -= 500; //players cash - 100
             CreateActor("CGhostbuster", pos); // spawn actor
             DisplayText(TEXT_Top, "Help is here!", 3.0f);
             Sleep(3000);
@@ -506,13 +505,14 @@ void HandleShopChoice(int choice, Vector pos) {
 }
 
 int CheckPlayerInput() {
-    int input = -1; // if no input
 
-    if (_kbhit()) { //check key if pressed
-        input = std::cin.get() - '0'; // convert char input to int
+    if (GetAsyncKeyState('1') & 0x8000) {
+        return 1;
     }
-
-    return input;
+    if (GetAsyncKeyState('2') & 0x8000) { 
+        return 2;
+    }
+    return -1; // No key pressed
 }
 
 void SetTerminalOnTop()
@@ -715,7 +715,6 @@ void RunMod()
         std::cout << "You are not on the correct level" << std::endl;
         std::cout << "Current Level: " << currentLevel << std::endl; //print current level example cemetery1.lvl
     }
-
    
     //DisplayText(TEXT_Top, "Survival Mode Complete! Well done.", 10.0f);
 
@@ -737,7 +736,7 @@ DWORD WINAPI DLLAttach(HMODULE hModule)
 
     g_modBase = (char*)GetModuleHandle(NULL); 
     g_pLocalPlayer = (int**)(g_modBase + 0x2314270); //needs to be fixed
-    loadlevel = (void(*)(const char*))(g_modBase + 0x2DD820);
+    loadcheckpoint = (void(*)(const char**))(g_modBase + 0x2DD820);
     buttonPrompt = (void(*)(int, float))(g_modBase + 0x2494D0);
     setAllowDamageTally = (void(*)(bool*))(g_modBase + 0x76FD0);
     fade = (void(*)(float, float, float, float, float))(g_modBase + 0x1ECCA0); //float opacity, float r, float g, float b, float duration
