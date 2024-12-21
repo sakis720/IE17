@@ -24,6 +24,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -static-libgcc -static-libstdc++")
 add_library(IE17Client SHARED
     dllmain.cpp
     main.cpp
+    player.cpp
 )
 
 # Include directories

@@ -3,7 +3,7 @@
 #include <cstdio>
 #include <string>
 #define STR_(X) #X
-#define IE17ver v0.04
+#define IE17ver v0.05
 #define STR(X) STR_(X)
 
 //most simple vector
@@ -12,6 +12,14 @@ struct Vector
     float x;
     float y;
     float z;
+};
+
+enum EFlashlightMode
+{
+    eFlashlightModeOff = 0,
+    eFlashlightModeNormal = 1,
+    eFlashlightModeUVLight = 2,
+    eFlashlightModeCheap = 3,
 };
 
 enum ETextHudTypes
@@ -169,8 +177,11 @@ extern bool b_spawnactor;
 extern bool g_fRestartLevel;
 extern char* g_modBase;
 
-extern int** g_pLocalPlayer;
-
+extern void (*setFlashlightMode)(unsigned __int64, int);
+extern void (*commitSuicide)(unsigned __int64);
+extern void (*setHealth)(unsigned __int64, float);
+extern void (*setNothingEquipped)(unsigned __int64, bool);
+extern void (*DanteVMaddExport)(const char*, const char*, int);
 extern void (*loadcheckpoint)(const char**);
 extern void (*buttonPrompt)(int, float);
 extern void (*setAllowDamageTally)(bool*);

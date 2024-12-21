@@ -1,16 +1,16 @@
 #include "main.h"
 #include "gameconstants.h"
+#include "player.h"
 #include <stdio.h>
 #include <iostream>
 #include <chrono>
 #include <thread>
 #include <cstdint> 
+#include <cstring>
 #include <string>
 #include <windows.h>
 
 using namespace std;
-
-int** g_pLocalPlayer = nullptr;
 
 bool m_about = false;
 bool m_legacycrash = false;
@@ -24,6 +24,11 @@ char* g_modBase = nullptr;
 
 int playerCash = 0;
 
+void (*setFlashlightMode)(unsigned __int64, int);
+void (*commitSuicide)(unsigned __int64);
+void (*setHealth)(unsigned __int64, float);
+void (*setNothingEquipped)(unsigned __int64, bool);
+void (*DanteVMaddExport)(const char*, const char*, int);
 void (*loadcheckpoint)(const char**);
 void (*buttonPrompt)(int, float);
 void (*setAllowDamageTally)(bool*);
@@ -80,7 +85,7 @@ void HandleKeyPresses()
         } else if (GetAsyncKeyState(VK_F3) & 1) {
             chanDebug();  // Call the chanDebug function
             Sleep(500);  // Prevent multiple triggers within a short time
-        } else if (GetAsyncKeyState(VK_F4) & 1) { // Why it was F1
+        } else if (GetAsyncKeyState(VK_F4) & 1) { 
             cinematDebug();  // Call the cinematDebug function
             Sleep(500);  // Prevent multiple triggers within a short time
         }
@@ -442,7 +447,7 @@ void fadein() {
 void OpenShop(Vector GhostbusterSpawn) {
     DisplayText(TEXT_Top, "Welcome to the Shop!", 5.0f);
     Sleep(5000);
-    DisplayText(TEXT_HelpMessage, "1. Call Help - $100", 5.0f);
+    DisplayText(TEXT_HelpMessage, "1. Call Help - $250", 5.0f);
     Sleep(5000);
     DisplayText(TEXT_HelpMessage, "2. Skip Shop - Proceed to Next Wave", 5.0f);
     Sleep(5000);
@@ -477,8 +482,8 @@ void OpenShop(Vector GhostbusterSpawn) {
 void HandleShopChoice(int choice, Vector pos) {
     switch (choice) {
     case 1: 
-        if (playerCash >= 500) { // if player money over 100
-            playerCash -= 500; //players cash - 100
+        if (playerCash >= 250) { // if player money over 100
+            playerCash -= 250; //players cash - 100
             CreateActor("CGhostbuster", pos); // spawn actor
             DisplayText(TEXT_Top, "Help is here!", 3.0f);
             Sleep(3000);
@@ -530,8 +535,7 @@ void RunMod()
                                     SURVIVAL MODE PROTOTYPE
     This prototype was made to show what we can achieve from the current functions that have been reversed
 
-    Note that this prototype is very w.i.p., and the coordinates that are displayed below(GhostSpawner1, GhostSpawner2, GhostSpawner3) are for the
-    third part of the time square level (timessquare2.lvl)
+    Note that this prototype is very w.i.p., and the coordinates that are displayed below(GhostSpawner1, GhostSpawner2, GhostSpawner3) 
 
     TODO:
     *Track the ghost that have been spawned, because now the waves end after 20 seconds
@@ -561,7 +565,7 @@ void RunMod()
 
         Vector GhostSpawnerOrientation{ 90 };
 
-        const char* effectname = "explosion_cake.tfb";
+        const char* effectname = "chief_spawn.tfb";
 
         fadein();
         CacheEffect(&effectname); //cache effect because if not the game will pop up a error
@@ -639,12 +643,13 @@ void RunMod()
 
         Vector GhostSpawnerOrientation{ 90 };
 
-        const char* effectname = "explosion_cake.tfb";
+        const char* effectname = "chief_spawn.tfb";
 
 
         fadein();
         CacheEffect(&effectname); //cache effect because if not the game will pop up a error
         cout << "DEBUG: Effect Cached\n";
+
 
         while (wave <= maxWaves)
         {
@@ -695,13 +700,21 @@ void RunMod()
 
             if (wave <= maxWaves)
             {
-                int waveCompletionBonus = wave * 50; // Reward scales with wave number
+                int waveCompletionBonus = wave * 50;
                 playerCash += waveCompletionBonus;
 
-                DisplayText(TEXT_Top, ("Wave " + to_string(wave) + " complete! Bonus: $" + to_string(waveCompletionBonus) + " | Total Cash: $" + to_string(playerCash)).c_str(), 5.0f);
+                // check if the current wave is the last wave (maxWaves)
+                if (wave == maxWaves)
+                {
+                    DisplayText(TEXT_Top, "Survival Mode Complete! Well done.", 10.0f);
+                }
+                else
+                {
+                    DisplayText(TEXT_Top, ("Wave " + to_string(wave - 1) + " complete! Bonus: $" + to_string(waveCompletionBonus) + " | Total Cash: $" + to_string(playerCash)).c_str(), 5.0f);
+                }
+
                 Sleep(5000);
 
-                // Open shop for the player
                 OpenShop(GhostbusterSpawn);
                 cout << "DEBUG: OpenShop must be called\n";
 
@@ -716,7 +729,6 @@ void RunMod()
         std::cout << "Current Level: " << currentLevel << std::endl; //print current level example cemetery1.lvl
     }
    
-    //DisplayText(TEXT_Top, "Survival Mode Complete! Well done.", 10.0f);
 
 }
 
@@ -735,7 +747,11 @@ DWORD WINAPI DLLAttach(HMODULE hModule)
     cout << "Version: " STR(IE17ver) "\n";
 
     g_modBase = (char*)GetModuleHandle(NULL); 
-    g_pLocalPlayer = (int**)(g_modBase + 0x2314270); //needs to be fixed
+    setFlashlightMode = (void(*)(unsigned __int64, int))(g_modBase + 0xE3BF0);
+    commitSuicide = (void(*)(unsigned __int64))(g_modBase + 0xCE560);
+    setHealth = (void(*)(unsigned __int64, float))(g_modBase + 0x7A890);
+    setNothingEquipped = (void(*)(unsigned __int64, bool))(g_modBase + 0xE45A0);
+    DanteVMaddExport = (void(*)(const char*, const char*, int))(g_modBase + 0x2CEC90);
     loadcheckpoint = (void(*)(const char**))(g_modBase + 0x2DD820);
     buttonPrompt = (void(*)(int, float))(g_modBase + 0x2494D0);
     setAllowDamageTally = (void(*)(bool*))(g_modBase + 0x76FD0);
@@ -750,6 +766,7 @@ DWORD WINAPI DLLAttach(HMODULE hModule)
     DisplayText = (int(*)(int, const char*, float))(g_modBase + 0x2494A0); //hudtype msg duration
     DisplayTextLegacy = (int(*)(int, const char*, const char*, char))(g_modBase + 0x2A6C90); //int hudtype, const char* msgtittle, const char* msg, int ?(duration??)
     
+    getPlayer();
     SetTerminalOnTop();
     // Start the key press detection in a separate thread
     thread keyPressThread(HandleKeyPresses);
