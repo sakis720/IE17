@@ -27,6 +27,8 @@ char* g_modBase = nullptr;
 
 int playerCash = 0;
 
+void (*enableInventoryItem)(unsigned __int64, int, bool);
+void (*isPackOverheated)(unsigned __int64);
 void (*setGoggleLocation)(unsigned __int64, int);
 void (*setFacialExpression)(unsigned __int64, int);
 void (*stopControllingActor)(unsigned __int64);
@@ -773,6 +775,8 @@ DWORD WINAPI DLLAttach(HMODULE hModule)
     cout << "Version: " STR(IE17ver) "\n";
 
     g_modBase = (char*)GetModuleHandle(NULL); 
+    enableInventoryItem = (void(*)(unsigned __int64, int, bool))(g_modBase + 0xE4530);
+    isPackOverheated = (void(*)(unsigned __int64))(g_modBase + 0xEA6D0);
     setGoggleLocation = (void(*)(unsigned __int64, int))(g_modBase + 0xD50E0);
     setFacialExpression = (void(*)(unsigned __int64, int))(g_modBase + 0xCD370);
     stopControllingActor = (void(*)(unsigned __int64))(g_modBase + 0x76FD0);

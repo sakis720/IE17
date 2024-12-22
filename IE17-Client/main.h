@@ -201,6 +201,8 @@ extern bool g_fRestartLevel;
 extern char* g_modBase;
 extern bool isEquipped;
 
+extern void (*enableInventoryItem)(unsigned __int64, int, bool);
+extern void (*isPackOverheated)(unsigned __int64);
 extern void (*setGoggleLocation)(unsigned __int64, int);
 extern void (*setFacialExpression)(unsigned __int64, int);
 extern void (*stopControllingActor)(unsigned __int64);
