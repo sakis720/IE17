@@ -6,6 +6,6 @@
 
 <h1 align="center">IE17</h1>
 
-IE17 is a project aimed to reverse enginner some functions from Ghostbusters The Video Game Remaster.
+IE17 is a project aimed to reverse engineer some functions from Ghostbusters The Video Game Remastered.
 
-This project was made aimed to learn C++ and reverse engineering. Also I want to clarify the code might be poorly written
+This project was made aimed to learn C++ and reverse engineering. Also I want to clarify the code might be poorly written.
