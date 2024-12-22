@@ -9,5 +9,6 @@ extern unsigned __int64 localplayer;
 
 uintptr_t GetPlayerAddress(HANDLE hProcess, uintptr_t baseAddress, const std::vector<uintptr_t>& offsets);
 int getPlayer();
+void MonitorLevel();
 
 #endif // PLAYER_H

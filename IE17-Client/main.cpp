@@ -27,6 +27,7 @@ char* g_modBase = nullptr;
 
 int playerCash = 0;
 
+int (*beginCinemat)(const char*);
 void (*enableInventoryItem)(unsigned __int64, int, bool);
 void (*isPackOverheated)(unsigned __int64);
 void (*setGoggleLocation)(unsigned __int64, int);
@@ -40,7 +41,7 @@ void (*setHealth)(unsigned __int64, float);
 void (*setNothingEquipped)(unsigned __int64, bool);
 void (*enableAllLights)(bool*);
 void (*DanteVMaddExport)(const char*, const char*, int);
-void (*loadcheckpoint)(const char**);
+void (*loadcheckpoint)(const char*);
 void (*buttonPrompt)(int, float);
 void (*setAllowDamageTally)(bool*);
 void (*fade)(float, float, float, float, float);
@@ -112,6 +113,10 @@ void HandleKeyPresses()
         else if (GetAsyncKeyState('P') & 1) {
             isPossesed = !isPossesed;
             fakePossession(localplayer, true);
+            Sleep(500);  // Prevent multiple triggers within a short time
+        }
+        else if (GetAsyncKeyState('G') & 1) {
+            setGoggleLocation(localplayer, eGogglesOnBelt);
             Sleep(500);  // Prevent multiple triggers within a short time
         }
 
@@ -416,7 +421,7 @@ void SpawnActor()
 
 std::string GetCurLevel()
 {
-    uintptr_t pointeradr = 0x2C70030; //adr
+    uintptr_t pointeradr = 0x2C74FD0; //adr
     uintptr_t offset = 0x370; // Offset
 
     uintptr_t pointerAddress;
@@ -435,7 +440,7 @@ std::string GetCurLevel()
     // Read the string at the final address
     if (!ReadProcessMemory(GetCurrentProcess(), reinterpret_cast<LPCVOID>(finalAddress),
         buffer, 16, &bytesRead)) {
-        std::cout << "Not on a level." << std::endl; //Not on a level
+        //std::cout << "Not on a level." << std::endl; //Not on a level
         return "";
     }
 
@@ -674,14 +679,18 @@ void RunMod()
         const char* effectname = "chief_spawn.tfb";
 
         warpTo(localplayer, playerSpawn, coordinates::Orient);
+        setGoggleLocation(localplayer, eGogglesOnFace);
+        setNothingEquipped(localplayer, true);
 
         fadein();
         CacheEffect(&effectname); //cache effect because if not the game will pop up a error
         cout << "DEBUG: Effect Cached\n";
 
+
         while (wave <= maxWaves)
         {
 
+            setNothingEquipped(localplayer, false);
 
             int ghostsToSpawn = baseGhostsPerWave + (wave - 1) * 1;  // increase ghost count with waves
             float spawnDelay = 1.0f;
@@ -788,7 +797,7 @@ DWORD WINAPI DLLAttach(HMODULE hModule)
     setNothingEquipped = (void(*)(unsigned __int64, bool))(g_modBase + 0xE45A0);
     enableAllLights = (void(*)(bool*))(g_modBase + 0x2E3810);
     DanteVMaddExport = (void(*)(const char*, const char*, int))(g_modBase + 0x2CEC90);
-    loadcheckpoint = (void(*)(const char**))(g_modBase + 0x2DD820);
+    loadcheckpoint = (void(*)(const char*))(g_modBase + 0x1ECA40);
     buttonPrompt = (void(*)(int, float))(g_modBase + 0x2494D0);
     setAllowDamageTally = (void(*)(bool*))(g_modBase + 0x76FD0);
     fade = (void(*)(float, float, float, float, float))(g_modBase + 0x1ECCA0); //float opacity, float r, float g, float b, float duration
@@ -802,10 +811,10 @@ DWORD WINAPI DLLAttach(HMODULE hModule)
     DisplayText = (int(*)(int, const char*, float))(g_modBase + 0x2494A0); //hudtype msg duration
     DisplayTextLegacy = (int(*)(int, const char*, const char*, char))(g_modBase + 0x2A6C90); //int hudtype, const char* msgtittle, const char* msg, int ?(duration??)
     
-    getPlayer();
     SetTerminalOnTop();
     // Start the key press detection in a separate thread
     thread keyPressThread(HandleKeyPresses);
+    std::thread monitorThread(MonitorLevel);
 
     
     HANDLE hThread = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)HandleInput, NULL, 0, NULL);
@@ -818,8 +827,10 @@ DWORD WINAPI DLLAttach(HMODULE hModule)
     WaitForSingleObject(hThread, INFINITE);
 
 
+
     // Ensure the key press thread finishes before exiting the program
     keyPressThread.join();
+    monitorThread.join();
 
     if (!AllocConsole()) {
         MessageBoxA(NULL, "Failed to allocate console.", "Error", MB_OK | MB_ICONERROR);

@@ -214,7 +214,7 @@ extern void (*setHealth)(unsigned __int64, float);
 extern void (*setNothingEquipped)(unsigned __int64, bool);
 extern void (*enableAllLights)(bool*);
 extern void (*DanteVMaddExport)(const char*, const char*, int);
-extern void (*loadcheckpoint)(const char**);
+extern void (*loadcheckpoint)(const char*);
 extern void (*buttonPrompt)(int, float);
 extern void (*setAllowDamageTally)(bool*);
 extern void (*fade)(float, float, float, float, float);
