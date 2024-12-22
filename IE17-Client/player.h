@@ -3,7 +3,7 @@
 
 #include <vector>
 #include <string>
-#include <Windows.h>
+#include <windows.h>
 
 extern unsigned __int64 localplayer;
 
