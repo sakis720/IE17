@@ -4,6 +4,10 @@
 
 using namespace std;
 
+
+// Make localplayer global by declaring it outside any function.
+unsigned __int64 localplayer = 0; // Global variable
+
 uintptr_t GetPlayerAddress(HANDLE hProcess, uintptr_t baseAddress, const std::vector<uintptr_t>& offsets) {
     SIZE_T bytesRead;
     uintptr_t currentAddress = baseAddress;
@@ -37,12 +41,12 @@ int getPlayer() {
     // adjust base address and offsets based on level
     // also this is not optimal to find the local player address on each level need to fix it
     if (level == "cemetery2.lvl") {
-        baseAddress = reinterpret_cast<unsigned __int64>(g_modBase) + 0x24558D8;
-        offsets = { 0xD8, 0x18, 0x20, 0x40, 0x0 };
+        baseAddress = reinterpret_cast<unsigned __int64>(g_modBase) + 0x22F24A8;
+        offsets = { 0x290, 0x8, 0x8, 0x8, 0x8, 0x558, 0x0 };
     }
-    else if (level == "lvl2") {
-        baseAddress = reinterpret_cast<unsigned __int64>(g_modBase) + 0x24558D8;
-        offsets = { 0xD8, 0x18, 0x24, 0x40, 0x0 }; 
+    else if (level == "cemetery1.lvl") {
+        baseAddress = reinterpret_cast<unsigned __int64>(g_modBase) + 0x209B340;
+        offsets = { 0x838, 0x290, 0x568, 0x290, 0x8, 0x0, 0x0 };
     }
     else if (level == "lvl3") {
         baseAddress = reinterpret_cast<unsigned __int64>(g_modBase) + 0x24558D8;
@@ -53,8 +57,7 @@ int getPlayer() {
         return 1;
     }
 
-    // Resolve the player address
-    unsigned __int64 localplayer = GetPlayerAddress(hProcess, baseAddress, offsets);
+    localplayer = GetPlayerAddress(hProcess, baseAddress, offsets);
 
     if (localplayer == 0) {
         std::cout << "Failed to resolve player address." << std::endl;

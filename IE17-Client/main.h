@@ -22,6 +22,29 @@ enum EFlashlightMode
     eFlashlightModeCheap = 3,
 };
 
+enum EGhostbusterFacialExpression
+{
+    eGBFacialExpression_Normal = 0,
+    eGBFacialExpression_Sad = 1,
+    eGBFacialExpression_Angry = 2,
+    eGBFacialExpression_Happy = 3,
+    eGBFacialExpression_Fear = 4,
+    eGBFacialExpression_Disgust = 5,
+    eGBFacialExpression_Surprise = 6,
+    eGBFacialExpression_Grimace = 7,
+    eGBFacialExpression_Hurt = 8,
+    eGBFacialExpression_Unconscious = 9,
+    eGBFacialExpression_BrowUp = 10,
+    eGBFacialExpression_BrowDown = 11,
+};
+
+enum EGoggles
+{
+    eGogglesOnHead = 0,
+    eGogglesOnFace = 1,
+    eGogglesOnBelt = 2,
+};
+
 enum ETextHudTypes
 {
     TEXT_DebugText = 0,
@@ -176,11 +199,18 @@ extern bool m_legacycrash;
 extern bool b_spawnactor;
 extern bool g_fRestartLevel;
 extern char* g_modBase;
+extern bool isEquipped;
 
+extern void (*setGoggleLocation)(unsigned __int64, int);
+extern void (*setFacialExpression)(unsigned __int64, int);
+extern void (*stopControllingActor)(unsigned __int64);
+extern int (*warpTo)(unsigned __int64, Vector, Vector);
+extern void (*fakePossession)(unsigned __int64, bool);
 extern void (*setFlashlightMode)(unsigned __int64, int);
 extern void (*commitSuicide)(unsigned __int64);
 extern void (*setHealth)(unsigned __int64, float);
 extern void (*setNothingEquipped)(unsigned __int64, bool);
+extern void (*enableAllLights)(bool*);
 extern void (*DanteVMaddExport)(const char*, const char*, int);
 extern void (*loadcheckpoint)(const char**);
 extern void (*buttonPrompt)(int, float);

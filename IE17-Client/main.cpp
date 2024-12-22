@@ -12,10 +12,13 @@
 
 using namespace std;
 
+bool isPossesed = false;
 bool m_about = false;
 bool m_legacycrash = false;
 bool b_spawnactor = false;
 bool g_fRestartLevel = false;
+
+bool isEquipped = false;
 
 // Flag to keep the main thread running
 bool runProgram = true;
@@ -24,10 +27,16 @@ char* g_modBase = nullptr;
 
 int playerCash = 0;
 
+void (*setGoggleLocation)(unsigned __int64, int);
+void (*setFacialExpression)(unsigned __int64, int);
+void (*stopControllingActor)(unsigned __int64);
+int (*warpTo)(unsigned __int64, Vector, Vector);
+void (*fakePossession)(unsigned __int64, bool);
 void (*setFlashlightMode)(unsigned __int64, int);
 void (*commitSuicide)(unsigned __int64);
 void (*setHealth)(unsigned __int64, float);
 void (*setNothingEquipped)(unsigned __int64, bool);
+void (*enableAllLights)(bool*);
 void (*DanteVMaddExport)(const char*, const char*, int);
 void (*loadcheckpoint)(const char**);
 void (*buttonPrompt)(int, float);
@@ -89,6 +98,21 @@ void HandleKeyPresses()
             cinematDebug();  // Call the cinematDebug function
             Sleep(500);  // Prevent multiple triggers within a short time
         }
+        else if (GetAsyncKeyState('Q') & 1) {
+            isEquipped = !isEquipped;
+            setNothingEquipped(localplayer, isEquipped);
+            Sleep(500);  // Prevent multiple triggers within a short time
+        }
+        else if (GetAsyncKeyState('E') & 1) {
+            setFlashlightMode(localplayer, eFlashlightModeNormal);
+            Sleep(500);  // Prevent multiple triggers within a short time
+        }
+        else if (GetAsyncKeyState('P') & 1) {
+            isPossesed = !isPossesed;
+            fakePossession(localplayer, true);
+            Sleep(500);  // Prevent multiple triggers within a short time
+        }
+
         // You can check other key presses here in a similar manner
         Sleep(10);  // Small delay to avoid high CPU usage
     }
@@ -641,15 +665,17 @@ void RunMod()
 
         Vector GhostbusterSpawn{ 31.57f, 8.45f, -134.15f };
 
+        Vector playerSpawn{ 26.60f, 7.21f, -121.77f };
+
         Vector GhostSpawnerOrientation{ 90 };
 
         const char* effectname = "chief_spawn.tfb";
 
+        warpTo(localplayer, playerSpawn, coordinates::Orient);
 
         fadein();
         CacheEffect(&effectname); //cache effect because if not the game will pop up a error
         cout << "DEBUG: Effect Cached\n";
-
 
         while (wave <= maxWaves)
         {
@@ -747,10 +773,16 @@ DWORD WINAPI DLLAttach(HMODULE hModule)
     cout << "Version: " STR(IE17ver) "\n";
 
     g_modBase = (char*)GetModuleHandle(NULL); 
+    setGoggleLocation = (void(*)(unsigned __int64, int))(g_modBase + 0xD50E0);
+    setFacialExpression = (void(*)(unsigned __int64, int))(g_modBase + 0xCD370);
+    stopControllingActor = (void(*)(unsigned __int64))(g_modBase + 0x76FD0);
+    warpTo = (int(*)(unsigned __int64, Vector, Vector))(g_modBase + 0x2C4520);
+    fakePossession = (void(*)(unsigned __int64, bool))(g_modBase + 0xEC1E0);
     setFlashlightMode = (void(*)(unsigned __int64, int))(g_modBase + 0xE3BF0);
     commitSuicide = (void(*)(unsigned __int64))(g_modBase + 0xCE560);
     setHealth = (void(*)(unsigned __int64, float))(g_modBase + 0x7A890);
     setNothingEquipped = (void(*)(unsigned __int64, bool))(g_modBase + 0xE45A0);
+    enableAllLights = (void(*)(bool*))(g_modBase + 0x2E3810);
     DanteVMaddExport = (void(*)(const char*, const char*, int))(g_modBase + 0x2CEC90);
     loadcheckpoint = (void(*)(const char**))(g_modBase + 0x2DD820);
     buttonPrompt = (void(*)(int, float))(g_modBase + 0x2494D0);
