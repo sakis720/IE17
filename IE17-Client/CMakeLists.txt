@@ -6,6 +6,10 @@ project(IE17Client LANGUAGES CXX)
 # Set the target platform version
 set(CMAKE_SYSTEM_VERSION 10.0)
 
+# Set C++ standard to C++20
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
 # Include sub-projects.
 #add_subdirectory ("Deps/minhook")include(FetchContent)
 
