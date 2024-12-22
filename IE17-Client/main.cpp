@@ -12,13 +12,13 @@
 
 using namespace std;
 
-bool isPossesed = false;
+bool holsterBool = false;
+bool keyholsterPressed = false;  
+
 bool m_about = false;
 bool m_legacycrash = false;
 bool b_spawnactor = false;
 bool g_fRestartLevel = false;
-
-bool isEquipped = false;
 
 // Flag to keep the main thread running
 bool runProgram = true;
@@ -27,7 +27,7 @@ char* g_modBase = nullptr;
 
 int playerCash = 0;
 
-int (*beginCinemat)(const char*);
+void (*readyInventoryItem)(unsigned __int64, int, bool);
 void (*enableInventoryItem)(unsigned __int64, int, bool);
 void (*isPackOverheated)(unsigned __int64);
 void (*setGoggleLocation)(unsigned __int64, int);
@@ -101,17 +101,11 @@ void HandleKeyPresses()
             cinematDebug();  // Call the cinematDebug function
             Sleep(500);  // Prevent multiple triggers within a short time
         }
-        else if (GetAsyncKeyState('Q') & 1) {
-            isEquipped = !isEquipped;
-            setNothingEquipped(localplayer, isEquipped);
-            Sleep(500);  // Prevent multiple triggers within a short time
-        }
         else if (GetAsyncKeyState('E') & 1) {
             setFlashlightMode(localplayer, eFlashlightModeNormal);
             Sleep(500);  // Prevent multiple triggers within a short time
         }
         else if (GetAsyncKeyState('P') & 1) {
-            isPossesed = !isPossesed;
             fakePossession(localplayer, true);
             Sleep(500);  // Prevent multiple triggers within a short time
         }
@@ -119,9 +113,28 @@ void HandleKeyPresses()
             setGoggleLocation(localplayer, eGogglesOnBelt);
             Sleep(500);  // Prevent multiple triggers within a short time
         }
-
         // You can check other key presses here in a similar manner
         Sleep(10);  // Small delay to avoid high CPU usage
+
+        if (GetAsyncKeyState('Q') & 0x8000) { 
+            if (!keyholsterPressed) { 
+                keyholsterPressed = true;
+
+                if (holsterBool) {
+                    readyInventoryItem(localplayer, eInventoryNothing, true);
+                   // setGoggleLocation(localplayer, eGogglesOnHead);
+                }
+                else {
+                    readyInventoryItem(localplayer, eInventoryProtonGun, true);
+                    //setGoggleLocation(localplayer, eGogglesOnFace);
+                }
+
+                holsterBool = !holsterBool;
+            }
+        }
+        else {
+            keyholsterPressed = false;
+        }
     }
 }
 
@@ -680,7 +693,7 @@ void RunMod()
 
         warpTo(localplayer, playerSpawn, coordinates::Orient);
         setGoggleLocation(localplayer, eGogglesOnFace);
-        setNothingEquipped(localplayer, true);
+        readyInventoryItem(localplayer, eInventoryNothing, true);
 
         fadein();
         CacheEffect(&effectname); //cache effect because if not the game will pop up a error
@@ -690,7 +703,7 @@ void RunMod()
         while (wave <= maxWaves)
         {
 
-            setNothingEquipped(localplayer, false);
+            readyInventoryItem(localplayer, eInventoryProtonGun ,true);
 
             int ghostsToSpawn = baseGhostsPerWave + (wave - 1) * 1;  // increase ghost count with waves
             float spawnDelay = 1.0f;
@@ -784,6 +797,7 @@ DWORD WINAPI DLLAttach(HMODULE hModule)
     cout << "Version: " STR(IE17ver) "\n";
 
     g_modBase = (char*)GetModuleHandle(NULL); 
+    readyInventoryItem = (void(*)(unsigned __int64, int, bool))(g_modBase + 0xE3F10);
     enableInventoryItem = (void(*)(unsigned __int64, int, bool))(g_modBase + 0xE4530);
     isPackOverheated = (void(*)(unsigned __int64))(g_modBase + 0xEA6D0);
     setGoggleLocation = (void(*)(unsigned __int64, int))(g_modBase + 0xD50E0);

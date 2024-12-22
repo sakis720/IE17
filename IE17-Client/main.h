@@ -45,6 +45,20 @@ enum EGoggles
     eGogglesOnBelt = 2,
 };
 
+enum EInventoryItem
+{
+    eInventoryInvalid = -1,
+    eInventoryNothing = 0,
+    eInventoryProtonGun = 1,
+    eInventoryShotgun = 2,
+    eInventoryRailgun = 3,
+    eInventoryTrap = 4,
+    eInventoryMeter = 5,
+    eInventoryLight = 6,
+    eInventorySlimeGun = 7
+};
+
+
 enum ETextHudTypes
 {
     TEXT_DebugText = 0,
@@ -194,13 +208,16 @@ enum ETextLegacyPrintTypes
     TEXTL_YesCancelOption = 2,
 };
 
+extern bool holsterBool;
+
 extern bool m_about;
 extern bool m_legacycrash;
 extern bool b_spawnactor;
 extern bool g_fRestartLevel;
 extern char* g_modBase;
-extern bool isEquipped;
+extern bool keyholsterPressed;
 
+extern void (*readyInventoryItem)(unsigned __int64, int, bool);
 extern void (*enableInventoryItem)(unsigned __int64, int, bool);
 extern void (*isPackOverheated)(unsigned __int64);
 extern void (*setGoggleLocation)(unsigned __int64, int);

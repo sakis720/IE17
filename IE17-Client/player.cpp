@@ -27,7 +27,7 @@ uintptr_t GetPlayerAddress(HANDLE hProcess, uintptr_t baseAddress, const std::ve
 }
 
 int getPlayer() {
-    Sleep(5000);
+    Sleep(700); //700 milsec
     HANDLE hProcess = GetCurrentProcess();
 
     // get the current level
@@ -69,6 +69,54 @@ int getPlayer() {
     else if (level == "library2.lvl") {
         baseAddress = reinterpret_cast<unsigned __int64>(g_modBase) + 0x209FFB8;
         offsets = { 0x288, 0x288, 0x290, 0x8, 0x8, 0x570, 0x0 };
+    }
+    else if (level == "museum1.lvl") {
+        baseAddress = reinterpret_cast<unsigned __int64>(g_modBase) + 0x2316558;
+        offsets = { 0x288, 0x290, 0x8, 0x8, 0x568, 0x0 };
+    }
+    else if (level == "museum2.lvl") {
+        baseAddress = reinterpret_cast<unsigned __int64>(g_modBase) + 0x22FECB8;
+        offsets = { 0x288, 0x290, 0x8, 0x8, 0x8, 0x558, 0x0 };
+    }
+    else if (level == "museum3.lvl") {
+        baseAddress = reinterpret_cast<unsigned __int64>(g_modBase) + 0x2312F08;
+        offsets = { 0x288, 0x290, 0x608, 0x288, 0x290, 0x558, 0x0 };
+    }
+    else if (level == "hotel1a.lvl") {
+        baseAddress = reinterpret_cast<unsigned __int64>(g_modBase) + 0x2CDF448;
+        offsets = { 0xCE0, 0x288, 0x290, 0x8, 0x8, 0x560, 0x0 };
+    }
+    else if (level == "hotel1b.lvl") {
+        baseAddress = reinterpret_cast<unsigned __int64>(g_modBase) + 0x22E38B0;
+        offsets = { 0x8C0, 0x290, 0x8, 0x8, 0x8, 0x570, 0x0 };
+    }
+    else if (level == "timessquare1.lvl" || "timesSquare1.lvl") {
+        baseAddress = reinterpret_cast<unsigned __int64>(g_modBase) + 0x2316B90;
+        offsets = { 0x980, 0x290, 0x8, 0x8, 0x8, 0x558, 0x0 };
+    }
+    else if (level == "timessquare1b.lvl") {
+        baseAddress = reinterpret_cast<unsigned __int64>(g_modBase) + 0x244F3B0;
+        offsets = { 0xA8, 0xC8, 0x10, 0x258, 0x8, 0x80, 0x0 };
+    }
+    else if (level == "abyss.lvl") {
+        baseAddress = reinterpret_cast<unsigned __int64>(g_modBase) + 0x2A45E48;
+        offsets = { 0x68, 0x8, 0x8, 0x8, 0x8, 0x208, 0x0 };
+    }
+    else if (level == "13th_floor_boss.lvl") {
+        baseAddress = reinterpret_cast<unsigned __int64>(g_modBase) + 0x2A45EA0;
+        offsets = { 0x38, 0x8, 0x8, 0x8, 0x10, 0x208, 0x0 };
+    }
+    else if (level == "boss_sp_side.lvl") {
+        baseAddress = reinterpret_cast<unsigned __int64>(g_modBase) + 0x28A3010;
+        offsets = { 0x18, 0x68, 0x10, 0x250, 0x18, 0x58, 0x0 };
+    }
+    else if (level == "lost_island.lvl") {
+        baseAddress = reinterpret_cast<unsigned __int64>(g_modBase) + 0x209BCC8;
+        offsets = { 0x288, 0x290, 0x8, 0x8, 0x8, 0x558, 0x0 };
+    }
+    else if (level == "lost_island2.lvl") {
+        baseAddress = reinterpret_cast<unsigned __int64>(g_modBase) + 0x2305648;
+        offsets = { 0x80, 0x290, 0x8, 0x8, 0x8, 0x558, 0x0 };
     }
     else {
         std::cout << "Unknown level: " << level << std::endl;
