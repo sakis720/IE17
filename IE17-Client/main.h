@@ -3,7 +3,7 @@
 #include <cstdio>
 #include <string>
 #define STR_(X) #X
-#define IE17ver v0.05
+#define IE17ver v0.06
 #define STR(X) STR_(X)
 
 //most simple vector
@@ -217,6 +217,8 @@ extern bool g_fRestartLevel;
 extern char* g_modBase;
 extern bool keyholsterPressed;
 extern bool wasQPressed;
+
+extern Vector playerPos;
 
 extern bool (*isTrapDeployed)(unsigned __int64);
 extern void (*gatherAllDeployedInventoryItems)(unsigned __int64);

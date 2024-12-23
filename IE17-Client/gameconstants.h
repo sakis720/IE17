@@ -1,7 +1,6 @@
 #pragma once
 
 namespace coordinates {
-    Vector CreateActorPos{ 3.35f, 1.0f, -22.22f }; //temporary coords, the cords are the player spawn cords for museum level at the docks
     Vector LightRGB{ 5.35f, 1.0f, 40.22f };
     Vector Orient{ 90 };
 }

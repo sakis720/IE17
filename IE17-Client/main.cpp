@@ -107,11 +107,14 @@ void HandleKeyPresses()
             cinematDebug();  // Call the cinematDebug function
             Sleep(500);  // Prevent multiple triggers within a short time
         }
-        else if (GetAsyncKeyState('O') & 1) {
-            OHKO();
+        else if (GetAsyncKeyState('8') & 1) {
+            GetPlayerPosition();  // Call the cinematDebug function
             Sleep(500);  // Prevent multiple triggers within a short time
         }
-
+        else if (GetAsyncKeyState('9') & 1) {
+            SpawnActor();
+            Sleep(500);  // Prevent multiple triggers within a short time
+        }
         else if (GetAsyncKeyState('E') & 1) {
 			localplayer = 0;  // Clear localplayer value from previous state
 			getPlayer();  // Try to update localplayer value
@@ -121,7 +124,7 @@ void HandleKeyPresses()
 				Sleep(500);  // Prevent multiple triggers within a short time
 			}
         }
-        else if (GetAsyncKeyState('C') & 1) {
+        else if (GetAsyncKeyState('Z') & 1) {
             localplayer = 0;  // Clear localplayer value from previous state
             getPlayer();  // Try to update localplayer value
             if (localplayer != 0) {  // call the function only if localplayer value is set
@@ -535,12 +538,10 @@ void SpawnActor()
 {
     b_spawnactor = !b_spawnactor;
 
+    GetPlayerPosition();
 
-    const char* actorType = b_spawnactor ? "CSlimer" : "CGhostbuster";
-    const char* messageType = b_spawnactor ? "Spawned Actor: Ghosts" : "Spawned Actor: Ghostbuster";
-
-    DisplayText(TEXT_HelpMessage, messageType, 1.5f);
-    CreateActor(actorType, coordinates::CreateActorPos);
+    DisplayText(TEXT_HelpMessage, "Spawned Actor: Ghostbuster", 1.5f);
+    CreateActor("CGhostbuster", playerPos);
 
 }
 
@@ -696,7 +697,6 @@ void RunMod()
 
     TODO:
     *Track the ghost that have been spawned, because now the waves end after 20 seconds
-    *Find player coordinates
     *Make a clear state function that clears everything(Ghostbusters, Ghosts, Objects etc)
     */
 

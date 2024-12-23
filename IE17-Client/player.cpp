@@ -1,14 +1,14 @@
 #include "player.h"
-#include <iostream>
 #include "main.h"
+#include <iostream>
 #include <thread>
 #include <chrono>
 
 using namespace std;
 
-
 // Make localplayer global by declaring it outside any function.
 unsigned __int64 localplayer = 0; // Global variable
+Vector playerPos;
 
 uintptr_t GetPlayerAddress(HANDLE hProcess, uintptr_t baseAddress, const std::vector<uintptr_t>& offsets) {
     SIZE_T bytesRead;
@@ -133,6 +133,27 @@ int getPlayer() {
 
     return 0;
 }
+
+
+void GetPlayerPosition() {
+    localplayer = 0;
+    int result = getPlayer();
+    if (result == 0 && localplayer != 0) {
+        playerPos.x = *(reinterpret_cast<float*>(localplayer + 0x54)); // 0x54 offset for X
+        playerPos.y = *(reinterpret_cast<float*>(localplayer + 0x58)); // 0x58 offset for Y
+        playerPos.z = *(reinterpret_cast<float*>(localplayer + 0x5C)); // 0x5C offset for Z
+
+        // Optionally print the position for debugging
+        std::cout << "Player Position: ("
+            << playerPos.x << ", "
+            << playerPos.y << ", "
+            << playerPos.z << ")" << std::endl;
+    }
+    else {
+        std::cout << "Error: Failed to get player position or localplayer is null." << std::endl;
+    }
+}
+
 
 void MonitorLevel() {
     std::string lastLevel = ""; // to track the last detected level
