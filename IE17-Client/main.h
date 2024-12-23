@@ -218,6 +218,8 @@ extern char* g_modBase;
 extern bool keyholsterPressed;
 extern bool wasQPressed;
 
+extern bool (*isTrapDeployed)(unsigned __int64);
+extern void (*gatherAllDeployedInventoryItems)(unsigned __int64);
 extern void (*readyInventoryItem)(unsigned __int64, int, bool);
 extern void (*enableInventoryItem)(unsigned __int64, int, bool);
 extern void (*isPackOverheated)(unsigned __int64);
@@ -248,6 +250,8 @@ extern int (*DisplayTextLegacy)(int, const char*, const char*, char);
 DWORD WINAPI DLLAttach(HMODULE hModule);
 void HandleInput();
 void AboutMod();
+void OHKO();
+void GodMode(bool state);
 void ResLevel();
 void TestLegacyText();
 void SpawnActor();

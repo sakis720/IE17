@@ -18,6 +18,7 @@ bool fakePossessionStatus = false;
 
 bool wasQPressed = false;
 
+
 bool m_about = false;
 bool m_legacycrash = false;
 bool b_spawnactor = false;
@@ -30,6 +31,8 @@ char* g_modBase = nullptr;
 
 int playerCash = 0;
 
+bool (*isTrapDeployed)(unsigned __int64);
+void (*gatherAllDeployedInventoryItems)(unsigned __int64);
 void (*readyInventoryItem)(unsigned __int64, int, bool);
 void (*enableInventoryItem)(unsigned __int64, int, bool);
 void (*isPackOverheated)(unsigned __int64);
@@ -104,6 +107,11 @@ void HandleKeyPresses()
             cinematDebug();  // Call the cinematDebug function
             Sleep(500);  // Prevent multiple triggers within a short time
         }
+        else if (GetAsyncKeyState('O') & 1) {
+            OHKO();
+            Sleep(500);  // Prevent multiple triggers within a short time
+        }
+
         else if (GetAsyncKeyState('E') & 1) {
 			localplayer = 0;  // Clear localplayer value from previous state
 			getPlayer();  // Try to update localplayer value
@@ -112,6 +120,22 @@ void HandleKeyPresses()
 				setFlashlightMode(localplayer, eFlashlightModeNormal);
 				Sleep(500);  // Prevent multiple triggers within a short time
 			}
+        }
+        else if (GetAsyncKeyState('C') & 1) {
+            localplayer = 0;  // Clear localplayer value from previous state
+            getPlayer();  // Try to update localplayer value
+            if (localplayer != 0) {  // call the function only if localplayer value is set
+                g_modBase = (char*)GetModuleHandle(NULL);  // update g_modBase value
+                // call IsTrapDeployed to check if a trap is deployed
+                bool trapDeployed = isTrapDeployed(localplayer);
+                if (trapDeployed) {
+                    DisplayText(TEXT_Top, "A trap is deployed!", 3.0f);
+                }
+                else {
+                    DisplayText(TEXT_Top, "No trap deployed.", 3.0f);
+                }
+                Sleep(500);  // Prevent multiple triggers within a short time
+            }
         }
         else if (GetAsyncKeyState('P') & 1) {
 			localplayer = 0;  // Clear localplayer value from previous state
@@ -454,6 +478,59 @@ void AboutMod()
     DisplayText(TEXT_HelpMessage, setMsg, 10.0f);
 }
 
+void OHKO() {
+    getPlayer(); // Ensure this retrieves and initializes `localplayer`
+
+    if (localplayer == 0) {
+        std::cerr << "Error: localplayer is null!" << std::endl;
+        return;
+    }
+
+    unsigned __int64 healthAddress = localplayer + 0xB860;
+
+    while (true) {
+        // Continuously set health to 2.0f
+        try {
+            *reinterpret_cast<float*>(healthAddress) = 2.0f;
+            //std::cout << "Health enforced to 2.0f" << std::endl;
+
+            // sleep to reduce CPU usage
+            std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+        }
+        catch (...) {
+            std::cerr << "Failed to enforce health. Exiting loop." << std::endl;
+            break;
+        }
+    }
+}
+
+void GodMode(bool state)
+{
+    getPlayer(); // Ensure this retrieves and initializes `localplayer`
+
+    if (localplayer == 0) {
+        std::cerr << "Error: localplayer is null!" << std::endl;
+        return;
+    }
+
+    unsigned __int64 healthAddress = localplayer + 0xB860;
+
+    while (state) {
+        // Continuously set health to 2.0f
+        try {
+            *reinterpret_cast<float*>(healthAddress) = 999.0f;
+            //std::cout << "Health enforced to 2.0f" << std::endl;
+
+            // Sleep to reduce CPU usage (adjust as needed)
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        }
+        catch (...) {
+            std::cerr << "Failed to enforce health. Exiting loop." << std::endl;
+            break;
+        }
+    }
+}
+
 void SpawnActor()
 {
     b_spawnactor = !b_spawnactor;
@@ -572,6 +649,7 @@ void HandleShopChoice(int choice, Vector pos) {
             Sleep(3000);
         }
         break;
+
 
     case 2:
         DisplayText(TEXT_Top, "No items purchased. Get ready for the next wave!", 3.0f);
@@ -832,6 +910,8 @@ DWORD WINAPI DLLAttach(HMODULE hModule)
     cout << "Version: " STR(IE17ver) "\n";
 
     g_modBase = (char*)GetModuleHandle(NULL); 
+    isTrapDeployed = (bool(*)(unsigned __int64))(g_modBase + 0xDE370);
+    gatherAllDeployedInventoryItems = (void(*)(unsigned __int64))(g_modBase + 0xE4770);
     readyInventoryItem = (void(*)(unsigned __int64, int, bool))(g_modBase + 0xE3F10);
     enableInventoryItem = (void(*)(unsigned __int64, int, bool))(g_modBase + 0xE4530);
     isPackOverheated = (void(*)(unsigned __int64))(g_modBase + 0xEA6D0);
