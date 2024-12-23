@@ -31,6 +31,8 @@ char* g_modBase = nullptr;
 
 int playerCash = 0;
 
+void (*attachToActorTag)(unsigned __int64, unsigned __int64, bool, const char*);
+void (*setCurrentTeam)(unsigned __int64, int);
 bool (*isTrapDeployed)(unsigned __int64);
 void (*gatherAllDeployedInventoryItems)(unsigned __int64);
 void (*readyInventoryItem)(unsigned __int64, int, bool);
@@ -42,6 +44,7 @@ void (*stopControllingActor)(unsigned __int64);
 int (*warpTo)(unsigned __int64, Vector, Vector);
 void (*fakePossession)(unsigned __int64, bool);
 void (*setFlashlightMode)(unsigned __int64, int);
+void (*toggleflashlight)(unsigned __int64, int); // toggleflashlight and setFlashlightMode are diffrent functions
 void (*commitSuicide)(unsigned __int64);
 void (*setHealth)(unsigned __int64, float);
 void (*setNothingEquipped)(unsigned __int64, bool);
@@ -107,6 +110,14 @@ void HandleKeyPresses()
             cinematDebug();  // Call the cinematDebug function
             Sleep(500);  // Prevent multiple triggers within a short time
         }
+        else if (GetAsyncKeyState(VK_F5) & 1) { //enable all equipment
+            getPlayer();
+			enableInventoryItem(localplayer, eInventoryProtonGun, true);
+			enableInventoryItem(localplayer, eInventorySlimeGun, true);
+			enableInventoryItem(localplayer, eInventoryRailgun, true);
+			enableInventoryItem(localplayer, eInventoryShotgun, true);
+            Sleep(500);  // Prevent multiple triggers within a short time
+        }
         else if (GetAsyncKeyState('8') & 1) {
             GetPlayerPosition();  // Call the cinematDebug function
             Sleep(500);  // Prevent multiple triggers within a short time
@@ -120,7 +131,8 @@ void HandleKeyPresses()
 			getPlayer();  // Try to update localplayer value
 			if (localplayer != 0) {  // Call the function only if localplayer value is set
 				g_modBase = (char*)GetModuleHandle(NULL);  // Update g_modBase value
-				setFlashlightMode(localplayer, eFlashlightModeNormal);
+				//setFlashlightMode(localplayer, eFlashlightModeUVLight);
+				toggleflashlight(localplayer, eFlashlightModeNormal); //the eFlashlightModeNormal is useless for toggleflashlight
 				Sleep(500);  // Prevent multiple triggers within a short time
 			}
         }
@@ -412,6 +424,7 @@ void HandleInput()
             cout << "  F2                    - Enables the animation debug overlay\n";
             cout << "  F3                    - Enables the channel debug overlay\n";
             cout << "  F4                    - Enables the cinematics debug overlay\n";
+            cout << "  F5                    - Unlock all weapons\n";
             cout << "  8                     - Prints players position\n";
             cout << "  9                     - Spawn Ghostbuster at players position\n";
             cout << "  E                     - Toggle flashlight\n";
@@ -905,6 +918,8 @@ DWORD WINAPI DLLAttach(HMODULE hModule)
     cout << "Version: " STR(IE17ver) "\n";
 
     g_modBase = (char*)GetModuleHandle(NULL); 
+    attachToActorTag = (void(*)(unsigned __int64, unsigned __int64, bool, const char*))(g_modBase + 0x2BEE80);
+    setCurrentTeam = (void(*)(unsigned __int64, int))(g_modBase + 0x15B20);
     isTrapDeployed = (bool(*)(unsigned __int64))(g_modBase + 0xDE370);
     gatherAllDeployedInventoryItems = (void(*)(unsigned __int64))(g_modBase + 0xE4770);
     readyInventoryItem = (void(*)(unsigned __int64, int, bool))(g_modBase + 0xE3F10);
@@ -915,7 +930,8 @@ DWORD WINAPI DLLAttach(HMODULE hModule)
     stopControllingActor = (void(*)(unsigned __int64))(g_modBase + 0x76FD0);
     warpTo = (int(*)(unsigned __int64, Vector, Vector))(g_modBase + 0x2C4520);
     fakePossession = (void(*)(unsigned __int64, bool))(g_modBase + 0xEC1E0);
-    setFlashlightMode = (void(*)(unsigned __int64, int))(g_modBase + 0xE3BF0);
+    setFlashlightMode = (void(*)(unsigned __int64, int))(g_modBase + 0xE5AD0);
+    toggleflashlight = (void(*)(unsigned __int64, int))(g_modBase + 0xE3BF0);
     commitSuicide = (void(*)(unsigned __int64))(g_modBase + 0xCE560);
     setHealth = (void(*)(unsigned __int64, float))(g_modBase + 0x7A890);
     setNothingEquipped = (void(*)(unsigned __int64, bool))(g_modBase + 0xE45A0);

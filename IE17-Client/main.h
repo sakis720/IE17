@@ -38,6 +38,18 @@ enum EGhostbusterFacialExpression
     eGBFacialExpression_BrowDown = 11,
 };
 
+enum ETeam
+{
+    eTeamAll = -1,
+    eTeamSelf = 0,
+    eTeamRanger = 1,
+    eTeamInsurgent = 2,
+    eTeamInsurgentMobFill = 3,
+    eTeamGhost = 4,
+    eTeamGhostbuster = 5,
+    eTeamNpc = 6
+};
+
 enum EGoggles
 {
     eGogglesOnHead = 0,
@@ -53,8 +65,8 @@ enum EInventoryItem
     eInventoryShotgun = 2,
     eInventoryRailgun = 3,
     eInventoryTrap = 4,
-    eInventoryMeter = 5,
-    eInventoryLight = 6,
+    eInventoryMeter = 5, //pke
+    eInventoryLight = 6, //pke anim for npc
     eInventorySlimeGun = 7
 };
 
@@ -220,6 +232,8 @@ extern bool wasQPressed;
 
 extern Vector playerPos;
 
+extern void (*attachToActorTag)(unsigned __int64, unsigned __int64, bool, const char*);
+extern void (*setCurrentTeam)(unsigned __int64, int);
 extern bool (*isTrapDeployed)(unsigned __int64);
 extern void (*gatherAllDeployedInventoryItems)(unsigned __int64);
 extern void (*readyInventoryItem)(unsigned __int64, int, bool);
@@ -230,6 +244,7 @@ extern void (*setFacialExpression)(unsigned __int64, int);
 extern void (*stopControllingActor)(unsigned __int64);
 extern int (*warpTo)(unsigned __int64, Vector, Vector);
 extern void (*fakePossession)(unsigned __int64, bool);
+extern void (*toggleflashlight)(unsigned __int64, int);
 extern void (*setFlashlightMode)(unsigned __int64, int);
 extern void (*commitSuicide)(unsigned __int64);
 extern void (*setHealth)(unsigned __int64, float);
