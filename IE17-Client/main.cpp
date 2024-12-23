@@ -12,8 +12,9 @@
 
 using namespace std;
 
-bool holsterBool = false;
-bool keyholsterPressed = false;  
+bool holsterStatus = false;
+int eGogglesStatus = 0;
+bool fakePossessionStatus = false;
 
 bool m_about = false;
 bool m_legacycrash = false;
@@ -102,39 +103,64 @@ void HandleKeyPresses()
             Sleep(500);  // Prevent multiple triggers within a short time
         }
         else if (GetAsyncKeyState('E') & 1) {
-            setFlashlightMode(localplayer, eFlashlightModeNormal);
-            Sleep(500);  // Prevent multiple triggers within a short time
+			localplayer = 0;  // Clear localplayer value from previous state
+			getPlayer();  // Try to update localplayer value
+			if (localplayer != 0) {  // Call the function only if localplayer value is set
+				g_modBase = (char*)GetModuleHandle(NULL);  // Update g_modBase value
+				setFlashlightMode(localplayer, eFlashlightModeNormal);
+				Sleep(500);  // Prevent multiple triggers within a short time
+			}
         }
         else if (GetAsyncKeyState('P') & 1) {
-            fakePossession(localplayer, true);
-            Sleep(500);  // Prevent multiple triggers within a short time
+			localplayer = 0;  // Clear localplayer value from previous state
+			getPlayer();  // Try to update localplayer value
+			if (localplayer != 0) {  // Call the function only if localplayer value is set
+				g_modBase = (char*)GetModuleHandle(NULL);  // Update g_modBase value
+				if (!fakePossessionStatus) {
+					fakePossession(localplayer, true);
+				} else {
+					fakePossession(localplayer, false);
+				}
+				fakePossessionStatus = !fakePossessionStatus;
+				Sleep(500);  // Prevent multiple triggers within a short time
+			}
         }
         else if (GetAsyncKeyState('G') & 1) {
-            setGoggleLocation(localplayer, eGogglesOnBelt);
-            Sleep(500);  // Prevent multiple triggers within a short time
+			localplayer = 0;  // Clear localplayer value from previous state
+			getPlayer();  // Try to update localplayer value
+			if (localplayer != 0) {  // Call the function only if localplayer value is set
+				g_modBase = (char*)GetModuleHandle(NULL);  // Update g_modBase value
+				if (eGogglesStatus == 0) {
+					eGogglesStatus = eGogglesOnFace;
+					setGoggleLocation(localplayer, eGogglesOnFace);
+				} else if (eGogglesStatus == 1) {
+					eGogglesStatus = eGogglesOnBelt;
+					setGoggleLocation(localplayer, eGogglesOnBelt);
+				} else if (eGogglesStatus == 2) {
+					eGogglesStatus = eGogglesOnHead;
+					setGoggleLocation(localplayer, eGogglesOnHead);
+				}
+				Sleep(500);  // Prevent multiple triggers within a short time
+			}
+        }
+        else if (GetAsyncKeyState('Q') & 0x8000) { 
+			localplayer = 0;  // Clear localplayer value from previous state
+			getPlayer();  // Try to update localplayer value
+			if (localplayer != 0) {  // Call the function only if localplayer value is set
+				g_modBase = (char*)GetModuleHandle(NULL);  // Update g_modBase value
+				if (!holsterStatus) {
+					readyInventoryItem(localplayer, eInventoryNothing, true);
+				   // setGoggleLocation(localplayer, eGogglesOnHead);
+				}
+				else {
+					readyInventoryItem(localplayer, eInventoryProtonGun, true);
+					//setGoggleLocation(localplayer, eGogglesOnFace);
+				}
+				holsterStatus = !holsterStatus;
+            }
         }
         // You can check other key presses here in a similar manner
         Sleep(10);  // Small delay to avoid high CPU usage
-
-        if (GetAsyncKeyState('Q') & 0x8000) { 
-            if (!keyholsterPressed) { 
-                keyholsterPressed = true;
-
-                if (holsterBool) {
-                    readyInventoryItem(localplayer, eInventoryNothing, true);
-                   // setGoggleLocation(localplayer, eGogglesOnHead);
-                }
-                else {
-                    readyInventoryItem(localplayer, eInventoryProtonGun, true);
-                    //setGoggleLocation(localplayer, eGogglesOnFace);
-                }
-
-                holsterBool = !holsterBool;
-            }
-        }
-        else {
-            keyholsterPressed = false;
-        }
     }
 }
 
@@ -383,6 +409,7 @@ void HandleInput()
         {
             cout << "Unknown command. Type 'help' for a list of commands.\n";
         }
+        Sleep(10);  // Small delay to avoid high CPU usage
     }
 }
 
