@@ -156,5 +156,6 @@ void MonitorLevel() {
                 getPlayer(); // call getPlayer if level ends with .lvl
             }
         }
+        Sleep(10);  // Small delay to avoid high CPU usage
     }
 }
