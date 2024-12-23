@@ -216,6 +216,7 @@ extern bool b_spawnactor;
 extern bool g_fRestartLevel;
 extern char* g_modBase;
 extern bool keyholsterPressed;
+extern bool wasQPressed;
 
 extern void (*readyInventoryItem)(unsigned __int64, int, bool);
 extern void (*enableInventoryItem)(unsigned __int64, int, bool);

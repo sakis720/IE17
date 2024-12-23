@@ -16,6 +16,8 @@ bool holsterStatus = false;
 int eGogglesStatus = 0;
 bool fakePossessionStatus = false;
 
+bool wasQPressed = false;
+
 bool m_about = false;
 bool m_legacycrash = false;
 bool b_spawnactor = false;
@@ -143,23 +145,29 @@ void HandleKeyPresses()
 				Sleep(500);  // Prevent multiple triggers within a short time
 			}
         }
-        else if (GetAsyncKeyState('Q') & 0x8000) { 
-			localplayer = 0;  // Clear localplayer value from previous state
-			getPlayer();  // Try to update localplayer value
-			if (localplayer != 0) {  // Call the function only if localplayer value is set
-				g_modBase = (char*)GetModuleHandle(NULL);  // Update g_modBase value
-				if (!holsterStatus) {
-					readyInventoryItem(localplayer, eInventoryNothing, true);
-				   // setGoggleLocation(localplayer, eGogglesOnHead);
-				}
-				else {
-					readyInventoryItem(localplayer, eInventoryProtonGun, true);
-					//setGoggleLocation(localplayer, eGogglesOnFace);
-				}
-				holsterStatus = !holsterStatus;
+        if (GetAsyncKeyState('Q') & 0x8000) {  // Check if 'Q' is currently pressed
+            if (!wasQPressed) {  
+                wasQPressed = true;  // mark 'Q' as pressed
+
+                localplayer = 0;  // Clear localplayer value from previous state
+                getPlayer();  // Try to update localplayer value
+                if (localplayer != 0) {  // Call the function only if localplayer value is set
+                    g_modBase = (char*)GetModuleHandle(NULL);  // Update g_modBase value
+                    if (!holsterStatus) {
+                        readyInventoryItem(localplayer, eInventoryNothing, true);
+                        // setGoggleLocation(localplayer, eGogglesOnHead);
+                    }
+                    else {
+                        readyInventoryItem(localplayer, eInventoryProtonGun, true);
+                        // setGoggleLocation(localplayer, eGogglesOnFace);
+                    }
+                    holsterStatus = !holsterStatus;
+                }
             }
         }
-        // You can check other key presses here in a similar manner
+        else {
+            wasQPressed = false;  // reset the flag when 'Q' is released
+        }
         Sleep(10);  // Small delay to avoid high CPU usage
     }
 }

@@ -27,7 +27,6 @@ uintptr_t GetPlayerAddress(HANDLE hProcess, uintptr_t baseAddress, const std::ve
 }
 
 int getPlayer() {
-    Sleep(700); //700 milsec
     HANDLE hProcess = GetCurrentProcess();
 
     // get the current level
@@ -126,10 +125,10 @@ int getPlayer() {
     localplayer = GetPlayerAddress(hProcess, baseAddress, offsets);
 
     if (localplayer == 0) {
-        std::cout << "Failed to resolve player address." << std::endl;
+        //std::cout << "Failed to resolve player address." << std::endl;
     }
     else {
-        std::cout << "Player Address Resolved: 0x" << std::hex << localplayer << std::endl;
+        //std::cout << "Player Address Resolved: 0x" << std::hex << localplayer << std::endl;
     }
 
     return 0;
