@@ -12,8 +12,7 @@
 
 using namespace std;
 
-bool holsterBool = false;
-bool keyholsterPressed = false;
+bool holsterStatus = false;
 int eGogglesStatus = 0;
 bool fakePossessionStatus = false;
 
@@ -118,12 +117,11 @@ void HandleKeyPresses()
 			if (localplayer != 0) {  // Call the function only if localplayer value is set
 				g_modBase = (char*)GetModuleHandle(NULL);  // Update g_modBase value
 				if (!fakePossessionStatus) {
-					fakePossessionStatus = true;
-					fakePossession(localplayer, fakePossessionStatus);
+					fakePossession(localplayer, true);
 				} else {
-					fakePossessionStatus = false;
-					fakePossession(localplayer, fakePossessionStatus);
+					fakePossession(localplayer, false);
 				}
+				fakePossessionStatus = !fakePossessionStatus;
 				Sleep(500);  // Prevent multiple triggers within a short time
 			}
         }
@@ -150,24 +148,16 @@ void HandleKeyPresses()
 			getPlayer();  // Try to update localplayer value
 			if (localplayer != 0) {  // Call the function only if localplayer value is set
 				g_modBase = (char*)GetModuleHandle(NULL);  // Update g_modBase value
-				if (!keyholsterPressed) { 
-					keyholsterPressed = true;
-
-					if (holsterBool) {
-						readyInventoryItem(localplayer, eInventoryNothing, true);
-					   // setGoggleLocation(localplayer, eGogglesOnHead);
-					}
-					else {
-						readyInventoryItem(localplayer, eInventoryProtonGun, true);
-						//setGoggleLocation(localplayer, eGogglesOnFace);
-					}
-
-					holsterBool = !holsterBool;
+				if (!holsterStatus) {
+					readyInventoryItem(localplayer, eInventoryNothing, true);
+				   // setGoggleLocation(localplayer, eGogglesOnHead);
 				}
+				else {
+					readyInventoryItem(localplayer, eInventoryProtonGun, true);
+					//setGoggleLocation(localplayer, eGogglesOnFace);
+				}
+				holsterStatus = !holsterStatus;
             }
-        }
-        else {
-            keyholsterPressed = false;
         }
         // You can check other key presses here in a similar manner
         Sleep(10);  // Small delay to avoid high CPU usage
@@ -419,6 +409,7 @@ void HandleInput()
         {
             cout << "Unknown command. Type 'help' for a list of commands.\n";
         }
+        Sleep(10);  // Small delay to avoid high CPU usage
     }
 }
 
