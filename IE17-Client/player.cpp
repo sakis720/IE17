@@ -54,8 +54,8 @@ int getPlayer() {
         offsets = { 0x868, 0x290, 0x8, 0x8, 0x8, 0x558, 0x0 };
     }
     else if (level == "hotel2.lvl") {
-        baseAddress = reinterpret_cast<unsigned __int64>(g_modBase) + 0x2315B78;
-        offsets = { 0x290, 0x8, 0x8, 0x8, 0x558, 0x0 };
+        baseAddress = reinterpret_cast<unsigned __int64>(g_modBase) + 0x209D308;
+        offsets = { 0x840, 0x840, 0x918, 0x918, 0x840, 0x7E0, 0x0 };
     }
     else if (level == "library1a.lvl") {
         baseAddress = reinterpret_cast<unsigned __int64>(g_modBase) + 0x22E0610;

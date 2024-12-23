@@ -132,10 +132,12 @@ void HandleKeyPresses()
                 // call IsTrapDeployed to check if a trap is deployed
                 bool trapDeployed = isTrapDeployed(localplayer);
                 if (trapDeployed) {
-                    DisplayText(TEXT_Top, "A trap is deployed!", 3.0f);
+                    cout << "Trap is deployed!\n";
+                    //DisplayText(TEXT_Top, "Trap is deployed!", 3.0f);
                 }
                 else {
-                    DisplayText(TEXT_Top, "No trap deployed.", 3.0f);
+                    cout << "Trap isn't deployed.\n";
+                    //DisplayText(TEXT_Top, "No trap deployed.", 3.0f);
                 }
                 Sleep(500);  // Prevent multiple triggers within a short time
             }
@@ -307,26 +309,6 @@ void HandleInput()
                 cout << "Invalid parameters. Please enter numeric values.\n";
             }
         }
-        else if (input == "spawnactorat")
-        {
-            cout << "Enter actor class and position (x y z): ";
-            string actorType;
-            float x, y, z;
-            cin >> actorType >> x >> y >> z;
-
-            if (!cin.fail())
-            {
-                Vector position{ x, y, z };
-                CreateActor(actorType.c_str(), position);
-                cout << "Spawned actor '" << actorType << "' at (" << x << ", " << y << ", " << z << ").\n";
-            }
-            else
-            {
-                cin.clear();
-                cin.ignore();
-                cout << "Invalid input. Please enter a valid actor class and numeric coordinates.\n";
-            }
-        }
         else if (input == "createlight")
         {
             cout << "Enter position (x y z), radius, RGB color (r g b), intensity, duration, ramp-up, and ramp-down: ";
@@ -397,7 +379,7 @@ void HandleInput()
             {
                 cin.clear();
                 cin.ignore();
-                cout << "Invalid input. Please enter a valid actor class and numeric coordinates.\n";
+                cout << "Invalid input. Please enter a valid numeric coordinates.\n";
             }
         }
         else if (input.find("help") == 0)
@@ -411,12 +393,10 @@ void HandleInput()
             cout << "  cancelwalk            - Disables the walk animation?\n";
             cout << "  ghostviewer           - Toggle Ghost Viewer\n";
             cout << "  about                 - Toggle About\n";
-            //cout << "  getlevel              - Prints the name of the current level\n";
             cout << "  restart               - Restart Level\n";
             cout << "  legacytext            - Toggle Legacy text display\n";
-            cout << "  spawnactor            - Toggle Spawn Actor (Doesn't work currently)\n";
+            cout << "  spawnactor            - Spawn Actor\n";
             cout << "  explosion             - Creates Explosion\n";
-            cout << "  spawnactorat          - Spawn Actor at a given position\n";
             cout << "  createlight           - Create a light source at a given position\n";
             cout << "  createffect           - Create a effect at a given position and orientation\n";
             cout << "  resetgravity          - Reset the gravity\n";
@@ -425,6 +405,21 @@ void HandleInput()
             cout << "  help                  - Show this help message\n";
             cout << "  exit                  - Close the console\n";
         }
+        else if (input.find("hotkeys") == 0)
+        {
+            cout << "Available Hotkeys:\n";
+            cout << "  F1                    - Toggle Slew (Noclip)\n";
+            cout << "  F2                    - Enables the animation debug overlay\n";
+            cout << "  F3                    - Enables the channel debug overlay\n";
+            cout << "  F4                    - Enables the cinematics debug overlay\n";
+            cout << "  8                     - Prints players position\n";
+            cout << "  9                     - Spawn Ghostbuster at players position\n";
+            cout << "  E                     - Toggle flashlight\n";
+            cout << "  Q                     - Holster/Unholster proton wand\n";
+            cout << "  Z                     - Returns true or false if trap is deployed\n";
+            cout << "  P                     - Fake possess player\n";
+            cout << "  G                     - Toggle ecto goggles position\n";
+            }
         else if (input == "exit")
         {
             cout << "Exiting program.\n";
@@ -442,7 +437,7 @@ void HandleInput()
         }
         else
         {
-            cout << "Unknown command. Type 'help' for a list of commands.\n";
+            cout << "Unknown command. Type 'help' for a list of commands or 'hotkeys' for a list of hotkeys.\n";
         }
         Sleep(10);  // Small delay to avoid high CPU usage
     }
