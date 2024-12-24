@@ -31,6 +31,8 @@ char* g_modBase = nullptr;
 
 int playerCash = 0;
 
+void (*setAnimation)(unsigned __int64, const char*, bool, bool);
+void (*detonate)(unsigned __int64, float);
 void (*attachToActorTag)(unsigned __int64, unsigned __int64, bool, const char*);
 void (*setCurrentTeam)(unsigned __int64, int);
 bool (*isTrapDeployed)(unsigned __int64);
@@ -111,11 +113,16 @@ void HandleKeyPresses()
             Sleep(500);  // Prevent multiple triggers within a short time
         }
         else if (GetAsyncKeyState(VK_F5) & 1) { //enable all equipment
+            localplayer = 0;
             getPlayer();
 			enableInventoryItem(localplayer, eInventoryProtonGun, true);
 			enableInventoryItem(localplayer, eInventorySlimeGun, true);
 			enableInventoryItem(localplayer, eInventoryRailgun, true);
 			enableInventoryItem(localplayer, eInventoryShotgun, true);
+			//const char* ani = "upgrading_pack";
+            //setAnimation(localplayer, ani, false, false);
+            //cout << "Animaiton set to: " << ani << "\n";
+
             Sleep(500);  // Prevent multiple triggers within a short time
         }
         else if (GetAsyncKeyState('8') & 1) {
@@ -877,6 +884,7 @@ void RunMod()
                 // check if the current wave is the last wave (maxWaves)
                 if (wave == maxWaves)
                 {
+                    setAnimation(localplayer, "amb_wave_to_crowd", false, false);
                     DisplayText(TEXT_Top, "Survival Mode Complete! Well done.", 10.0f);
                 }
                 else
@@ -918,6 +926,8 @@ DWORD WINAPI DLLAttach(HMODULE hModule)
     cout << "Version: " STR(IE17ver) "\n";
 
     g_modBase = (char*)GetModuleHandle(NULL); 
+    setAnimation = (void(*)(unsigned __int64, const char*, bool, bool))(g_modBase + 0x77440);
+    detonate = (void(*)(unsigned __int64, float))(g_modBase + 0x690F0); //car function
     attachToActorTag = (void(*)(unsigned __int64, unsigned __int64, bool, const char*))(g_modBase + 0x2BEE80);
     setCurrentTeam = (void(*)(unsigned __int64, int))(g_modBase + 0x15B20);
     isTrapDeployed = (bool(*)(unsigned __int64))(g_modBase + 0xDE370);

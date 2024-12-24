@@ -232,6 +232,8 @@ extern bool wasQPressed;
 
 extern Vector playerPos;
 
+extern void (*setAnimation)(unsigned __int64, const char*, bool, bool);
+extern void (*detonate)(unsigned __int64, float);
 extern void (*attachToActorTag)(unsigned __int64, unsigned __int64, bool, const char*);
 extern void (*setCurrentTeam)(unsigned __int64, int);
 extern bool (*isTrapDeployed)(unsigned __int64);
