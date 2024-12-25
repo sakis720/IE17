@@ -7,8 +7,7 @@
 
 extern unsigned __int64 localplayer;
 
-uintptr_t GetPlayerAddress(HANDLE hProcess, uintptr_t baseAddress, const std::vector<uintptr_t>& offsets);
-int getPlayer();
+void getPlayer(char* Buffer, __int64 adr1);
 void GetPlayerPosition();
 void MonitorLevel();
 

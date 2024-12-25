@@ -98,6 +98,28 @@ _cinemat cinematDebug;
 _channels chanDebug;
 _resgravity resetgravity;
 
+typedef void (*OriginalFunctionType)(char* Buffer, __int64 adr1, __int64 adr2, __int64 adr3);
+OriginalFunctionType originalFunction = nullptr;
+
+void __stdcall HookedFunction(char* Buffer, __int64 adr1, __int64 adr2, __int64 adr3) {
+
+    bool debugMode = false;  // change this to true if you want to enable logging
+
+    if (debugMode) {
+        std::cout << "Buffer (Type of): " << (Buffer ? Buffer : "NULL") << std::endl;
+        std::cout << "Local Object 1: " << adr1 << " (as hex: " << std::hex << adr1 << std::dec << ")" << std::endl;
+        std::cout << "Local Object 2: " << adr2 << " (as hex: " << std::hex << adr2 << std::dec << ")" << std::endl;
+        std::cout << "Local Object 3: " << adr3 << " (as hex: " << std::hex << adr3 << std::dec << ")" << std::endl;
+    }
+
+    // call the original function if needed
+    if (originalFunction) {
+        originalFunction(Buffer, adr1, adr2, adr3);
+    }
+
+    getPlayer(Buffer, adr1);
+}
+
 // Continuously check for key presses in a separate thread
 void HandleKeyPresses()
 {
@@ -126,8 +148,6 @@ void HandleKeyPresses()
             Sleep(500);  // Prevent multiple triggers within a short time
         }
         else if (GetAsyncKeyState(VK_F5) & 1) { //enable all equipment
-            localplayer = 0;
-            getPlayer();
 			enableInventoryItem(localplayer, eInventoryProtonGun, true);
 			enableInventoryItem(localplayer, eInventorySlimeGun, true);
 			enableInventoryItem(localplayer, eInventoryRailgun, true);
@@ -166,8 +186,6 @@ void HandleKeyPresses()
             Sleep(500);  // Prevent multiple triggers within a short time
         }
         else if (GetAsyncKeyState('E') & 1) {
-			localplayer = 0;  // Clear localplayer value from previous state
-			getPlayer();  // Try to update localplayer value
 			if (localplayer != 0) {  // Call the function only if localplayer value is set
 				g_modBase = (char*)GetModuleHandle(NULL);  // Update g_modBase value
 				//setFlashlightMode(localplayer, eFlashlightModeUVLight);
@@ -176,8 +194,6 @@ void HandleKeyPresses()
 			}
         }
         else if (GetAsyncKeyState('Z') & 1) {
-            localplayer = 0;  // Clear localplayer value from previous state
-            getPlayer();  // Try to update localplayer value
             if (localplayer != 0) {  // call the function only if localplayer value is set
                 g_modBase = (char*)GetModuleHandle(NULL);  // update g_modBase value
                 // call IsTrapDeployed to check if a trap is deployed
@@ -192,8 +208,6 @@ void HandleKeyPresses()
             }
         }
         else if (GetAsyncKeyState('P') & 1) {
-			localplayer = 0;  // Clear localplayer value from previous state
-			getPlayer();  // Try to update localplayer value
 			if (localplayer != 0) {  // Call the function only if localplayer value is set
 				g_modBase = (char*)GetModuleHandle(NULL);  // Update g_modBase value
 				if (!fakePossessionStatus) {
@@ -206,8 +220,6 @@ void HandleKeyPresses()
 			}
         }
         else if (GetAsyncKeyState('G') & 1) {
-			localplayer = 0;  // Clear localplayer value from previous state
-			getPlayer();  // Try to update localplayer value
 			if (localplayer != 0) {  // Call the function only if localplayer value is set
 				g_modBase = (char*)GetModuleHandle(NULL);  // Update g_modBase value
 				if (eGogglesStatus == 0) {
@@ -227,8 +239,6 @@ void HandleKeyPresses()
             if (!wasQPressed) {  
                 wasQPressed = true;  // mark 'Q' as pressed
 
-                localplayer = 0;  // Clear localplayer value from previous state
-                getPlayer();  // Try to update localplayer value
                 if (localplayer != 0) {  // Call the function only if localplayer value is set
                     g_modBase = (char*)GetModuleHandle(NULL);  // Update g_modBase value
                     if (!holsterStatus) {
@@ -527,7 +537,6 @@ void AboutMod()
 }
 
 void OHKO() {
-    getPlayer(); // Ensure this retrieves and initializes `localplayer`
 
     if (localplayer == 0) {
         std::cerr << "Error: localplayer is null!" << std::endl;
@@ -554,7 +563,6 @@ void OHKO() {
 
 void GodMode(bool state)
 {
-    getPlayer(); // Ensure this retrieves and initializes `localplayer`
 
     if (localplayer == 0) {
         std::cerr << "Error: localplayer is null!" << std::endl;
@@ -1010,7 +1018,22 @@ DWORD WINAPI DLLAttach(HMODULE hModule)
     CreateActor = (void(*)(const char*, Vector))(g_modBase + 0x2C0D50); //const char class, vector pos(x,y,z)
     DisplayText = (int(*)(int, const char*, float))(g_modBase + 0x2494A0); //hudtype msg duration
     DisplayTextLegacy = (int(*)(int, const char*, const char*, char))(g_modBase + 0x2A6C90); //int hudtype, const char* msgtittle, const char* msg, int ?(duration??)
-    
+	void* GlobalRegisterFunc1 = (void*)((uintptr_t)GetModuleHandle(NULL) + 0x2CED00); //Thanks Malte0641 for the address
+
+    // create the hook
+    if (MH_CreateHook(GlobalRegisterFunc1, &HookedFunction, reinterpret_cast<LPVOID*>(&originalFunction)) != MH_OK) {
+        MessageBoxA(NULL, "Failed to create hook.", "Error", MB_OK | MB_ICONERROR);
+        MH_Uninitialize();
+        return 1;
+    }
+
+    // enable the hook
+    if (MH_EnableHook(GlobalRegisterFunc1) != MH_OK) {
+        MessageBoxA(NULL, "Failed to enable hook.", "Error", MB_OK | MB_ICONERROR);
+        MH_Uninitialize();
+        return 1;
+    }
+
     SetTerminalOnTop();
     // Start the key press detection in a separate thread
     thread keyPressThread(HandleKeyPresses);
@@ -1039,6 +1062,7 @@ DWORD WINAPI DLLAttach(HMODULE hModule)
     }
 
     MH_Uninitialize();
+    MH_DisableHook(GlobalRegisterFunc1);
     fclose((FILE*)stdin);
     fclose((FILE*)stdout);
     FreeConsole();
