@@ -1,10 +1,5 @@
 #pragma once
 
-namespace coordinates {
-    Vector LightRGB{ 5.35f, 1.0f, 40.22f };
-    Vector Orient{ 90 };
-}
-
 namespace info {
     const char* levelres = "Level Restarted";
     const char* aboutbuild = "IE17 " STR(IE17ver) " Compiled at : " STR(__DATE__) " in " STR(__TIME__);

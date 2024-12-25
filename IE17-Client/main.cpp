@@ -1,6 +1,7 @@
 #include "main.h"
 #include "gameconstants.h"
 #include "player.h"
+#include "enums.h"
 #include <stdio.h>
 #include <iostream>
 #include <chrono>
@@ -31,6 +32,17 @@ char* g_modBase = nullptr;
 
 int playerCash = 0;
 
+
+bool (*isDead)(unsigned __int64);
+void (*cacheStreamingCinematAndAudio)(const char*, const char*);
+void (*stopStreamingCinemat)(const char*);
+void (*cacheStreamingCinemat)(const char**);
+void (*cueStreamingCinemat)(const char*, float);
+void (*playStreamingCinemat)(const char*);
+void (*GTFO)(const char*, int);
+void (*cacheSkeletalAnimationByName)(const char*);
+void (*enable)(unsigned __int64, bool, bool);
+void (*setProtonBeamMaxLength)(float);
 void (*setAnimation)(unsigned __int64, const char*, bool, bool);
 void (*detonate)(unsigned __int64, float);
 void (*attachToActorTag)(unsigned __int64, unsigned __int64, bool, const char*);
@@ -65,6 +77,7 @@ void (*AddLight)(Vector, float, Vector, float, float, float, float);
 void (*CreateActor)(const char*, Vector);
 int (*DisplayText)(int, const char*, float);
 int (*DisplayTextLegacy)(int, const char*, const char*, char);
+
 
 using _SlewFun = void(__cdecl*)();
 using _GhostViewerFunc = void(__cdecl*)();
@@ -119,7 +132,14 @@ void HandleKeyPresses()
 			enableInventoryItem(localplayer, eInventorySlimeGun, true);
 			enableInventoryItem(localplayer, eInventoryRailgun, true);
 			enableInventoryItem(localplayer, eInventoryShotgun, true);
-			//const char* ani = "upgrading_pack";
+            //const char* cinemat06 = "cs_cem_01.cinemat";
+            //cacheStreamingCinemat(&cinemat06);
+            //Sleep(3000);
+			//cueStreamingCinemat(cinemat06, 0.0f);
+			//playStreamingCinemat(cinemat06);
+            //GTFO("Game Crashed idk why", -10);
+			//setProtonBeamMaxLength(15.0f); //max 400.0f
+			//const char* ani = "upgrading_pack"; 
             //setAnimation(localplayer, ani, false, false);
             //cout << "Animaiton set to: " << ani << "\n";
 
@@ -127,10 +147,22 @@ void HandleKeyPresses()
         }
         else if (GetAsyncKeyState('8') & 1) {
             GetPlayerPosition();  // Call the cinematDebug function
+
+            std::cout << "Player Position: ("
+                << playerPos.x << ", "
+                << playerPos.y << ", "
+                << playerPos.z << ")" << std::endl;
+
             Sleep(500);  // Prevent multiple triggers within a short time
         }
         else if (GetAsyncKeyState('9') & 1) {
             SpawnActor();
+
+            std::cout << "Ghostbuster Spawned: ("
+                << playerPos.x << ", "
+                << playerPos.y << ", "
+                << playerPos.z << ")" << std::endl;
+
             Sleep(500);  // Prevent multiple triggers within a short time
         }
         else if (GetAsyncKeyState('E') & 1) {
@@ -152,11 +184,9 @@ void HandleKeyPresses()
                 bool trapDeployed = isTrapDeployed(localplayer);
                 if (trapDeployed) {
                     cout << "Trap is deployed!\n";
-                    //DisplayText(TEXT_Top, "Trap is deployed!", 3.0f);
                 }
                 else {
                     cout << "Trap isn't deployed.\n";
-                    //DisplayText(TEXT_Top, "No trap deployed.", 3.0f);
                 }
                 Sleep(500);  // Prevent multiple triggers within a short time
             }
@@ -624,12 +654,12 @@ void OpenShop(Vector GhostbusterSpawn) {
     DisplayText(TEXT_HelpMessage, "2. Skip Shop - Proceed to Next Wave", 5.0f);
     Sleep(5000);
 
-    const DWORD shopDuration = 20000;
-    DWORD startTime = GetCurrentTime();
+    const ULONGLONG shopDuration = 20000; // Use ULONGLONG for 64-bit values.
+    ULONGLONG startTime = GetTickCount64(); // Use GetTickCount64 instead of GetTickCount.
     int choice = -1;
 
-    while (GetCurrentTime() - startTime < shopDuration) {
-        DWORD remainingTime = shopDuration - (GetCurrentTime() - startTime);
+    while (GetTickCount64() - startTime < shopDuration) { // Use GetTickCount64 for comparisons.
+        ULONGLONG remainingTime = shopDuration - (GetTickCount64() - startTime);
         DisplayText(TEXT_Top, ("Shop closes in: " + to_string(remainingTime / 1000) + " seconds").c_str(), 1.0f);
 
         // check for player input
@@ -711,7 +741,7 @@ void RunMod()
     Note that this prototype is very w.i.p., and the coordinates that are displayed below(GhostSpawner1, GhostSpawner2, GhostSpawner3) 
 
     TODO:
-    *Track the ghost that have been spawned, because now the waves end after 20 seconds
+	*Track the ghost that have been spawned, isDead function seems to be the way to go for this only need to find the ghosts adress and not muanually set it.
     *Make a clear state function that clears everything(Ghostbusters, Ghosts, Objects etc)
     */
 
@@ -723,6 +753,8 @@ void RunMod()
     int wave = 1;
     int maxWaves = 10; 
     int baseGhostsPerWave = 1;  // initial ghost count per wave
+
+    setProtonBeamMaxLength(400.0f);
 
     //const char* ghostTypes[] = { "CSlimer", "CBiped" }; //ghost type CSlime and CBiped
     //int ghostTypeCount = sizeof(ghostTypes) / sizeof(ghostTypes[0]);
@@ -769,6 +801,7 @@ void RunMod()
                 case 0: selectedSpawner = GhostSpawner1; break;
                 case 1: selectedSpawner = GhostSpawner2; break;
                 case 2: selectedSpawner = GhostSpawner3; break;
+                default: selectedSpawner = GhostSpawner1; // Fallback in case something unexpected happens.
                 }
 
 
@@ -813,15 +846,17 @@ void RunMod()
 
         Vector GhostbusterSpawn{ 31.57f, 8.45f, -134.15f };
 
-        Vector playerSpawn{ 26.60f, 7.21f, -121.77f };
+        Vector playerSpawn{ 26.29f, 7.23f, -122.33f };
+        Vector playerOrient{ 26.29f, 7.23f, -122.33f };
 
         Vector GhostSpawnerOrientation{ 90 };
 
         const char* effectname = "chief_spawn.tfb";
 
-        warpTo(localplayer, playerSpawn, coordinates::Orient);
+        warpTo(localplayer, playerSpawn, playerOrient);
         setGoggleLocation(localplayer, eGogglesOnFace);
         readyInventoryItem(localplayer, eInventoryNothing, true);
+        //setAnimation(localplayer, "amb_scratch_pke", false, false);
 
         fadein();
         CacheEffect(&effectname); //cache effect because if not the game will pop up a error
@@ -849,6 +884,7 @@ void RunMod()
                 case 0: selectedSpawner = GhostSpawner1; break;
                 case 1: selectedSpawner = GhostSpawner2; break;
                 case 2: selectedSpawner = GhostSpawner3; break;
+                default: selectedSpawner = GhostSpawner1; // Fallback in case something unexpected happens.
                 }
 
 
@@ -884,8 +920,12 @@ void RunMod()
                 // check if the current wave is the last wave (maxWaves)
                 if (wave == maxWaves)
                 {
+                    cacheSkeletalAnimationByName("amb_wave_to_crowd");
                     setAnimation(localplayer, "amb_wave_to_crowd", false, false);
                     DisplayText(TEXT_Top, "Survival Mode Complete! Well done.", 10.0f);
+					readyInventoryItem(localplayer, eInventoryNothing, true);
+                    Sleep(10000);
+					readyInventoryItem(localplayer, eInventoryProtonGun, true);
                 }
                 else
                 {
@@ -926,6 +966,16 @@ DWORD WINAPI DLLAttach(HMODULE hModule)
     cout << "Version: " STR(IE17ver) "\n";
 
     g_modBase = (char*)GetModuleHandle(NULL); 
+	isDead = (bool(*)(unsigned __int64))(g_modBase + 0x7B170); //we can use this for the survival mode
+    cacheStreamingCinematAndAudio = (void(*)(const char*, const char*))(g_modBase + 0x477500);
+    stopStreamingCinemat = (void(*)(const char*))(g_modBase + 0x477B60);
+    playStreamingCinemat = (void(*)(const char*))(g_modBase + 0x478930);
+    cueStreamingCinemat = (void(*)(const char*, float))(g_modBase + 0x4779B0);
+    cacheStreamingCinemat = (void(*)(const char**))(g_modBase + 0x476520);
+	GTFO = (void(*)(const char*, int))(g_modBase + 0x2D11C0); //very 2000's function | GTFO is error msg int must be -10 | good for debbuging a function like a breakpoint
+    cacheSkeletalAnimationByName = (void(*)(const char*))(g_modBase + 0x2D9AF0);
+    enable = (void(*)(unsigned __int64, bool, bool))(g_modBase + 0x2DA340);
+    setProtonBeamMaxLength = (void(*)(float))(g_modBase + 0x277A50); // min 10.0f  max 400.0f
     setAnimation = (void(*)(unsigned __int64, const char*, bool, bool))(g_modBase + 0x77440);
     detonate = (void(*)(unsigned __int64, float))(g_modBase + 0x690F0); //car function
     attachToActorTag = (void(*)(unsigned __int64, unsigned __int64, bool, const char*))(g_modBase + 0x2BEE80);

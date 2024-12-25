@@ -143,11 +143,6 @@ void GetPlayerPosition() {
         playerPos.y = *(reinterpret_cast<float*>(localplayer + 0x58)); // 0x58 offset for Y
         playerPos.z = *(reinterpret_cast<float*>(localplayer + 0x5C)); // 0x5C offset for Z
 
-        // Optionally print the position for debugging
-        std::cout << "Player Position: ("
-            << playerPos.x << ", "
-            << playerPos.y << ", "
-            << playerPos.z << ")" << std::endl;
     }
     else {
         std::cout << "Error: Failed to get player position or localplayer is null." << std::endl;
