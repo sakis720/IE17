@@ -14,6 +14,14 @@ struct Vector
     float z;
 };
 
+/*
+struct SSpawnInfo {
+    string classTypeName;
+	string citFilename;
+    string variantName;
+};
+*/
+
 extern bool holsterBool;
 
 extern bool m_about;
@@ -26,6 +34,9 @@ extern bool wasQPressed;
 
 extern Vector playerPos;
 
+extern void (*cacheRappel)(unsigned __int64);
+extern void (*setRappelModeEnable)(unsigned __int64, bool);
+extern void (*startRappelSwing)(unsigned __int64);
 extern bool (*isDead)(unsigned __int64);
 extern void (*cacheStreamingCinematAndAudio)(const char*, const char*);
 extern void (*stopStreamingCinemat)(const char*);
@@ -45,10 +56,12 @@ extern void (*gatherAllDeployedInventoryItems)(unsigned __int64);
 extern void (*readyInventoryItem)(unsigned __int64, int, bool);
 extern void (*enableInventoryItem)(unsigned __int64, int, bool);
 extern void (*isPackOverheated)(unsigned __int64);
+extern void (*slamGoggleLocation)(unsigned __int64, int);
 extern void (*setGoggleLocation)(unsigned __int64, int);
 extern void (*setFacialExpression)(unsigned __int64, int);
 extern void (*stopControllingActor)(unsigned __int64);
 extern int (*warpTo)(unsigned __int64, Vector, Vector);
+extern int (*warpToActorSeamless)(unsigned __int64, unsigned __int64);
 extern void (*fakePossession)(unsigned __int64, bool);
 extern void (*toggleflashlight)(unsigned __int64, int);
 extern void (*setFlashlightMode)(unsigned __int64, int);

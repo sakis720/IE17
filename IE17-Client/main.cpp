@@ -5,10 +5,12 @@
 #include <stdio.h>
 #include <iostream>
 #include <chrono>
+#include <fstream>
 #include <thread>
 #include <cstdint> 
 #include <cstring>
 #include <string>
+#include <algorithm>
 #include <windows.h>
 
 using namespace std;
@@ -16,6 +18,7 @@ using namespace std;
 bool holsterStatus = false;
 int eGogglesStatus = 0;
 bool fakePossessionStatus = false;
+
 
 bool wasQPressed = false;
 
@@ -33,6 +36,9 @@ char* g_modBase = nullptr;
 int playerCash = 0;
 
 
+void (*cacheRappel)(unsigned __int64);
+void (*setRappelModeEnable)(unsigned __int64, bool);
+void (*startRappelSwing)(unsigned __int64);
 bool (*isDead)(unsigned __int64);
 void (*cacheStreamingCinematAndAudio)(const char*, const char*);
 void (*stopStreamingCinemat)(const char*);
@@ -52,10 +58,12 @@ void (*gatherAllDeployedInventoryItems)(unsigned __int64);
 void (*readyInventoryItem)(unsigned __int64, int, bool);
 void (*enableInventoryItem)(unsigned __int64, int, bool);
 void (*isPackOverheated)(unsigned __int64);
+void (*slamGoggleLocation)(unsigned __int64, int);
 void (*setGoggleLocation)(unsigned __int64, int);
 void (*setFacialExpression)(unsigned __int64, int);
 void (*stopControllingActor)(unsigned __int64);
 int (*warpTo)(unsigned __int64, Vector, Vector);
+int (*warpToActorSeamless)(unsigned __int64, unsigned __int64);
 void (*fakePossession)(unsigned __int64, bool);
 void (*setFlashlightMode)(unsigned __int64, int);
 void (*toggleflashlight)(unsigned __int64, int); // toggleflashlight and setFlashlightMode are diffrent functions
@@ -103,13 +111,24 @@ OriginalFunctionType originalFunction = nullptr;
 
 void __stdcall HookedFunction(char* Buffer, __int64 adr1, __int64 adr2, __int64 adr3) {
 
-    bool debugMode = false;  // change this to true if you want to enable logging
+    bool debugMode = true;  // change this to true if you want to enable logging
+    const char* logFilePath = "dante_reg.txt";
+
 
     if (debugMode) {
+
+        std::ofstream logFile("dante_reg.txt", std::ios_base::app);
+
         std::cout << "Buffer (Type of): " << (Buffer ? Buffer : "NULL") << std::endl;
-        std::cout << "Local Object 1: " << adr1 << " (as hex: " << std::hex << adr1 << std::dec << ")" << std::endl;
-        std::cout << "Local Object 2: " << adr2 << " (as hex: " << std::hex << adr2 << std::dec << ")" << std::endl;
-        std::cout << "Local Object 3: " << adr3 << " (as hex: " << std::hex << adr3 << std::dec << ")" << std::endl;
+        std::cout << "Local Object Address 1: 0x" << adr1 << std::hex << std::endl;
+        std::cout << "Local Object Address 2: 0x" << adr2 << std::hex << std::endl;
+        std::cout << "Local Object Address 3: 0x" << adr3 << std::hex << std::endl;
+        logFile << "Buffer (Type of): " << (Buffer ? Buffer : "NULL") << std::endl;
+        logFile << "Local Object Address 1: 0x" << std::hex << adr1 << std::endl;
+        logFile << "Local Object Address 2: 0x" << std::hex << adr2 << std::endl;
+        logFile << "Local Object Address 3: 0x" << std::hex << adr3 << std::endl;
+
+        logFile.close();
     }
 
     // call the original function if needed
@@ -118,6 +137,7 @@ void __stdcall HookedFunction(char* Buffer, __int64 adr1, __int64 adr2, __int64 
     }
 
     getPlayer(Buffer, adr1);
+
 }
 
 // Continuously check for key presses in a separate thread
@@ -152,6 +172,12 @@ void HandleKeyPresses()
 			enableInventoryItem(localplayer, eInventorySlimeGun, true);
 			enableInventoryItem(localplayer, eInventoryRailgun, true);
 			enableInventoryItem(localplayer, eInventoryShotgun, true);
+
+			//cacheRappel(localplayer);
+			//setRappelModeEnable(localplayer, true);
+            //Sleep(2000);
+            //setRappelModeEnable(localplayer, false);
+			//startRappelSwing(localplayer);
             //const char* cinemat06 = "cs_cem_01.cinemat";
             //cacheStreamingCinemat(&cinemat06);
             //Sleep(3000);
@@ -600,7 +626,7 @@ void SpawnActor()
 
 std::string GetCurLevel()
 {
-    uintptr_t pointeradr = 0x2C74FD0; //adr
+    uintptr_t pointeradr = 0x2C72528; //adr
     uintptr_t offset = 0x370; // Offset
 
     uintptr_t pointerAddress;
@@ -973,7 +999,10 @@ DWORD WINAPI DLLAttach(HMODULE hModule)
     cout << "*************************** \n";
     cout << "Version: " STR(IE17ver) "\n";
 
-    g_modBase = (char*)GetModuleHandle(NULL); 
+    g_modBase = (char*)GetModuleHandle(NULL);
+    cacheRappel = (void(*)(unsigned __int64))(g_modBase + 0xE1D70);
+    setRappelModeEnable = (void(*)(unsigned __int64, bool))(g_modBase + 0xE1F70);
+    startRappelSwing = (void(*)(unsigned __int64))(g_modBase + 0xE21E0);
 	isDead = (bool(*)(unsigned __int64))(g_modBase + 0x7B170); //we can use this for the survival mode
     cacheStreamingCinematAndAudio = (void(*)(const char*, const char*))(g_modBase + 0x477500);
     stopStreamingCinemat = (void(*)(const char*))(g_modBase + 0x477B60);
@@ -993,9 +1022,11 @@ DWORD WINAPI DLLAttach(HMODULE hModule)
     readyInventoryItem = (void(*)(unsigned __int64, int, bool))(g_modBase + 0xE3F10);
     enableInventoryItem = (void(*)(unsigned __int64, int, bool))(g_modBase + 0xE4530);
     isPackOverheated = (void(*)(unsigned __int64))(g_modBase + 0xEA6D0);
+    slamGoggleLocation = (void(*)(unsigned __int64, int))(g_modBase + 0xD51D0);
     setGoggleLocation = (void(*)(unsigned __int64, int))(g_modBase + 0xD50E0);
     setFacialExpression = (void(*)(unsigned __int64, int))(g_modBase + 0xCD370);
     stopControllingActor = (void(*)(unsigned __int64))(g_modBase + 0x76FD0);
+    warpToActorSeamless = (int(*)(unsigned __int64, unsigned __int64))(g_modBase + 0xCDA20);
     warpTo = (int(*)(unsigned __int64, Vector, Vector))(g_modBase + 0x2C4520);
     fakePossession = (void(*)(unsigned __int64, bool))(g_modBase + 0xEC1E0);
     setFlashlightMode = (void(*)(unsigned __int64, int))(g_modBase + 0xE5AD0);

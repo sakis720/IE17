@@ -14,9 +14,24 @@ void getPlayer(char* Buffer, __int64 adr1) {
 
 	std::string level = GetCurLevel(); //adding this here because MonitorLevel() is freaking out
 
-    if (strstr(Buffer, "Ghostbuster0") != nullptr) { // need to make it to search for theHero, player etc
+    if (strstr(Buffer, "Ghostbuster0") != nullptr) {
         localplayer = static_cast<unsigned __int64>(adr1);
     }
+    /*
+    else if (strstr(Buffer, "GB_hero") != nullptr) { 
+        localplayer = static_cast<unsigned __int64>(adr1);
+    }
+    else if (strstr(Buffer, "theHero2") != nullptr) {
+        localplayer = static_cast<unsigned __int64>(adr1);
+    }
+    else if (strstr(Buffer, "player") != nullptr) {
+        localplayer = static_cast<unsigned __int64>(adr1);
+    }
+    else if (strstr(Buffer, "Player") != nullptr) {
+        localplayer = static_cast<unsigned __int64>(adr1);
+    }
+    */
+    
 }
 
 
@@ -48,6 +63,12 @@ void MonitorLevel() {
         if (level != lastLevel) {
             std::cout << "Detected level: " << level << std::endl;
             lastLevel = level;
+
+            if (localplayer == 0)
+            {
+				std::cout << "Localplayer is null." << std::endl;
+				continue;
+            }
 
             if (level.ends_with(".lvl")) {
                 //getPlayer(); // call getPlayer if level ends with .lvl
