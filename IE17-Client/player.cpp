@@ -14,23 +14,27 @@ void getPlayer(char* Buffer, __int64 adr1) {
 
 	std::string level = GetCurLevel(); //adding this here because MonitorLevel() is freaking out
 
-    if (strstr(Buffer, "Ghostbuster0") != nullptr) {
+	// added CGhostbuster in all of them because if its searchs for example 'Player' it can find a diffrent object that has the 'Player' in the name.
+	// so i added CGhostbuster to make sure it finds the object that is class CGhostbuster.
+    if (strstr(Buffer, "CGhostbuster Ghostbuster0") != nullptr) {
         localplayer = static_cast<unsigned __int64>(adr1);
     }
-    /*
-    else if (strstr(Buffer, "GB_hero") != nullptr) { 
+    else if (strstr(Buffer, "CGhostbuster GB_hero") != nullptr) { 
         localplayer = static_cast<unsigned __int64>(adr1);
     }
-    else if (strstr(Buffer, "theHero2") != nullptr) {
+    else if (strstr(Buffer, "CGhostbuster theHero2") != nullptr) {
         localplayer = static_cast<unsigned __int64>(adr1);
     }
-    else if (strstr(Buffer, "player") != nullptr) {
+    else if (strstr(Buffer, "CGhostbuster player") != nullptr) {
         localplayer = static_cast<unsigned __int64>(adr1);
     }
-    else if (strstr(Buffer, "Player") != nullptr) {
+    else if (strstr(Buffer, "CGhostbuster Player") != nullptr) {
         localplayer = static_cast<unsigned __int64>(adr1);
     }
-    */
+    else if (strstr(Buffer, "CGhostbuster theHero") != nullptr) {
+        localplayer = static_cast<unsigned __int64>(adr1);
+    }
+    
     
 }
 
@@ -62,12 +66,17 @@ void MonitorLevel() {
 
         if (level != lastLevel) {
             std::cout << "Detected level: " << level << std::endl;
+
             lastLevel = level;
 
             if (localplayer == 0)
             {
 				std::cout << "Localplayer is null." << std::endl;
 				continue;
+            }
+            else
+            {
+                std::cout << "Localplayer is 0x" << localplayer << std::endl;
             }
 
             if (level.ends_with(".lvl")) {

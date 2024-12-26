@@ -34,6 +34,8 @@ extern bool wasQPressed;
 
 extern Vector playerPos;
 
+extern void (*fakeFireProtonGun)(unsigned __int64, bool);
+extern char (*forceDeployTrap)(unsigned __int64, Vector);
 extern void (*cacheRappel)(unsigned __int64);
 extern void (*setRappelModeEnable)(unsigned __int64, bool);
 extern void (*startRappelSwing)(unsigned __int64);

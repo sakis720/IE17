@@ -8,6 +8,7 @@
 #include <fstream>
 #include <thread>
 #include <cstdint> 
+#include <filesystem> 
 #include <cstring>
 #include <string>
 #include <algorithm>
@@ -18,7 +19,6 @@ using namespace std;
 bool holsterStatus = false;
 int eGogglesStatus = 0;
 bool fakePossessionStatus = false;
-
 
 bool wasQPressed = false;
 
@@ -36,6 +36,8 @@ char* g_modBase = nullptr;
 int playerCash = 0;
 
 
+void (*fakeFireProtonGun)(unsigned __int64, bool);
+char (*forceDeployTrap)(unsigned __int64, Vector);
 void (*cacheRappel)(unsigned __int64);
 void (*setRappelModeEnable)(unsigned __int64, bool);
 void (*startRappelSwing)(unsigned __int64);
@@ -112,8 +114,6 @@ OriginalFunctionType originalFunction = nullptr;
 void __stdcall HookedFunction(char* Buffer, __int64 adr1, __int64 adr2, __int64 adr3) {
 
     bool debugMode = true;  // change this to true if you want to enable logging
-    const char* logFilePath = "dante_reg.txt";
-
 
     if (debugMode) {
 
@@ -137,7 +137,6 @@ void __stdcall HookedFunction(char* Buffer, __int64 adr1, __int64 adr2, __int64 
     }
 
     getPlayer(Buffer, adr1);
-
 }
 
 // Continuously check for key presses in a separate thread
@@ -928,6 +927,7 @@ void RunMod()
                 Sleep(static_cast<DWORD>(spawnDelay * 1000));
             }
 
+
             // if wave is 3 the waveDuration goes to 50 sec, and after 4 onwards all of the waves get 40 sec more
             DWORD waveDuration = 30000;
             if (wave == 4 || wave > 4)
@@ -1000,7 +1000,9 @@ DWORD WINAPI DLLAttach(HMODULE hModule)
     cout << "Version: " STR(IE17ver) "\n";
 
     g_modBase = (char*)GetModuleHandle(NULL);
+    fakeFireProtonGun = (void(*)(unsigned __int64, bool))(g_modBase + 0xE9060);
     cacheRappel = (void(*)(unsigned __int64))(g_modBase + 0xE1D70);
+    forceDeployTrap = (char(*)(unsigned __int64, Vector))(g_modBase + 0xE4C80);
     setRappelModeEnable = (void(*)(unsigned __int64, bool))(g_modBase + 0xE1F70);
     startRappelSwing = (void(*)(unsigned __int64))(g_modBase + 0xE21E0);
 	isDead = (bool(*)(unsigned __int64))(g_modBase + 0x7B170); //we can use this for the survival mode
