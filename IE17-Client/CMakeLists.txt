@@ -29,6 +29,7 @@ add_library(IE17Client SHARED
     dllmain.cpp
     main.cpp
     player.cpp
+    actors.cpp
 )
 
 # Include directories

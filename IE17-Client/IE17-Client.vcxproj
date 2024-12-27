@@ -160,6 +160,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="actors.h" />
     <ClInclude Include="enums.h" />
     <ClInclude Include="gameconstants.h" />
     <ClInclude Include="include\MinHook.h" />
@@ -167,6 +168,7 @@
     <ClInclude Include="player.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="actors.cpp" />
     <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="player.cpp" />

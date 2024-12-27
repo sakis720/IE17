@@ -2,6 +2,7 @@
 #include "gameconstants.h"
 #include "player.h"
 #include "enums.h"
+#include "actors.h"
 #include <stdio.h>
 #include <iostream>
 #include <chrono>
@@ -35,7 +36,8 @@ char* g_modBase = nullptr;
 
 int playerCash = 0;
 
-
+void (*pretendToDrive)(unsigned __int64, unsigned __int64, bool, bool);
+void (*mountProtonPack)(unsigned __int64, bool);
 void (*fakeFireProtonGun)(unsigned __int64, bool);
 char (*forceDeployTrap)(unsigned __int64, Vector);
 void (*cacheRappel)(unsigned __int64);
@@ -137,6 +139,8 @@ void __stdcall HookedFunction(char* Buffer, __int64 adr1, __int64 adr2, __int64 
     }
 
     getPlayer(Buffer, adr1);
+	getGhostbusters(Buffer, adr1);
+	getEcto(Buffer, adr1);
 }
 
 // Continuously check for key presses in a separate thread
@@ -167,11 +171,14 @@ void HandleKeyPresses()
             Sleep(500);  // Prevent multiple triggers within a short time
         }
         else if (GetAsyncKeyState(VK_F5) & 1) { //enable all equipment
+
 			enableInventoryItem(localplayer, eInventoryProtonGun, true);
 			enableInventoryItem(localplayer, eInventorySlimeGun, true);
 			enableInventoryItem(localplayer, eInventoryRailgun, true);
 			enableInventoryItem(localplayer, eInventoryShotgun, true);
 
+			//warpToActorSeamless(localplayer, egon);
+			//pretendToDrive(egon, ecto, false, false); // for some reason player(localplayer) can't drive or sit as a passenger
 			//cacheRappel(localplayer);
 			//setRappelModeEnable(localplayer, true);
             //Sleep(2000);
@@ -1000,6 +1007,8 @@ DWORD WINAPI DLLAttach(HMODULE hModule)
     cout << "Version: " STR(IE17ver) "\n";
 
     g_modBase = (char*)GetModuleHandle(NULL);
+    pretendToDrive = (void(*)(unsigned __int64, unsigned __int64, bool, bool))(g_modBase + 0xEAC40);
+    mountProtonPack = (void(*)(unsigned __int64, bool))(g_modBase + 0xE4640);
     fakeFireProtonGun = (void(*)(unsigned __int64, bool))(g_modBase + 0xE9060);
     cacheRappel = (void(*)(unsigned __int64))(g_modBase + 0xE1D70);
     forceDeployTrap = (char(*)(unsigned __int64, Vector))(g_modBase + 0xE4C80);

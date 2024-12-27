@@ -34,6 +34,8 @@ extern bool wasQPressed;
 
 extern Vector playerPos;
 
+extern void (*pretendToDrive)(unsigned __int64, unsigned __int64, bool, bool);
+extern void (*mountProtonPack)(unsigned __int64, bool);
 extern void (*fakeFireProtonGun)(unsigned __int64, bool);
 extern char (*forceDeployTrap)(unsigned __int64, Vector);
 extern void (*cacheRappel)(unsigned __int64);

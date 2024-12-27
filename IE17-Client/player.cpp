@@ -1,5 +1,6 @@
 #include "player.h"
 #include "main.h"
+#include "actors.h"
 #include <iostream>
 #include <thread>
 #include <cstring>
@@ -77,6 +78,10 @@ void MonitorLevel() {
             else
             {
                 std::cout << "Localplayer is 0x" << localplayer << std::endl;
+                std::cout << "Egon is 0x" << egon << std::endl;
+				std::cout << "Winston is 0x" << winston << std::endl;
+				std::cout << "Venkman is 0x" << venkman << std::endl;
+				std::cout << "Ray is 0x" << ray << std::endl;
             }
 
             if (level.ends_with(".lvl")) {
