@@ -2,6 +2,7 @@
 #include "gameconstants.h"
 #include "player.h"
 #include "enums.h"
+#include "script.h"
 #include "actors.h"
 #include <stdio.h>
 #include <iostream>
@@ -168,6 +169,9 @@ void HandleKeyPresses()
             Sleep(500);  // Prevent multiple triggers within a short time
         } else if (GetAsyncKeyState(VK_F4) & 1) { 
             cinematDebug();  // Call the cinematDebug function
+            Sleep(500);  // Prevent multiple triggers within a short time
+        }else if (GetAsyncKeyState(VK_F6) & 1) { 
+            script();  // Call the cinematDebug function
             Sleep(500);  // Prevent multiple triggers within a short time
         }
         else if (GetAsyncKeyState(VK_F5) & 1) { //enable all equipment
@@ -380,6 +384,53 @@ void HandleInput()
             RunMod();
             //cout << "Survival Mode(Prototype).\n";
         }
+        else if (input == "gbloaded")
+        {
+			if (localplayer != 0)
+			{
+				cout << "Player                  LOADED.\n";
+			}
+			else
+			{
+				cout << "Player                  NOT loaded.\n";
+			}
+
+            if (egon != 0)
+            {
+                cout << "Egon                    LOADED.\n";
+            }
+            else
+            {
+                cout << "Egon                    NOT loaded.\n";
+            }
+
+            if (winston != 0)
+            {
+                cout << "Winston                 LOADED.\n";
+            }
+            else
+            {
+                cout << "Winston                 NOT loaded.\n";
+            }
+
+            if (venkman != 0)
+            {
+                cout << "Venkman                 LOADED.\n";
+            }
+            else
+            {
+                cout << "Venkman                 NOT loaded.\n";
+            }
+
+            if (ray != 0)
+            {
+                cout << "Ray                     LOADED.\n";
+            }
+            else
+            {
+                cout << "Ray                     NOT LOADED.\n";
+            }
+        }
         else if (input == "explosion")
         {
             cout << "Enter explosion parameters (x y z radius strength speed): ";
@@ -485,6 +536,7 @@ void HandleInput()
             cout << "  ghostviewer           - Toggle Ghost Viewer\n";
             cout << "  about                 - Toggle About\n";
             cout << "  restart               - Restart Level\n";
+            cout << "  gbloaded              - Check if Ghostbuster are loaded\n";
             cout << "  legacytext            - Toggle Legacy text display\n";
             cout << "  spawnactor            - Spawn Actor\n";
             cout << "  explosion             - Creates Explosion\n";
@@ -891,11 +943,15 @@ void RunMod()
 
         Vector GhostSpawnerOrientation{ 90 };
 
+        const char* ani = "put_on_pack";
+
         const char* effectname = "chief_spawn.tfb";
 
         warpTo(localplayer, playerSpawn, playerOrient);
         setGoggleLocation(localplayer, eGogglesOnFace);
         readyInventoryItem(localplayer, eInventoryNothing, true);
+
+        setAnimation(localplayer, ani, false, false);
         //setAnimation(localplayer, "amb_scratch_pke", false, false);
 
         fadein();

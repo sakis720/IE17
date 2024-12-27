@@ -3,7 +3,7 @@
 #include <cstdio>
 #include <string>
 #define STR_(X) #X
-#define IE17ver v0.06
+#define IE17ver v0.07
 #define STR(X) STR_(X)
 
 //most simple vector
@@ -79,6 +79,7 @@ extern void (*buttonPrompt)(int, float);
 extern void (*setAllowDamageTally)(bool*);
 extern void (*fade)(float, float, float, float, float);
 extern void (*displaySplashScreen)(const char*, float, bool, bool);
+extern void (*CreateActor)(const char*, Vector);
 extern void (*CacheEffect)(const char**);
 extern int (*StartEffect)(const char*, Vector, Vector);
 extern void (*CreateExplosion)(Vector, float, float, float);

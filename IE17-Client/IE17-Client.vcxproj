@@ -166,12 +166,14 @@
     <ClInclude Include="include\MinHook.h" />
     <ClInclude Include="main.h" />
     <ClInclude Include="player.h" />
+    <ClInclude Include="script.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="actors.cpp" />
     <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="player.cpp" />
+    <ClCompile Include="script.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

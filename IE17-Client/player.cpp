@@ -35,6 +35,9 @@ void getPlayer(char* Buffer, __int64 adr1) {
     else if (strstr(Buffer, "CGhostbuster theHero") != nullptr) {
         localplayer = static_cast<unsigned __int64>(adr1);
     }
+    else if (strstr(Buffer, "CGhostbuster Eric") != nullptr) {
+        localplayer = static_cast<unsigned __int64>(adr1);
+    }
     
     
 }
@@ -69,20 +72,6 @@ void MonitorLevel() {
             std::cout << "Detected level: " << level << std::endl;
 
             lastLevel = level;
-
-            if (localplayer == 0)
-            {
-				std::cout << "Localplayer is null." << std::endl;
-				continue;
-            }
-            else
-            {
-                std::cout << "Localplayer is 0x" << localplayer << std::endl;
-                std::cout << "Egon is 0x" << egon << std::endl;
-				std::cout << "Winston is 0x" << winston << std::endl;
-				std::cout << "Venkman is 0x" << venkman << std::endl;
-				std::cout << "Ray is 0x" << ray << std::endl;
-            }
 
             if (level.ends_with(".lvl")) {
                 //getPlayer(); // call getPlayer if level ends with .lvl
