@@ -37,6 +37,9 @@ char* g_modBase = nullptr;
 
 int playerCash = 0;
 
+void (*transferHeroshipTo)(unsigned __int64, unsigned __int64);
+void (*slimeMe)(unsigned __int64, bool, float);
+void (*knockBack)(unsigned __int64, Vector, float);
 void (*pretendToDrive)(unsigned __int64, unsigned __int64, bool, bool);
 void (*mountProtonPack)(unsigned __int64, bool);
 void (*fakeFireProtonGun)(unsigned __int64, bool);
@@ -114,9 +117,10 @@ _resgravity resetgravity;
 typedef void (*OriginalFunctionType)(char* Buffer, __int64 adr1, __int64 adr2, __int64 adr3);
 OriginalFunctionType originalFunction = nullptr;
 
+
 void __stdcall HookedFunction(char* Buffer, __int64 adr1, __int64 adr2, __int64 adr3) {
 
-    bool debugMode = true;  // change this to true if you want to enable logging
+    bool debugMode = false;  // change this to true if you want to enable logging
 
     if (debugMode) {
 
@@ -142,6 +146,7 @@ void __stdcall HookedFunction(char* Buffer, __int64 adr1, __int64 adr2, __int64 
     getPlayer(Buffer, adr1);
 	getGhostbusters(Buffer, adr1);
 	getEcto(Buffer, adr1);
+	getCMainView(Buffer, adr1);
 }
 
 // Continuously check for key presses in a separate thread
@@ -1063,6 +1068,9 @@ DWORD WINAPI DLLAttach(HMODULE hModule)
     cout << "Version: " STR(IE17ver) "\n";
 
     g_modBase = (char*)GetModuleHandle(NULL);
+    transferHeroshipTo = (void(*)(unsigned __int64, unsigned __int64))(g_modBase + 0xD81A0);
+    slimeMe = (void(*)(unsigned __int64, bool, float))(g_modBase + 0xD0F50);
+    knockBack = (void(*)(unsigned __int64, Vector, float))(g_modBase + 0xED100);
     pretendToDrive = (void(*)(unsigned __int64, unsigned __int64, bool, bool))(g_modBase + 0xEAC40);
     mountProtonPack = (void(*)(unsigned __int64, bool))(g_modBase + 0xE4640);
     fakeFireProtonGun = (void(*)(unsigned __int64, bool))(g_modBase + 0xE9060);
@@ -1158,6 +1166,7 @@ DWORD WINAPI DLLAttach(HMODULE hModule)
         FreeConsole();
         return 0; // Abort injection
     }
+
 
     MH_Uninitialize();
     MH_DisableHook(GlobalRegisterFunc1);

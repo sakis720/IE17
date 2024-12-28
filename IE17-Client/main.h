@@ -34,6 +34,9 @@ extern bool wasQPressed;
 
 extern Vector playerPos;
 
+extern void (*transferHeroshipTo)(unsigned __int64, unsigned __int64);
+extern void (*slimeMe)(unsigned __int64, bool, float);
+extern void (*knockBack)(unsigned __int64, Vector, float);
 extern void (*pretendToDrive)(unsigned __int64, unsigned __int64, bool, bool);
 extern void (*mountProtonPack)(unsigned __int64, bool);
 extern void (*fakeFireProtonGun)(unsigned __int64, bool);

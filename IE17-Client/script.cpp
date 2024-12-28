@@ -20,7 +20,12 @@ using namespace std;
 
 void script()
 {
-
+	//GetPlayerPosition();
+	//knockBack(localplayer, playerPos, 30);
+	// 
+	//Sleep(3000);
+	//knockBack(venkman, playerPos, 30);
+	/*
 	const char* cinemat06 = "cs_cem_01.cinemat";
 
 	cacheStreamingCinemat(&cinemat06);
@@ -33,5 +38,5 @@ void script()
 	DisplayText(TEXT_HelpMessage, msg.c_str(), 5.0f);
 
 	playStreamingCinemat(cinemat06);
-	
+	*/
 }

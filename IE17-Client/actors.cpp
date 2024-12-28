@@ -13,6 +13,7 @@ unsigned __int64 winston = 0;
 unsigned __int64 venkman = 0;
 unsigned __int64 ray = 0;
 unsigned __int64 ecto = 0;
+unsigned __int64 mainview = 0;
 
 void getGhostbusters(char* Buffer, __int64 adr1) {
 
@@ -40,5 +41,12 @@ void getEcto(char* Buffer, __int64 adr1) {
 
     if (strstr(Buffer, "CEctoCarEffects ecto1") != nullptr) {
         ecto = static_cast<unsigned __int64>(adr1);
+    }
+}
+
+void getCMainView(char* Buffer, __int64 adr1) {
+
+    if (strstr(Buffer, "CGameView gMainView") != nullptr) {
+        mainview = static_cast<unsigned __int64>(adr1);
     }
 }
