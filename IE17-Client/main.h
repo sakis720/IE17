@@ -34,6 +34,7 @@ extern bool wasQPressed;
 
 extern Vector playerPos;
 
+extern int (*chainToLevel)(unsigned __int64, const char*, const char*);
 extern void (*transferHeroshipTo)(unsigned __int64, unsigned __int64);
 extern void (*slimeMe)(unsigned __int64, bool, float);
 extern void (*knockBack)(unsigned __int64, Vector, float);

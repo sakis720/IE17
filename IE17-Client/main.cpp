@@ -37,6 +37,7 @@ char* g_modBase = nullptr;
 
 int playerCash = 0;
 
+int (*chainToLevel)(unsigned __int64, const char*, const char*);
 void (*transferHeroshipTo)(unsigned __int64, unsigned __int64);
 void (*slimeMe)(unsigned __int64, bool, float);
 void (*knockBack)(unsigned __int64, Vector, float);
@@ -1046,8 +1047,9 @@ void RunMod()
     }
     //if not the same level
     else {
-        std::cout << "You are not on the correct level" << std::endl;
-        std::cout << "Current Level: " << currentLevel << std::endl; //print current level example cemetery1.lvl
+        chainToLevel(localplayer, "cemetery2.lvl", "Underground");
+		Sleep(2000);
+        cout << "You have to call survivalmode again.\n";
     }
    
 
@@ -1068,6 +1070,7 @@ DWORD WINAPI DLLAttach(HMODULE hModule)
     cout << "Version: " STR(IE17ver) "\n";
 
     g_modBase = (char*)GetModuleHandle(NULL);
+    chainToLevel = (int(*)(unsigned __int64, const char*, const char*))(g_modBase + 0x1EF700);
     transferHeroshipTo = (void(*)(unsigned __int64, unsigned __int64))(g_modBase + 0xD81A0);
     slimeMe = (void(*)(unsigned __int64, bool, float))(g_modBase + 0xD0F50);
     knockBack = (void(*)(unsigned __int64, Vector, float))(g_modBase + 0xED100);
@@ -1113,7 +1116,7 @@ DWORD WINAPI DLLAttach(HMODULE hModule)
     DanteVMaddExport = (void(*)(const char*, const char*, int))(g_modBase + 0x2CEC90);
     loadcheckpoint = (void(*)(const char*))(g_modBase + 0x1ECA40);
     buttonPrompt = (void(*)(int, float))(g_modBase + 0x2494D0);
-    setAllowDamageTally = (void(*)(bool*))(g_modBase + 0x76FD0);
+    setAllowDamageTally = (void(*)(bool*))(g_modBase + 0x1F8160);
     fade = (void(*)(float, float, float, float, float))(g_modBase + 0x1ECCA0); //float opacity, float r, float g, float b, float duration
     displaySplashScreen = (void(*)(const char*, float, bool, bool))(g_modBase + 0x1ECD50); //string textureName, float duration, bool stretch = false, bool clear = true    
     CacheEffect = (void(*)(const char**))(g_modBase + 0x35A380);
