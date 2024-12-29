@@ -37,6 +37,9 @@ char* g_modBase = nullptr;
 
 int playerCash = 0;
 
+void (*setSimEnable)(unsigned __int64, int);
+void (*loadCheckpoint)(const char**);
+void (*setCurrentObjective)(const char**);
 void (*toggleReviveMode)(unsigned __int64, bool);
 int (*chainToLevel)(unsigned __int64, const char*, const char*);
 void (*transferHeroshipTo)(unsigned __int64, unsigned __int64);
@@ -61,7 +64,7 @@ void (*enable)(unsigned __int64, bool, bool);
 void (*setProtonBeamMaxLength)(float);
 void (*setAnimation)(unsigned __int64, const char*, bool, bool);
 void (*detonate)(unsigned __int64, float);
-void (*attachToActorTag)(unsigned __int64, unsigned __int64, bool, const char*);
+void (*attachToActorTag)(unsigned __int64, unsigned __int64, const char*, bool);
 void (*setCurrentTeam)(unsigned __int64, int);
 bool (*isTrapDeployed)(unsigned __int64);
 void (*gatherAllDeployedInventoryItems)(unsigned __int64);
@@ -82,7 +85,6 @@ void (*setHealth)(unsigned __int64, float);
 void (*setNothingEquipped)(unsigned __int64, bool);
 void (*enableAllLights)(bool*);
 void (*DanteVMaddExport)(const char*, const char*, int);
-void (*loadcheckpoint)(const char*);
 void (*buttonPrompt)(int, float);
 void (*setAllowDamageTally)(bool*);
 void (*fade)(float, float, float, float, float);
@@ -149,6 +151,7 @@ void __stdcall HookedFunction(char* Buffer, __int64 adr1, __int64 adr2, __int64 
 	getGhostbusters(Buffer, adr1);
 	getEcto(Buffer, adr1);
 	getCMainView(Buffer, adr1);
+	getEmmit(Buffer, adr1);
 }
 
 // Continuously check for key presses in a separate thread
@@ -188,17 +191,10 @@ void HandleKeyPresses()
 			enableInventoryItem(localplayer, eInventoryRailgun, true);
 			enableInventoryItem(localplayer, eInventoryShotgun, true);
 
-            transferHeroshipTo(localplayer, ray);
-			Sleep(2500);  // Prevent multiple triggers within a short time
-			pretendToDrive(winston, ecto, false, false);
-            Vector pos{ -46.4092f, -0.0630553f, -10.1838f };
-            Vector orient{ -46.4092f, -0.0630553f, -10.1838f };
-            warpTo(ray, pos, orient);
-            readyInventoryItem(ray, eInventoryNothing, true);
-            Sleep(1400);
-            pretendToDrive(ray, ecto, true, true);
-            Sleep(5000);
-			transferHeroshipTo(ray, localplayer);
+
+			//const char* checkpoint = "Underground";
+			//loadCheckpoint(&checkpoint);
+			//attachToActorTag(localplayer, emmit, "mouth", false); // R_hand/L mouth
 			//warpToActorSeamless(localplayer, egon);
 			//pretendToDrive(egon, ecto, false, false); // for some reason player(localplayer) can't drive or sit as a passenger
 			//cacheRappel(localplayer);
@@ -660,6 +656,9 @@ DWORD WINAPI DLLAttach(HMODULE hModule)
     cout << "Version: " STR(IE17ver) "\n";
 
     g_modBase = (char*)GetModuleHandle(NULL);
+    setSimEnable = (void(*)(unsigned __int64, int))(g_modBase + 0x89940);
+    loadCheckpoint = (void(*)(const char**))(g_modBase + 0x1F81F0);
+    setCurrentObjective = (void(*)(const char**))(g_modBase + 0x1F8200);
     toggleReviveMode = (void(*)(unsigned __int64, bool))(g_modBase + 0xD0EE0);
     chainToLevel = (int(*)(unsigned __int64, const char*, const char*))(g_modBase + 0x1EF700);
     transferHeroshipTo = (void(*)(unsigned __int64, unsigned __int64))(g_modBase + 0xD81A0);
@@ -684,7 +683,7 @@ DWORD WINAPI DLLAttach(HMODULE hModule)
     setProtonBeamMaxLength = (void(*)(float))(g_modBase + 0x277A50); // min 10.0f  max 400.0f
     setAnimation = (void(*)(unsigned __int64, const char*, bool, bool))(g_modBase + 0x77440);
     detonate = (void(*)(unsigned __int64, float))(g_modBase + 0x690F0); //car function
-    attachToActorTag = (void(*)(unsigned __int64, unsigned __int64, bool, const char*))(g_modBase + 0x2BEE80);
+    attachToActorTag = (void(*)(unsigned __int64, unsigned __int64, const char*, bool))(g_modBase + 0x2BEE80);
     setCurrentTeam = (void(*)(unsigned __int64, int))(g_modBase + 0x15B20);
     isTrapDeployed = (bool(*)(unsigned __int64))(g_modBase + 0xDE370);
     gatherAllDeployedInventoryItems = (void(*)(unsigned __int64))(g_modBase + 0xE4770);
@@ -705,7 +704,6 @@ DWORD WINAPI DLLAttach(HMODULE hModule)
     setNothingEquipped = (void(*)(unsigned __int64, bool))(g_modBase + 0xE45A0);
     enableAllLights = (void(*)(bool*))(g_modBase + 0x2E3810);
     DanteVMaddExport = (void(*)(const char*, const char*, int))(g_modBase + 0x2CEC90);
-    loadcheckpoint = (void(*)(const char*))(g_modBase + 0x1ECA40);
     buttonPrompt = (void(*)(int, float))(g_modBase + 0x2494D0);
     setAllowDamageTally = (void(*)(bool*))(g_modBase + 0x1F8160);
     fade = (void(*)(float, float, float, float, float))(g_modBase + 0x1ECCA0); //float opacity, float r, float g, float b, float duration

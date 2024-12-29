@@ -292,7 +292,9 @@ void RunMod()
         const char* ani = "put_on_pack";
 
         const char* effectname = "chief_spawn.tfb";
+        const char* msg = "Welcome to Survival Mode";
 
+        setCurrentObjective(&msg);
         warpTo(localplayer, playerSpawn, playerOrient);
         setGoggleLocation(localplayer, eGogglesOnFace);
         readyInventoryItem(localplayer, eInventoryNothing, true);

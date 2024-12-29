@@ -14,6 +14,9 @@ unsigned __int64 venkman = 0;
 unsigned __int64 ray = 0;
 unsigned __int64 ecto = 0;
 unsigned __int64 mainview = 0;
+unsigned __int64 emmit = 0;
+unsigned __int64 emmit2 = 0;
+
 
 void getGhostbusters(char* Buffer, __int64 adr1) {
 
@@ -48,5 +51,16 @@ void getCMainView(char* Buffer, __int64 adr1) {
 
     if (strstr(Buffer, "CGameView gMainView") != nullptr) {
         mainview = static_cast<unsigned __int64>(adr1);
+    }
+}
+
+void getEmmit(char* Buffer, __int64 adr1) {
+
+    if (strstr(Buffer, "CNPC Ilyssa") != nullptr) {
+        emmit = static_cast<unsigned __int64>(adr1);
+    }
+
+    if (strstr(Buffer, "CVolFog VolFog1") != nullptr) {
+        emmit2 = static_cast<unsigned __int64>(adr1);
     }
 }
