@@ -118,7 +118,7 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>C:\Users\PC\Documents\GitHub\IE17\IE17-Client\lib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\PC\Documents\GitHub\IE17\IE17-Client\lib;C:\Users\PC\Documents\GitHub\IE17\IE17-Client\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AssemblerOutput>AssemblyAndSourceCode</AssemblerOutput>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <LanguageStandard_C>Default</LanguageStandard_C>
@@ -160,20 +160,22 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="actors.h" />
-    <ClInclude Include="enums.h" />
-    <ClInclude Include="gameconstants.h" />
     <ClInclude Include="include\MinHook.h" />
-    <ClInclude Include="main.h" />
-    <ClInclude Include="player.h" />
-    <ClInclude Include="script.h" />
+    <ClInclude Include="src\actors.h" />
+    <ClInclude Include="src\enums.h" />
+    <ClInclude Include="src\functions.h" />
+    <ClInclude Include="src\gameconstants.h" />
+    <ClInclude Include="src\main.h" />
+    <ClInclude Include="src\player.h" />
+    <ClInclude Include="src\script.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="actors.cpp" />
     <ClCompile Include="dllmain.cpp" />
-    <ClCompile Include="main.cpp" />
-    <ClCompile Include="player.cpp" />
-    <ClCompile Include="script.cpp" />
+    <ClCompile Include="src\actors.cpp" />
+    <ClCompile Include="src\functions.cpp" />
+    <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\player.cpp" />
+    <ClCompile Include="src\script.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

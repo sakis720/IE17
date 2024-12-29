@@ -1,5 +1,5 @@
 #include <windows.h>
-#include "include/MinHook.h"
+#include "../include/MinHook.h"
 #include <cstdio>
 #include <string>
 #define STR_(X) #X
@@ -32,8 +32,10 @@ extern char* g_modBase;
 extern bool keyholsterPressed;
 extern bool wasQPressed;
 
+extern int playerCash;
 extern Vector playerPos;
 
+extern void (*toggleReviveMode)(unsigned __int64, bool);
 extern int (*chainToLevel)(unsigned __int64, const char*, const char*);
 extern void (*transferHeroshipTo)(unsigned __int64, unsigned __int64);
 extern void (*slimeMe)(unsigned __int64, bool, float);
@@ -95,15 +97,4 @@ extern int (*DisplayTextLegacy)(int, const char*, const char*, char);
 DWORD WINAPI DLLAttach(HMODULE hModule);
 void __stdcall HookedFunction(char* Buffer, __int64 adr1, __int64 adr2, __int64 adr3);
 void HandleInput();
-void AboutMod();
-void OHKO();
-void GodMode(bool state);
-void ResLevel();
-void TestLegacyText();
-void SpawnActor();
 std::string GetCurLevel();
-void fadein();
-void OpenShop(Vector);
-void HandleShopChoice(int, Vector);
-int CheckPlayerInput();
-void RunMod();
