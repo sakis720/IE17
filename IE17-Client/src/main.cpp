@@ -37,6 +37,16 @@ char* g_modBase = nullptr;
 
 int playerCash = 0;
 
+void (*startFakePackOverheat)(unsigned __int64*);
+void (*letterbox)(bool*);
+void (*queueVideo)(const char**);
+void (*setMovieCaptureEnable)(bool*);
+void (*allowEnemyAttack)(bool*);
+void (*allowHeroControls)(bool*);
+void (*allowHeroDamage)(bool*);
+void (*play)(unsigned __int64, bool, int, float, float);
+void (*setCameraPathActor)(unsigned __int64, unsigned __int64, float, float, float);
+void (*shatter)(unsigned __int64, Vector);
 void (*setSimEnable)(unsigned __int64, int);
 void (*loadCheckpoint)(const char**);
 void (*setCurrentObjective)(const char**);
@@ -60,7 +70,7 @@ void (*cueStreamingCinemat)(const char*, float);
 void (*playStreamingCinemat)(const char*);
 void (*GTFO)(const char*, int);
 void (*cacheSkeletalAnimationByName)(const char*);
-void (*enable)(unsigned __int64, bool, bool);
+void (*enable)(unsigned __int64, bool*, bool);
 void (*setProtonBeamMaxLength)(float);
 void (*setAnimation)(unsigned __int64, const char*, bool, bool);
 void (*detonate)(unsigned __int64, float);
@@ -120,7 +130,6 @@ _resgravity resetgravity;
 
 typedef void (*OriginalFunctionType)(char* Buffer, __int64 adr1, __int64 adr2, __int64 adr3);
 OriginalFunctionType originalFunction = nullptr;
-
 
 void __stdcall HookedFunction(char* Buffer, __int64 adr1, __int64 adr2, __int64 adr3) {
 
@@ -191,7 +200,17 @@ void HandleKeyPresses()
 			enableInventoryItem(localplayer, eInventoryRailgun, true);
 			enableInventoryItem(localplayer, eInventoryShotgun, true);
 
+			unsigned __int64 player = localplayer;
 
+			startFakePackOverheat(&player);
+
+			//const char* video = "logo";
+			//queueVideo(&video);
+            //bool state = true;
+            //setMovieCaptureEnable(&state);
+            //Sleep(2500);
+            //shatter(emmit, playerPos);
+            //shatter(emmit2, playerPos);
 			//const char* checkpoint = "Underground";
 			//loadCheckpoint(&checkpoint);
 			//attachToActorTag(localplayer, emmit, "mouth", false); // R_hand/L mouth
@@ -656,6 +675,16 @@ DWORD WINAPI DLLAttach(HMODULE hModule)
     cout << "Version: " STR(IE17ver) "\n";
 
     g_modBase = (char*)GetModuleHandle(NULL);
+    startFakePackOverheat = (void(*)(unsigned __int64*))(g_modBase + 0xED750);
+	letterbox = (void(*)(bool*))(g_modBase + 0x2D87A0); // don't know what it enables or disables
+    queueVideo = (void(*)(const char**))(g_modBase + 0x2D87E0);
+	setMovieCaptureEnable = (void(*)(bool*))(g_modBase + 0x2D8850); //make the game fast like the old movies this why its called movie capture
+    allowEnemyAttack = (void(*)(bool*))(g_modBase + 0x2D8420);
+    allowHeroControls = (void(*)(bool*))(g_modBase + 0x2D8440);
+    allowHeroDamage = (void(*)(bool*))(g_modBase + 0x2D8460);
+    play = (void(*)(unsigned __int64, bool, int, float, float))(g_modBase + 0x1C3F0); //anim models
+    setCameraPathActor = (void(*)(unsigned __int64, unsigned __int64, float, float, float))(g_modBase + 0x1FF760);
+    shatter = (void(*)(unsigned __int64, Vector))(g_modBase + 0x49EC70); //only for CGlass
     setSimEnable = (void(*)(unsigned __int64, int))(g_modBase + 0x89940);
     loadCheckpoint = (void(*)(const char**))(g_modBase + 0x1F81F0);
     setCurrentObjective = (void(*)(const char**))(g_modBase + 0x1F8200);
@@ -679,7 +708,7 @@ DWORD WINAPI DLLAttach(HMODULE hModule)
     cacheStreamingCinemat = (void(*)(const char**))(g_modBase + 0x476520);
 	GTFO = (void(*)(const char*, int))(g_modBase + 0x2D11C0); //very 2000's function | GTFO is error msg int must be -10 | good for debbuging a function like a breakpoint
     cacheSkeletalAnimationByName = (void(*)(const char*))(g_modBase + 0x2D9AF0);
-    enable = (void(*)(unsigned __int64, bool, bool))(g_modBase + 0x2DA340);
+    enable = (void(*)(unsigned __int64, bool*, bool))(g_modBase + 0x2DA340);
     setProtonBeamMaxLength = (void(*)(float))(g_modBase + 0x277A50); // min 10.0f  max 400.0f
     setAnimation = (void(*)(unsigned __int64, const char*, bool, bool))(g_modBase + 0x77440);
     detonate = (void(*)(unsigned __int64, float))(g_modBase + 0x690F0); //car function
@@ -731,6 +760,7 @@ DWORD WINAPI DLLAttach(HMODULE hModule)
         MH_Uninitialize();
         return 1;
     }
+
 
     SetTerminalOnTop();
     // Start the key press detection in a separate thread

@@ -8,6 +8,15 @@ enum EFlashlightMode
     eFlashlightModeCheap = 3,
 };
 
+enum EPlayPattern
+{
+    ePlayPatternNone = 0,
+    ePlayPatternSaw = 1,
+    ePlayPatternTriangle = 2,
+    ePlayPatternSine = 3,
+    ePlayPatternMax = 4
+};
+
 enum EGhostbusterFacialExpression
 {
     eGBFacialExpression_Normal = 0,

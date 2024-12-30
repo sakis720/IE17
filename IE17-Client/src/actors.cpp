@@ -56,11 +56,11 @@ void getCMainView(char* Buffer, __int64 adr1) {
 
 void getEmmit(char* Buffer, __int64 adr1) {
 
-    if (strstr(Buffer, "CNPC Ilyssa") != nullptr) {
+    if (strstr(Buffer, "CAniModel ani_npcRescue0") != nullptr) {
         emmit = static_cast<unsigned __int64>(adr1);
     }
 
-    if (strstr(Buffer, "CVolFog VolFog1") != nullptr) {
+    if (strstr(Buffer, "CGlass glass_lobby_doorsFront2") != nullptr) {
         emmit2 = static_cast<unsigned __int64>(adr1);
     }
 }
