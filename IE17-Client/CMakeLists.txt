@@ -27,10 +27,11 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -static-libgcc -static-libstdc++")
 # Create a shared library (DynamicLibrary)
 add_library(IE17Client SHARED
     dllmain.cpp
-    main.cpp
-    player.cpp
-    actors.cpp
-    script.cpp
+    src/main.cpp
+    src/player.cpp
+    src/actors.cpp
+    src/script.cpp
+    src/functions.cpp
 )
 
 # Include directories
