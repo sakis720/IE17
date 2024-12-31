@@ -5,7 +5,6 @@
 #include <cstdio>
 #include <string>
 
-
 void script();
 
 #endif // SCRIPT_H

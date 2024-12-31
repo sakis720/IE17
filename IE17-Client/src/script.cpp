@@ -3,6 +3,7 @@
 #include "enums.h"
 #include "actors.h"
 #include "script.h"
+#include "functions.h"
 #include <stdio.h>
 #include <iostream>
 #include <chrono>
@@ -14,16 +15,14 @@
 #include <string>
 #include <algorithm>
 #include <windows.h>
+#include <conio.h>
 
-using namespace std;
+
+//using namespace std;
 
 //created script.cpp to have a clean cpp file and for testing functions.
 
-#include <chrono>
-
 void script()
 {
-	bool state = false;
 
-	setAllowDamageTally(&state);
 }

@@ -15,6 +15,7 @@
 #include <string>
 #include <algorithm>
 #include <windows.h>
+#include <conio.h>
 
 using namespace std;
 
@@ -32,11 +33,14 @@ bool g_fRestartLevel = false;
 
 // Flag to keep the main thread running
 bool runProgram = true;
+
+bool showWindow = false;
  
 char* g_modBase = nullptr;
 
 int playerCash = 0;
 
+void (*setCommandCrossBeam)(unsigned __int64);
 void (*startFakePackOverheat)(unsigned __int64*);
 void (*letterbox)(bool*);
 void (*queueVideo)(const char**);
@@ -200,10 +204,6 @@ void HandleKeyPresses()
 			enableInventoryItem(localplayer, eInventoryRailgun, true);
 			enableInventoryItem(localplayer, eInventoryShotgun, true);
 
-			unsigned __int64 player = localplayer;
-
-			startFakePackOverheat(&player);
-
 			//const char* video = "logo";
 			//queueVideo(&video);
             //bool state = true;
@@ -328,6 +328,19 @@ void HandleKeyPresses()
         Sleep(10);  // Small delay to avoid high CPU usage
     }
 }
+
+void RenderImGuiWindow()
+{
+    if (showWindow) {
+        ImGui::Begin("My Window"); // The title appears in the window title bar
+        ImGui::Text("Hello, world!");  // Display some text
+        if (ImGui::Button("Click Me")) { // Add a button
+            SpawnActor();
+        }
+        ImGui::End(); // End the window
+    }
+}
+
 
 //need to put this somewhere else takes too much of a space
 void HandleInput()
@@ -675,6 +688,7 @@ DWORD WINAPI DLLAttach(HMODULE hModule)
     cout << "Version: " STR(IE17ver) "\n";
 
     g_modBase = (char*)GetModuleHandle(NULL);
+    setCommandCrossBeam = (void(*)(unsigned __int64))(g_modBase + 0xEC640);
     startFakePackOverheat = (void(*)(unsigned __int64*))(g_modBase + 0xED750);
 	letterbox = (void(*)(bool*))(g_modBase + 0x2D87A0); // don't know what it enables or disables
     queueVideo = (void(*)(const char**))(g_modBase + 0x2D87E0);
@@ -764,7 +778,7 @@ DWORD WINAPI DLLAttach(HMODULE hModule)
 
     SetTerminalOnTop();
     // Start the key press detection in a separate thread
-    thread keyPressThread(HandleKeyPresses);
+    std::thread keyPressThread(HandleKeyPresses);
     std::thread monitorThread(MonitorLevel);
 
     

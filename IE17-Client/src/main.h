@@ -1,10 +1,20 @@
 #include <windows.h>
-#include "../include/MinHook.h"
+#include "../MinHook/MinHook.h"
 #include <cstdio>
 #include <string>
+#include <d3d11.h>
+#include <dxgi.h>
+#include "../kiero/kiero.h"
+#include "../imgui/imgui.h"
+#include "../imgui/imgui_impl_win32.h"
+#include "../imgui/imgui_impl_dx11.h"
 #define STR_(X) #X
 #define IE17ver v0.07
 #define STR(X) STR_(X)
+
+typedef HRESULT(__stdcall* Present) (IDXGISwapChain* pSwapChain, UINT SyncInterval, UINT Flags);
+typedef LRESULT(CALLBACK* WNDPROC)(HWND, UINT, WPARAM, LPARAM);
+typedef uintptr_t PTR;
 
 //most simple vector
 struct Vector
@@ -24,6 +34,8 @@ struct SSpawnInfo {
 
 extern bool holsterBool;
 
+extern bool showWindow;
+
 extern bool m_about;
 extern bool m_legacycrash;
 extern bool b_spawnactor;
@@ -35,6 +47,7 @@ extern bool wasQPressed;
 extern int playerCash;
 extern Vector playerPos;
 
+extern void (*setCommandCrossBeam)(unsigned __int64);
 extern void (*startFakePackOverheat)(unsigned __int64*);
 extern void (*letterbox)(bool*);
 extern void (*queueVideo)(const char**);
@@ -108,5 +121,6 @@ extern int (*DisplayTextLegacy)(int, const char*, const char*, char);
 
 DWORD WINAPI DLLAttach(HMODULE hModule);
 void __stdcall HookedFunction(char* Buffer, __int64 adr1, __int64 adr2, __int64 adr3);
+void RenderImGuiWindow();
 void HandleInput();
 std::string GetCurLevel();
