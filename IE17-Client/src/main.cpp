@@ -331,9 +331,30 @@ void HandleKeyPresses()
 
 void RenderImGuiWindow()
 {
+    static bool previousShowWindow = false; // To track changes in showWindow
+
+    // Check if showWindow state has changed
+    if (showWindow != previousShowWindow) {
+        ImGuiIO& io = ImGui::GetIO();
+
+        if (showWindow) {
+            io.MouseDrawCursor = true; // Hide the cursor when the window is shown
+        }
+        else {
+            io.MouseDrawCursor = false; // Show the cursor when the window is hidden
+        }
+
+        previousShowWindow = showWindow; // Update the previousShowWindow state
+    }
+
     if (showWindow) {
-        ImGui::Begin("My Window"); // The title appears in the window title bar
-        ImGui::Text("Hello, world!");  // Display some text
+        ImVec2 windowSize(200.0f, 100.0f);
+
+        ImGui::SetNextWindowSize(windowSize, ImGuiCond_Always);
+
+        ImGui::Begin("IE17 Window", nullptr, ImGuiWindowFlags_NoResize); // The title appears in the window title bar
+
+        ImGui::Text("Spawn Ghostbuster");  // Display some text
         if (ImGui::Button("Click Me")) { // Add a button
             SpawnActor();
         }
