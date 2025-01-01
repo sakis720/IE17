@@ -16,6 +16,7 @@
 #include <algorithm>
 #include <windows.h>
 #include <conio.h>
+#include <ImGuiConsole.h>
 
 using namespace std;
 
@@ -33,8 +34,6 @@ bool g_fRestartLevel = false;
 
 // Flag to keep the main thread running
 bool runProgram = true;
-
-bool showWindow = false;
  
 char* g_modBase = nullptr;
 
@@ -147,6 +146,12 @@ void __stdcall HookedFunction(char* Buffer, __int64 adr1, __int64 adr2, __int64 
         std::cout << "Local Object Address 1: 0x" << adr1 << std::hex << std::endl;
         std::cout << "Local Object Address 2: 0x" << adr2 << std::hex << std::endl;
         std::cout << "Local Object Address 3: 0x" << adr3 << std::hex << std::endl;
+
+        LogFormatted("Buffer (Type of): %s", (Buffer ? Buffer : "NULL"));
+        LogFormatted("Local Object Address 1: 0x%p", adr1);
+        LogFormatted("Local Object Address 2: 0x%p", adr2);
+        LogFormatted("Local Object Address 3: 0x%p", adr3);
+
         logFile << "Buffer (Type of): " << (Buffer ? Buffer : "NULL") << std::endl;
         logFile << "Local Object Address 1: 0x" << std::hex << adr1 << std::endl;
         logFile << "Local Object Address 2: 0x" << std::hex << adr2 << std::endl;
@@ -194,7 +199,7 @@ void HandleKeyPresses()
             cinematDebug();  // Call the cinematDebug function
             Sleep(500);  // Prevent multiple triggers within a short time
         }else if (GetAsyncKeyState(VK_F6) & 1) { 
-            script();  // Call the cinematDebug function
+            //script();  // Call the cinematDebug function
             Sleep(500);  // Prevent multiple triggers within a short time
         }
         else if (GetAsyncKeyState(VK_F5) & 1) { //enable all equipment
@@ -262,7 +267,7 @@ void HandleKeyPresses()
 				Sleep(500);  // Prevent multiple triggers within a short time
 			}
         }
-        else if (GetAsyncKeyState('Z') & 1) {
+        else if (GetAsyncKeyState('=') & 1) {
             if (localplayer != 0) {  // call the function only if localplayer value is set
                 g_modBase = (char*)GetModuleHandle(NULL);  // update g_modBase value
                 // call IsTrapDeployed to check if a trap is deployed
@@ -276,7 +281,7 @@ void HandleKeyPresses()
                 Sleep(500);  // Prevent multiple triggers within a short time
             }
         }
-        else if (GetAsyncKeyState('P') & 1) {
+        else if (GetAsyncKeyState(']') & 1) {
 			if (localplayer != 0) {  // Call the function only if localplayer value is set
 				g_modBase = (char*)GetModuleHandle(NULL);  // Update g_modBase value
 				if (!fakePossessionStatus) {
@@ -288,7 +293,7 @@ void HandleKeyPresses()
 				Sleep(500);  // Prevent multiple triggers within a short time
 			}
         }
-        else if (GetAsyncKeyState('G') & 1) {
+        else if (GetAsyncKeyState('[') & 1) {
 			if (localplayer != 0) {  // Call the function only if localplayer value is set
 				g_modBase = (char*)GetModuleHandle(NULL);  // Update g_modBase value
 				if (eGogglesStatus == 0) {
@@ -328,40 +333,6 @@ void HandleKeyPresses()
         Sleep(10);  // Small delay to avoid high CPU usage
     }
 }
-
-void RenderImGuiWindow()
-{
-    static bool previousShowWindow = false; // To track changes in showWindow
-
-    // Check if showWindow state has changed
-    if (showWindow != previousShowWindow) {
-        ImGuiIO& io = ImGui::GetIO();
-
-        if (showWindow) {
-            io.MouseDrawCursor = true; // Hide the cursor when the window is shown
-        }
-        else {
-            io.MouseDrawCursor = false; // Show the cursor when the window is hidden
-        }
-
-        previousShowWindow = showWindow; // Update the previousShowWindow state
-    }
-
-    if (showWindow) {
-        ImVec2 windowSize(200.0f, 100.0f);
-
-        ImGui::SetNextWindowSize(windowSize, ImGuiCond_Always);
-
-        ImGui::Begin("IE17 Window", nullptr, ImGuiWindowFlags_NoResize); // The title appears in the window title bar
-
-        ImGui::Text("Spawn Ghostbuster");  // Display some text
-        if (ImGui::Button("Click Me")) { // Add a button
-            SpawnActor();
-        }
-        ImGui::End(); // End the window
-    }
-}
-
 
 //need to put this somewhere else takes too much of a space
 void HandleInput()
@@ -697,16 +668,16 @@ void SetTerminalOnTop()
 DWORD WINAPI DLLAttach(HMODULE hModule)
 {
     MH_Initialize();
-    AllocConsole();
-    SetConsoleTitleA("IE17 Build " STR(IE17ver));
+    //AllocConsole();
+    //SetConsoleTitleA("IE17 Build " STR(IE17ver));
 
-    freopen_s((FILE**)stdin, "CONIN$", "r", stdin);
-    freopen_s((FILE**)stdout, "CONOUT$", "w", stdout);
+    //freopen_s((FILE**)stdin, "CONIN$", "r", stdin);
+    //freopen_s((FILE**)stdout, "CONOUT$", "w", stdout);
 
-    cout << "*************************** \n";
-    cout << "     IE17 is hooked! \n";
-    cout << "*************************** \n";
-    cout << "Version: " STR(IE17ver) "\n";
+    //cout << "*************************** \n";
+    //cout << "     IE17 is hooked! \n";
+    //cout << "*************************** \n";
+    //cout << "Version: " STR(IE17ver) "\n";
 
     g_modBase = (char*)GetModuleHandle(NULL);
     setCommandCrossBeam = (void(*)(unsigned __int64))(g_modBase + 0xEC640);
@@ -796,9 +767,8 @@ DWORD WINAPI DLLAttach(HMODULE hModule)
         return 1;
     }
 
-
     SetTerminalOnTop();
-    // Start the key press detection in a separate thread
+    //Start the key press detection in a separate thread
     std::thread keyPressThread(HandleKeyPresses);
     std::thread monitorThread(MonitorLevel);
 
@@ -818,18 +788,18 @@ DWORD WINAPI DLLAttach(HMODULE hModule)
     keyPressThread.join();
     monitorThread.join();
 
-    if (!AllocConsole()) {
-        MessageBoxA(NULL, "Failed to allocate console.", "Error", MB_OK | MB_ICONERROR);
-        FreeConsole();
-        return 0; // Abort injection
-    }
+    //if (!AllocConsole()) {
+    //    MessageBoxA(NULL, "Failed to allocate console.", "Error", MB_OK | MB_ICONERROR);
+    //    FreeConsole();
+    //    return 0; // Abort injection
+    //}
 
 
     MH_Uninitialize();
     MH_DisableHook(GlobalRegisterFunc1);
-    fclose((FILE*)stdin);
-    fclose((FILE*)stdout);
-    FreeConsole();
+    //fclose((FILE*)stdin);
+    //fclose((FILE*)stdout);
+    //FreeConsole();
     FreeLibraryAndExitThread(hModule, 0);
     return 1;
 }

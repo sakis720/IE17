@@ -96,6 +96,9 @@
     <ClInclude Include="MinHook\MinHook.h">
       <Filter>MinHook</Filter>
     </ClInclude>
+    <ClInclude Include="src\ImGuiConsole.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">
@@ -154,6 +157,9 @@
     </ClCompile>
     <ClCompile Include="kiero\minhook\src\hde\hde64.c">
       <Filter>Kiero</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ImGuiConsole.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

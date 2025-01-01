@@ -1,4 +1,5 @@
 #include "main.h"
+#include "ImGuiConsole.h"
 #include "enums.h"
 #include "player.h"
 #include "actors.h"
@@ -164,6 +165,68 @@ int CheckPlayerInput() {
         return 2;
     }
     return -1; // No key pressed
+}
+
+void unlockall(unsigned __int64 actor)
+{
+    enableInventoryItem(actor, eInventoryProtonGun, true);
+    enableInventoryItem(actor, eInventorySlimeGun, true);
+    enableInventoryItem(actor, eInventoryRailgun, true);
+    enableInventoryItem(actor, eInventoryShotgun, true);
+}
+
+void knockBackActor(unsigned __int64 actor)
+{
+	knockBack(actor, playerPos, 30.0f);
+}
+
+void gbloaded() //ImGui ver
+{
+    if (localplayer != 0)
+    {
+        Log("Player                  LOADED.");
+    }
+    else
+    {
+        Log("Player                  NOT loaded.");
+    }
+
+    if (egon != 0)
+    {
+        Log("Egon                    LOADED.");
+    }
+    else
+    {
+        Log("Egon                    NOT loaded.");
+    }
+
+    if (winston != 0)
+    {
+        Log("Winston                 LOADED.");
+    }
+    else
+    {
+        Log("Winston                 NOT loaded.");
+    }
+
+    if (venkman != 0)
+    {
+        Log("Venkman                 LOADED.");
+    }
+    else
+    {
+        Log("Venkman                 NOT loaded.");
+    }
+
+    if (ray != 0)
+    {
+        Log("Ray                     LOADED.");
+    }
+    else
+    {
+        Log("Ray                     NOT LOADED.");
+    }
+
 }
 
 void RunMod()

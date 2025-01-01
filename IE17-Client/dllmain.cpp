@@ -1,5 +1,6 @@
 // dllmain.cpp : Defines the entry point for the DLL application.
 #include "main.h"
+#include "ImGuiConsole.h"
 #include "windows.h"
 
 //https://github.com/rdbo/ImGui-DirectX-11-Kiero-Hook
@@ -59,9 +60,10 @@ HRESULT __stdcall hkPresent(IDXGISwapChain* pSwapChain, UINT SyncInterval, UINT 
 
 	if (GetAsyncKeyState(VK_F8) & 1) {
 		showWindow = !showWindow; // Toggle the window visibility
+		showColumnWindow = !showColumnWindow;
 	}
-
-	RenderImGuiWindow();
+	DrawConsole();
+	DrawCollum();
 
 	ImGui::Render();
 

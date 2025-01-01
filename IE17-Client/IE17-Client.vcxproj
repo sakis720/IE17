@@ -181,6 +181,7 @@
     <ClInclude Include="src\enums.h" />
     <ClInclude Include="src\functions.h" />
     <ClInclude Include="src\gameconstants.h" />
+    <ClInclude Include="src\ImGuiConsole.h" />
     <ClInclude Include="src\main.h" />
     <ClInclude Include="src\player.h" />
     <ClInclude Include="src\script.h" />
@@ -202,6 +203,7 @@
     <ClCompile Include="kiero\minhook\src\trampoline.c" />
     <ClCompile Include="src\actors.cpp" />
     <ClCompile Include="src\functions.cpp" />
+    <ClCompile Include="src\ImGuiConsole.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\player.cpp" />
     <ClCompile Include="src\script.cpp" />

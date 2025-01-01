@@ -121,6 +121,5 @@ extern int (*DisplayTextLegacy)(int, const char*, const char*, char);
 
 DWORD WINAPI DLLAttach(HMODULE hModule);
 void __stdcall HookedFunction(char* Buffer, __int64 adr1, __int64 adr2, __int64 adr3);
-void RenderImGuiWindow();
 void HandleInput();
 std::string GetCurLevel();
