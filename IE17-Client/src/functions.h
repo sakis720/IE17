@@ -18,5 +18,7 @@ void RunMod();
 void gbloaded();
 void unlockall(unsigned __int64);
 void knockBackActor(unsigned __int64 actor);
+void warpToPlayer(unsigned __int64 actor);
+void playAnim(unsigned __int64 actor, const char* anim);
 
 #endif // FUN_H

@@ -38,6 +38,9 @@ void getGhostbusters(char* Buffer, __int64 adr1) {
     if (strstr(Buffer, "CGhostbuster Ray") != nullptr) {
         ray = static_cast<unsigned __int64>(adr1);
     }
+    else if (strstr(Buffer, "CGhostbuster RayPack") != nullptr) {
+        ray = static_cast<unsigned __int64>(adr1);
+    }
 }
 
 void getEcto(char* Buffer, __int64 adr1) {

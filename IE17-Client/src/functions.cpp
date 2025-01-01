@@ -177,6 +177,7 @@ void unlockall(unsigned __int64 actor)
 
 void knockBackActor(unsigned __int64 actor)
 {
+	GetPlayerPosition();
 	knockBack(actor, playerPos, 30.0f);
 }
 
@@ -227,6 +228,17 @@ void gbloaded() //ImGui ver
         Log("Ray                     NOT LOADED.");
     }
 
+}
+
+void warpToPlayer(unsigned __int64 actor)
+{
+    GetPlayerPosition();
+	warpTo(actor, playerPos, playerPos);
+}
+
+void playAnim(unsigned __int64 actor, const char* anim)
+{
+    setAnimation(actor, anim, false, false);
 }
 
 void RunMod()

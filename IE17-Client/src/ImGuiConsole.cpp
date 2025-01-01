@@ -20,6 +20,7 @@
 
 bool showWindow = false;
 bool showColumnWindow = false;
+bool showCinematicTab = false;
 
 // Console data
 std::vector<std::string> consoleLogs;
@@ -55,6 +56,7 @@ void HandleCommand(const std::string& command) {
         Log("  cancelwalk            - Disable walk animation for all AI");
         Log("  ghostviewer           - Toggle Ghost Viewer");
         Log("  checkversion          - Current IE17 version");
+        Log("  cinematic             - Opens cinematics tab");
         Log("  about                 - Show about information");
         Log("  restart               - Restart the level");
         Log("  gbloaded              - Check Ghostbuster loading status");
@@ -92,12 +94,21 @@ void HandleCommand(const std::string& command) {
     else if (command == "restart") {
         ResLevel();
         Log("Level Restarted.");
-    } 
+    }
     else if (command == "clear") {
         consoleLogs.clear();
     }
     else if (command == "checkversion") {
         Log("IE17 Version: " STR(IE17ver));
+    }
+    else if (command == "cinematic") {
+        showCinematicTab = true;
+	}
+	else if (command == "exit") {
+		Log("Exiting...");
+		std::this_thread::sleep_for(std::chrono::seconds(1));
+		exit(0);
+        
     }
     else {
         Log("Unknown command: " + command);
@@ -126,10 +137,11 @@ void DrawConsole() {
     if (showWindow)
     {
 
-        ImVec2 windowSize(500.0f, 500.0f);
-
-        ImGui::SetNextWindowSize(windowSize, ImGuiCond_Always);
-        ImGui::Begin("IE17 Console", nullptr, ImGuiWindowFlags_NoResize);
+        //ImVec2 windowSize(547.0f, 287.0f);
+        //ImVec2 position(5, 12);
+        //ImGui::SetNextWindowSize(windowSize, ImGuiCond_Always);
+        //ImGui::SetNextWindowPos(position, ImGuiCond_Always);
+        ImGui::Begin("IE17 Console", nullptr);
 
         // Output log
         ImGui::BeginChild("ScrollRegion", ImVec2(0, -ImGui::GetFrameHeightWithSpacing()), false, ImGuiWindowFlags_HorizontalScrollbar);
@@ -159,32 +171,32 @@ void DrawConsole() {
 
 void DrawCollum()
 {
-    static bool previousShowWindow = false; // To track changes in showWindow
+    static bool previousShowWindow = false; 
 
-    // Check if showWindow state has changed
     if (showColumnWindow != previousShowWindow) {
         ImGuiIO& io = ImGui::GetIO();
 
         if (showColumnWindow) {
-            io.MouseDrawCursor = true; // Hide the cursor when the window is shown
+            io.MouseDrawCursor = true; 
         }
         else {
-            io.MouseDrawCursor = false; // Show the cursor when the window is hidden
+            io.MouseDrawCursor = false; 
         }
 
-        previousShowWindow = showColumnWindow; // Update the previousShowWindow state
+        previousShowWindow = showColumnWindow;
     }
 
     if (showColumnWindow)
     {
-        ImVec2 windowSize(500.0f, 500.0f);
-
-        ImGui::SetNextWindowSize(windowSize, ImGuiCond_Always);
+        //ImVec2 windowSize(166, 146);
+        //ImVec2 position(4, 315);
+        //ImGui::SetNextWindowSize(windowSize, ImGuiCond_Always);
+        //ImGui::SetNextWindowPos(position, ImGuiCond_Always);
         const char* names[] = { "Player", "Winston", "Venkman", "Ray", "Egon" };
-        static int selectedIndex = 0; // This will store the selected index
-        static unsigned __int64 selectedEntity = localplayer; // Default to localPlayer
+        static int selectedIndex = 0; // this will store the selected index
+        static unsigned __int64 selectedEntity = localplayer; // fefault to localplayer
 
-        ImGui::Begin("Debug Menu", nullptr, ImGuiWindowFlags_NoResize);
+        ImGui::Begin("Debug Menu", nullptr);
 
         if (ImGui::BeginCombo("Select Ghostbuster", names[selectedIndex])) {
             for (int i = 0; i < IM_ARRAYSIZE(names); ++i) {
@@ -192,7 +204,7 @@ void DrawCollum()
                 if (ImGui::Selectable(names[i], isSelected)) {
                     selectedIndex = i;
 
-                    // Update selected entity based on the name selected
+                    // update selected entity based on the name selected
                     switch (selectedIndex) {
                     case 0: selectedEntity = localplayer; break;
                     case 1: selectedEntity = winston; break;
@@ -208,7 +220,7 @@ void DrawCollum()
             ImGui::EndCombo();
         }
 
-        // Button to trigger fake possession with the selected entity
+		// buttons to trigger actions.
         if (ImGui::Button("Possess Selected")) {
             fakePossession(selectedEntity, true);
         }
@@ -217,6 +229,72 @@ void DrawCollum()
         }
         if (ImGui::Button("Knock Back")) {
             knockBackActor(selectedEntity);
+        }
+        if (ImGui::Button("Warp To Player")) {
+            warpToPlayer(selectedEntity);
+        }
+        ImGui::End();
+    }
+}
+
+void CinematicTab()
+{
+    static bool previousShowWindow = false;
+    static int currentSelection = 0;
+    const char* cinematicNames[] = {
+    "cs_ts_09.cinemat", "cs_ts_03.cinemat", "cs_ts_02.cinemat",
+    "cs_h1_brush_off.cinemat", "cs_h1_08.cinemat", "cine_h1_elevator_02.cinemat",
+    "cine_h1_elevator_01.cinemat", "cs_fh2_scene.cinemat",
+    "cs_fh1_01_005.cinemat", "cs_fh1_01_004.cinemat", "fh1_01_003.cinemat", "cs_cem_03.cinemat",
+    "cs_cem_02.cinemat", "cs_cem_01.cinemat", "h1_mngr_bllrm_ent_3_final.cinemat", "ts2_ilyssa_rescued_stairs.cinemat"
+    }; //all of the cinematics listed
+
+    // Check if showWindow state has changed
+    
+    if (showColumnWindow != previousShowWindow) {
+        ImGuiIO& io = ImGui::GetIO();
+
+        if (showColumnWindow) {
+            io.MouseDrawCursor = true;
+        }
+        else {
+            io.MouseDrawCursor = false;
+        }
+
+        previousShowWindow = showColumnWindow;
+    }
+    
+
+    if (showCinematicTab)
+    {
+        constexpr int cinematicCount = sizeof(cinematicNames) / sizeof(cinematicNames[0]);
+
+        //ImVec2 windowSize(511.0f, 97.0f);
+        //ImVec2 position(4, 464);
+        //ImGui::SetNextWindowSize(windowSize, ImGuiCond_Always);
+        //ImGui::SetNextWindowPos(position, ImGuiCond_Always);
+        ImGui::Begin("Cinematics Tab", nullptr);
+
+        if (ImGui::BeginCombo("Cinematics", cinematicNames[currentSelection])) {
+            for (int i = 0; i < cinematicCount; i++) {
+                const bool isSelected = (currentSelection == i);
+                if (ImGui::Selectable(cinematicNames[i], isSelected)) {
+                    currentSelection = i;
+                }
+                // set the initial focus when opening the combo
+                if (isSelected) {
+                    ImGui::SetItemDefaultFocus();
+                }
+            }
+            ImGui::EndCombo();
+        }
+
+        // Button to play the selected cinematic
+        if (ImGui::Button("Play")) {
+            cacheStreamingCinemat(&cinematicNames[currentSelection]);
+            Sleep(3000); //need to make some how else because the whole application stops.
+            cueStreamingCinemat(cinematicNames[currentSelection], 0);
+            playStreamingCinemat(cinematicNames[currentSelection]);
         }
         ImGui::End();
     }

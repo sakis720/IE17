@@ -131,6 +131,7 @@ _cinemat cinematDebug;
 _channels chanDebug;
 _resgravity resetgravity;
 
+
 typedef void (*OriginalFunctionType)(char* Buffer, __int64 adr1, __int64 adr2, __int64 adr3);
 OriginalFunctionType originalFunction = nullptr;
 
