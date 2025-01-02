@@ -22,7 +22,7 @@
 bool showWindow = false;
 bool showColumnWindow = false;
 bool showCinematicTab = false;
-bool showPerfView = false;
+bool showMenu = false;
 
 std::vector<std::string> consoleLogs;
 std::string currentInput;
@@ -108,6 +108,10 @@ void HandleCommand(const std::string& command) {
     }
     else if (command == "clear") {
         consoleLogs.clear();
+        Log("***************************");
+        Log("     IE17 is hooked!  ");
+        Log("***************************");
+        Log("Version: " STR(IE17ver));
     }
     else if (command == "checkversion") {
         Log("IE17 Version: " STR(IE17ver));
@@ -129,52 +133,53 @@ void HandleCommand(const std::string& command) {
 
 void DrawConsole() {
 
-    static bool previousShowWindow = false; // To track changes in showWindow
+    static bool hasLoggedInitMessage = false;
 
-    // Check if showWindow state has changed
-    if (showWindow != previousShowWindow) {
-        ImGuiIO& io = ImGui::GetIO();
-
-        if (showWindow) {
-            io.MouseDrawCursor = true; // Hide the cursor when the window is shown
-        }
-        else {
-            io.MouseDrawCursor = false; // Show the cursor when the window is hidden
-        }
-
-        previousShowWindow = showWindow; // Update the previousShowWindow state
+    if (!hasLoggedInitMessage) {
+        Log("***************************");
+        Log("     IE17 is hooked!  ");
+        Log("***************************");
+        Log("Version: " STR(IE17ver) );
+        hasLoggedInitMessage = true;
     }
 
-    if (showWindow)
-    {
+    if (showWindow) {
+        ImVec2 windowSize(414, 423);
+        ImGui::SetNextWindowSize(windowSize, 0);
+        ImGui::Begin("IE17 Console", nullptr, ImGuiWindowFlags_NoResize);
 
-        //ImVec2 windowSize(547.0f, 287.0f);
-        //ImVec2 position(5, 12);
-        //ImGui::SetNextWindowSize(windowSize, ImGuiCond_Always);
-        //ImGui::SetNextWindowPos(position, ImGuiCond_Always);
-        ImGui::Begin("IE17 Console", nullptr);
-
-        // Output log
         ImGui::BeginChild("ScrollRegion", ImVec2(0, -ImGui::GetFrameHeightWithSpacing()), false, ImGuiWindowFlags_HorizontalScrollbar);
+
+        ImGuiIO& io = ImGui::GetIO();
+        float fps = io.Framerate;
+        float memory_usage_mb = GetMemoryUsage();
+        float frame_time_ms = 1000.0f / io.Framerate;
+
+        ImGui::TextColored(ImVec4(0.6f, 0.8f, 0.2f, 1.0f), "Performance Metrics:");
+        ImGui::Text("  FPS: %.1f", fps);
+        ImGui::Text("  Frame Time: %.3f ms", frame_time_ms);
+        ImGui::Text("  Memory Usage: %.1f MB", memory_usage_mb);
+        ImGui::Separator();
+
         for (const auto& log : consoleLogs) {
             ImGui::TextUnformatted(log.c_str());
         }
+
         if (ImGui::GetScrollY() >= ImGui::GetScrollMaxY()) {
-            ImGui::SetScrollHereY(1.0f); // Auto-scroll to bottom
+            ImGui::SetScrollHereY(1.0f);
         }
         ImGui::EndChild();
 
-        // Input text
+        // input text
         ImGui::Separator();
-        static char inputBuffer[256] = ""; // Temporary buffer
+        static char inputBuffer[256] = "";
         if (ImGui::InputText("##CommandInput", inputBuffer, IM_ARRAYSIZE(inputBuffer), ImGuiInputTextFlags_EnterReturnsTrue)) {
-            currentInput = std::string(inputBuffer); // Copy buffer to std::string
+            currentInput = std::string(inputBuffer);
             if (!currentInput.empty()) {
-                HandleCommand(currentInput); // Process the command
-                currentInput.clear(); // Clear the current input
-                inputBuffer[0] = '\0'; // Clear the buffer
+                HandleCommand(currentInput);
+                currentInput.clear();
+                inputBuffer[0] = '\0';
             }
-
         }
         ImGui::End();
     }
@@ -182,32 +187,18 @@ void DrawConsole() {
 
 void DrawCollum()
 {
-    static bool previousShowWindow = false; 
-
-    if (showColumnWindow != previousShowWindow) {
-        ImGuiIO& io = ImGui::GetIO();
-
-        if (showColumnWindow) {
-            io.MouseDrawCursor = true; 
-        }
-        else {
-            io.MouseDrawCursor = false; 
-        }
-
-        previousShowWindow = showColumnWindow;
-    }
 
     if (showColumnWindow)
     {
-        //ImVec2 windowSize(166, 146);
+        ImVec2 windowSize(419, 190);
         //ImVec2 position(4, 315);
-        //ImGui::SetNextWindowSize(windowSize, ImGuiCond_Always);
+        ImGui::SetNextWindowSize(windowSize, 0);
         //ImGui::SetNextWindowPos(position, ImGuiCond_Always);
         const char* names[] = { "Player", "Winston", "Venkman", "Ray", "Egon" };
         static int selectedIndex = 0; // this will store the selected index
         static unsigned __int64 selectedEntity = localplayer; // fefault to localplayer
 
-        ImGui::Begin("Debug Menu", nullptr);
+        ImGui::Begin("Debug Menu", nullptr, ImGuiWindowFlags_NoResize);
 
         if (ImGui::BeginCombo("Select Ghostbuster", names[selectedIndex])) {
             for (int i = 0; i < IM_ARRAYSIZE(names); ++i) {
@@ -250,7 +241,6 @@ void DrawCollum()
 
 void CinematicTab()
 {
-    static bool previousShowWindow = false;
     static int currentSelection = 0;
     const char* cinematicNames[] = {
     "cs_ts_09.cinemat", "cs_ts_03.cinemat", "cs_ts_02.cinemat",
@@ -260,31 +250,15 @@ void CinematicTab()
     "cs_cem_02.cinemat", "cs_cem_01.cinemat", "h1_mngr_bllrm_ent_3_final.cinemat", "ts2_ilyssa_rescued_stairs.cinemat"
     }; //all of the cinematics listed
 
-    // Check if showWindow state has changed
-    
-    if (showColumnWindow != previousShowWindow) {
-        ImGuiIO& io = ImGui::GetIO();
-
-        if (showColumnWindow) {
-            io.MouseDrawCursor = true;
-        }
-        else {
-            io.MouseDrawCursor = false;
-        }
-
-        previousShowWindow = showColumnWindow;
-    }
-    
-
     if (showCinematicTab)
     {
         constexpr int cinematicCount = sizeof(cinematicNames) / sizeof(cinematicNames[0]);
 
-        //ImVec2 windowSize(511.0f, 97.0f);
+        ImVec2 windowSize(450.0f, 97.0f);
         //ImVec2 position(4, 464);
-        //ImGui::SetNextWindowSize(windowSize, ImGuiCond_Always);
+        ImGui::SetNextWindowSize(windowSize, 0);
         //ImGui::SetNextWindowPos(position, ImGuiCond_Always);
-        ImGui::Begin("Cinematics Tab", nullptr);
+        ImGui::Begin("Cinematics Tab", nullptr, ImGuiWindowFlags_NoResize);
 
         if (ImGui::BeginCombo("Cinematics", cinematicNames[currentSelection])) {
             for (int i = 0; i < cinematicCount; i++) {
@@ -311,38 +285,74 @@ void CinematicTab()
     }
 }
 
-void PerformanceView()
-{
+void DrawMenu() {
+
     static bool previousShowWindow = false;
 
-    if (showColumnWindow != previousShowWindow) {
+    if (showMenu != previousShowWindow) {
         ImGuiIO& io = ImGui::GetIO();
 
-        if (showColumnWindow) {
+        if (showMenu) {
             io.MouseDrawCursor = true;
         }
         else {
             io.MouseDrawCursor = false;
         }
 
-        previousShowWindow = showColumnWindow;
+        previousShowWindow = showMenu;
     }
-
-    if (showPerfView)
+    if (showMenu)
     {
-        if (ImGui::Begin("Performance Overlay", nullptr,  ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav))
+        ImVec2 size(250, 340);
+        ImGui::SetNextWindowSize(size, 0);
+        ImGui::Begin("Menu", nullptr, ImGuiWindowFlags_NoResize);
+        if (ImGui::CollapsingHeader("Debug"))
         {
-            ImGuiIO& io = ImGui::GetIO();
-            float fps = io.Framerate;
-            float memory_usage_mb = GetMemoryUsage();
-            float frame_time_ms = 1000.0f / io.Framerate;
-
-            ImGui::Text("FPS: %.1f", fps);
-            ImGui::Text("Frame Time: %.3f ms", frame_time_ms);
-            ImGui::Text("Memory Usage: %.1f MB", memory_usage_mb);
+            if (ImGui::Button("Console"))
+            {
+                showWindow = !showWindow;
+            }
+            if (ImGui::Button("Ghostbusters Tweaking"))
+            {
+                showColumnWindow = !showColumnWindow;
+            }
+            if (ImGui::Button("Cinematic Tab"))
+            {
+                showCinematicTab = !showCinematicTab;
+            }
         }
 
-		ImGui::End();
-    }
+        if (ImGui::CollapsingHeader("Options"))
+        {
+            const char* levelNames[] = {
+                "13th_floor_boss.lvl",
+                "abyss.lvl",
+                "boss_sp_side.lvl",
+                "cemetery1.lvl",
+                "cemetery2.lvl",
+                "firehouse.lvl",
+                "hotel1a.lvl",
+                "hotel1b.lvl",
+                "hotel2.lvl",
+                "library1a.lvl",
+                "library1b.lvl",
+                "library2.lvl",
+                "lost_island.lvl",
+                "lost_island2.lvl",
+                "museum1.lvl",
+                "museum2.lvl",
+                "museum3.lvl",
+                "timessquare1.lvl",
+                "timessquare1b.lvl",
+                "timessquare2.lvl"
+            };
+            static int selectedLevelIndex = 0;
 
+            if (ImGui::Combo("Level", &selectedLevelIndex, levelNames, IM_ARRAYSIZE(levelNames)))
+            {
+                loadLevel(levelNames[selectedLevelIndex]);
+            }
+        }
+        ImGui::End();
+    }
 }

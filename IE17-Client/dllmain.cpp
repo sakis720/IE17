@@ -58,16 +58,17 @@ HRESULT __stdcall hkPresent(IDXGISwapChain* pSwapChain, UINT SyncInterval, UINT 
 	ImGui_ImplWin32_NewFrame();
 	ImGui::NewFrame();
 
+	DrawMenu();
+
 	if (GetAsyncKeyState(VK_F8) & 1) {
-		showWindow = !showWindow; // Toggle the window visibility
-		showColumnWindow = !showColumnWindow;
-		showCinematicTab = !showCinematicTab;
-		showPerfView = !showPerfView;
+		showWindow = false;
+		showColumnWindow = false;
+		showCinematicTab = false;
+		showMenu = !showMenu;
 	}
 	DrawConsole();
 	DrawCollum();
 	CinematicTab();
-	PerformanceView();
 
 	ImGui::Render();
 

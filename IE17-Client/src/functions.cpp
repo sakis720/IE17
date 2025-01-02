@@ -241,6 +241,11 @@ void playAnim(unsigned __int64 actor, const char* anim)
     setAnimation(actor, anim, false, false);
 }
 
+void loadLevel(const char* level)
+{
+    chainToLevel(localplayer, level, "");
+}
+
 void RunMod()
 {
     /*

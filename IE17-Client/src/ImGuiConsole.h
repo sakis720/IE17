@@ -11,7 +11,7 @@ extern std::string currentInput;
 extern bool showWindow;
 extern bool showColumnWindow;
 extern bool showCinematicTab;
-extern bool showPerfView;
+extern bool showMenu;
 
 
 void Log(const std::string& message);
@@ -20,7 +20,8 @@ void HandleCommand(const std::string& command);
 void DrawConsole();
 void DrawCollum();
 void CinematicTab();
-void PerformanceView();
+void DrawMenu();
 float GetMemoryUsage();
+
 
 #endif // IMCON_H
