@@ -9,7 +9,7 @@
 #include "../imgui/imgui_impl_win32.h"
 #include "../imgui/imgui_impl_dx11.h"
 #define STR_(X) #X
-#define IE17ver v0.07
+#define IE17ver v0.08
 #define STR(X) STR_(X)
 
 typedef HRESULT(__stdcall* Present) (IDXGISwapChain* pSwapChain, UINT SyncInterval, UINT Flags);
