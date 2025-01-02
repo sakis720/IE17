@@ -62,10 +62,12 @@ HRESULT __stdcall hkPresent(IDXGISwapChain* pSwapChain, UINT SyncInterval, UINT 
 		showWindow = !showWindow; // Toggle the window visibility
 		showColumnWindow = !showColumnWindow;
 		showCinematicTab = !showCinematicTab;
+		showPerfView = !showPerfView;
 	}
 	DrawConsole();
 	DrawCollum();
 	CinematicTab();
+	PerformanceView();
 
 	ImGui::Render();
 

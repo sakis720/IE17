@@ -16,15 +16,26 @@
 #include <algorithm>
 #include <windows.h>
 #include <conio.h>
+#include <psapi.h>
 
 
 bool showWindow = false;
 bool showColumnWindow = false;
 bool showCinematicTab = false;
+bool showPerfView = false;
 
-// Console data
 std::vector<std::string> consoleLogs;
 std::string currentInput;
+
+float GetMemoryUsage()
+{
+    PROCESS_MEMORY_COUNTERS memCounters;
+    if (GetProcessMemoryInfo(GetCurrentProcess(), &memCounters, sizeof(memCounters)))
+    {
+        return static_cast<float>(memCounters.WorkingSetSize) / (1024.0f * 1024.0f); // convert bytes to mb
+    }
+    return 0.0f;
+}
 
 void Log(const std::string& message) {
     consoleLogs.push_back(message);
@@ -298,4 +309,40 @@ void CinematicTab()
         }
         ImGui::End();
     }
+}
+
+void PerformanceView()
+{
+    static bool previousShowWindow = false;
+
+    if (showColumnWindow != previousShowWindow) {
+        ImGuiIO& io = ImGui::GetIO();
+
+        if (showColumnWindow) {
+            io.MouseDrawCursor = true;
+        }
+        else {
+            io.MouseDrawCursor = false;
+        }
+
+        previousShowWindow = showColumnWindow;
+    }
+
+    if (showPerfView)
+    {
+        if (ImGui::Begin("Performance Overlay", nullptr,  ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav))
+        {
+            ImGuiIO& io = ImGui::GetIO();
+            float fps = io.Framerate;
+            float memory_usage_mb = GetMemoryUsage();
+            float frame_time_ms = 1000.0f / io.Framerate;
+
+            ImGui::Text("FPS: %.1f", fps);
+            ImGui::Text("Frame Time: %.3f ms", frame_time_ms);
+            ImGui::Text("Memory Usage: %.1f MB", memory_usage_mb);
+        }
+
+		ImGui::End();
+    }
+
 }
