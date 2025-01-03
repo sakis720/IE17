@@ -246,6 +246,11 @@ void loadLevel(const char* level)
     chainToLevel(localplayer, level, "");
 }
 
+void slimeGB(unsigned __int64 actor)
+{
+    slimeMe(actor, true, 20.0f);
+}
+
 void RunMod()
 {
     /*

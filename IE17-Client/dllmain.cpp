@@ -2,6 +2,8 @@
 #include "main.h"
 #include "ImGuiConsole.h"
 #include "windows.h"
+#include <iostream>
+#include <d3d11.h>
 
 //https://github.com/rdbo/ImGui-DirectX-11-Kiero-Hook
 extern LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);

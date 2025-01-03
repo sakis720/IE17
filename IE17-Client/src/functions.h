@@ -21,5 +21,6 @@ void knockBackActor(unsigned __int64 actor);
 void warpToPlayer(unsigned __int64 actor);
 void playAnim(unsigned __int64 actor, const char* anim);
 void loadLevel(const char* level);
+void slimeGB(unsigned __int64 actor);
 
 #endif // FUN_H

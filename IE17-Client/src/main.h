@@ -47,6 +47,9 @@ extern bool wasQPressed;
 extern int playerCash;
 extern Vector playerPos;
 
+extern void (*blockHeroMovement)(unsigned __int64*, bool*);
+extern void (*toggleHuntMode)(unsigned __int64*, bool*);
+extern void (*enableProtonTorpedo)(unsigned __int64*, bool*);
 extern void (*setCommandCrossBeam)(unsigned __int64);
 extern void (*startFakePackOverheat)(unsigned __int64*);
 extern void (*letterbox)(bool*);

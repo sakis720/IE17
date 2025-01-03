@@ -235,6 +235,14 @@ void DrawCollum()
         if (ImGui::Button("Warp To Player")) {
             warpToPlayer(selectedEntity);
         }
+        if (ImGui::Button("Slime Ghostbuster")) {
+            slimeGB(selectedEntity);
+        }
+        /*
+        if (ImGui::Button("Set GB Expression")) {
+			setFacialExpression(selectedEntity, eGBFacialExpression_Happy);
+        }
+		*/
         ImGui::End();
     }
 }
@@ -288,6 +296,29 @@ void CinematicTab()
 void DrawMenu() {
 
     static bool previousShowWindow = false;
+    const char* levelNames[] = {
+    "13th_floor_boss.lvl",
+    "abyss.lvl",
+    "boss_sp_side.lvl",
+    "cemetery1.lvl",
+    "cemetery2.lvl",
+    "firehouse.lvl",
+    "hotel1a.lvl",
+    "hotel1b.lvl",
+    "hotel2.lvl",
+    "library1a.lvl",
+    "library1b.lvl",
+    "library2.lvl",
+    "lost_island.lvl",
+    "lost_island2.lvl",
+    "museum1.lvl",
+    "museum2.lvl",
+    "museum3.lvl",
+    "timessquare1.lvl",
+    "timessquare1b.lvl",
+    "timessquare2.lvl"
+    };
+    static int selectedLevelIndex = 0;
 
     if (showMenu != previousShowWindow) {
         ImGuiIO& io = ImGui::GetIO();
@@ -306,6 +337,12 @@ void DrawMenu() {
         ImVec2 size(250, 340);
         ImGui::SetNextWindowSize(size, 0);
         ImGui::Begin("Menu", nullptr, ImGuiWindowFlags_NoResize);
+
+        if (ImGui::CollapsingHeader("Options"))
+        {
+
+        }
+
         if (ImGui::CollapsingHeader("Debug"))
         {
             if (ImGui::Button("Console"))
@@ -320,33 +357,6 @@ void DrawMenu() {
             {
                 showCinematicTab = !showCinematicTab;
             }
-        }
-
-        if (ImGui::CollapsingHeader("Options"))
-        {
-            const char* levelNames[] = {
-                "13th_floor_boss.lvl",
-                "abyss.lvl",
-                "boss_sp_side.lvl",
-                "cemetery1.lvl",
-                "cemetery2.lvl",
-                "firehouse.lvl",
-                "hotel1a.lvl",
-                "hotel1b.lvl",
-                "hotel2.lvl",
-                "library1a.lvl",
-                "library1b.lvl",
-                "library2.lvl",
-                "lost_island.lvl",
-                "lost_island2.lvl",
-                "museum1.lvl",
-                "museum2.lvl",
-                "museum3.lvl",
-                "timessquare1.lvl",
-                "timessquare1b.lvl",
-                "timessquare2.lvl"
-            };
-            static int selectedLevelIndex = 0;
 
             if (ImGui::Combo("Level", &selectedLevelIndex, levelNames, IM_ARRAYSIZE(levelNames)))
             {

@@ -39,6 +39,9 @@ char* g_modBase = nullptr;
 
 int playerCash = 0;
 
+void (*blockHeroMovement)(unsigned __int64*, bool*);
+void (*toggleHuntMode)(unsigned __int64*, bool*);
+void (*enableProtonTorpedo)(unsigned __int64*, bool*);
 void (*setCommandCrossBeam)(unsigned __int64);
 void (*startFakePackOverheat)(unsigned __int64*);
 void (*letterbox)(bool*);
@@ -210,6 +213,8 @@ void HandleKeyPresses()
 			enableInventoryItem(localplayer, eInventoryRailgun, true);
 			enableInventoryItem(localplayer, eInventoryShotgun, true);
 
+			//blockHeroMovement(&player, &state);
+			//toggleHuntMode(&player, &state); idk what exactly this does.
 			//const char* video = "logo";
 			//queueVideo(&video);
             //bool state = true;
@@ -681,6 +686,9 @@ DWORD WINAPI DLLAttach(HMODULE hModule)
     //cout << "Version: " STR(IE17ver) "\n";
 
     g_modBase = (char*)GetModuleHandle(NULL);
+    blockHeroMovement = (void(*)(unsigned __int64*, bool*))(g_modBase + 0xED660);
+    toggleHuntMode = (void(*)(unsigned __int64*, bool*))(g_modBase + 0xED480);
+    enableProtonTorpedo = (void(*)(unsigned __int64*, bool*))(g_modBase + 0xEDE30);
     setCommandCrossBeam = (void(*)(unsigned __int64))(g_modBase + 0xEC640);
     startFakePackOverheat = (void(*)(unsigned __int64*))(g_modBase + 0xED750);
 	letterbox = (void(*)(bool*))(g_modBase + 0x2D87A0); // don't know what it enables or disables
