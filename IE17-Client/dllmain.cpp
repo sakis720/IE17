@@ -4,6 +4,27 @@
 #include "windows.h"
 #include <iostream>
 #include <d3d11.h>
+#include <dbghelp.h>
+
+#pragma comment(lib, "DbgHelp.lib")
+
+void CreateDump()
+{
+	HANDLE hDumpFile = CreateFile(L"IE17-Client_" STR(__DATE__) ".dmp", GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+	if (hDumpFile != INVALID_HANDLE_VALUE)
+	{
+		MINIDUMP_EXCEPTION_INFORMATION mdei;
+		mdei.ThreadId = GetCurrentThreadId();
+		mdei.ExceptionPointers = NULL;
+		mdei.ClientPointers = TRUE;
+
+		MINIDUMP_TYPE mdt = MiniDumpNormal;
+		MiniDumpWriteDump(GetCurrentProcess(), GetCurrentProcessId(), hDumpFile, mdt, (mdei.ExceptionPointers != 0) ? &mdei : 0, 0, 0);
+
+		CloseHandle(hDumpFile);
+	}
+
+}
 
 //https://github.com/rdbo/ImGui-DirectX-11-Kiero-Hook
 extern LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
@@ -77,6 +98,7 @@ HRESULT __stdcall hkPresent(IDXGISwapChain* pSwapChain, UINT SyncInterval, UINT 
 	pContext->OMSetRenderTargets(1, &mainRenderTargetView, NULL);
 	ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
 	return oPresent(pSwapChain, SyncInterval, Flags);
+
 }
 
 DWORD WINAPI MainThread(LPVOID lpReserved)
@@ -111,4 +133,3 @@ BOOL APIENTRY DllMain(HMODULE hModule,
 	}
 	return TRUE;
 }
-
