@@ -1,20 +1,9 @@
-#include <windows.h>
+#include <iostream>
 #include "../MinHook/MinHook.h"
-#include <cstdio>
-#include <string>
-#include <d3d11.h>
-#include <dxgi.h>
-#include "../kiero/kiero.h"
-#include "../imgui/imgui.h"
-#include "../imgui/imgui_impl_win32.h"
-#include "../imgui/imgui_impl_dx11.h"
 #define STR_(X) #X
 #define IE17ver v0.08
 #define STR(X) STR_(X)
 
-typedef HRESULT(__stdcall* Present) (IDXGISwapChain* pSwapChain, UINT SyncInterval, UINT Flags);
-typedef LRESULT(CALLBACK* WNDPROC)(HWND, UINT, WPARAM, LPARAM);
-typedef uintptr_t PTR;
 
 //most simple vector
 struct Vector
@@ -23,14 +12,6 @@ struct Vector
     float y;
     float z;
 };
-
-/*
-struct SSpawnInfo {
-    string classTypeName;
-	string citFilename;
-    string variantName;
-};
-*/
 
 extern bool holsterBool;
 
@@ -47,82 +28,84 @@ extern bool wasQPressed;
 extern int playerCash;
 extern Vector playerPos;
 
-extern void (*blockHeroMovement)(unsigned __int64*, bool*);
-extern void (*toggleHuntMode)(unsigned __int64*, bool*);
-extern void (*enableProtonTorpedo)(unsigned __int64*, bool*);
-extern void (*setCommandCrossBeam)(unsigned __int64);
-extern void (*startFakePackOverheat)(unsigned __int64*);
-extern void (*letterbox)(bool*);
-extern void (*queueVideo)(const char**);
-extern void (*setMovieCaptureEnable)(bool*);
-extern void (*allowEnemyAttack)(bool*);
-extern void (*allowHeroControls)(bool*);
-extern void (*allowHeroDamage)(bool*);
-extern void (*play)(unsigned __int64, bool, int, float, float);
+extern void (*die)(unsigned __int64 object);
+extern void (*blockHeroMovement)(unsigned __int64* buster_object, bool* state);
+extern void (*toggleHuntMode)(unsigned __int64* object, bool* state);
+extern void (*enableProtonTorpedo)(unsigned __int64* buster_object, bool* state);
+extern void (*setCommandCrossBeam)(unsigned __int64 buster_object);
+extern void (*startFakePackOverheat)(unsigned __int64* buster_object);
+extern void (*letterbox)(bool* state);
+extern void (*queueVideo)(const char** videoname);
+extern void (*setMovieCaptureEnable)(bool* state);
+extern void (*allowEnemyAttack)(bool* state);
+extern void (*allowHeroControls)(bool* state);
+extern void (*allowHeroDamage)(bool* state);
+extern void (*play)(unsigned __int64 object, bool foward, int pattern, float newSpeed, float rampTime);
 extern void (*setCameraPathActor)(unsigned __int64, unsigned __int64, float, float, float);
-extern void (*shatter)(unsigned __int64, Vector);
-extern void (*setSimEnable)(unsigned __int64, int);
-extern void (*loadCheckpoint)(const char**);
-extern void (*setCurrentObjective)(const char**);
-extern void (*toggleReviveMode)(unsigned __int64, bool);
-extern int (*chainToLevel)(unsigned __int64, const char*, const char*);
-extern void (*transferHeroshipTo)(unsigned __int64, unsigned __int64);
-extern void (*slimeMe)(unsigned __int64, bool, float);
-extern void (*knockBack)(unsigned __int64, Vector, float);
-extern void (*pretendToDrive)(unsigned __int64, unsigned __int64, bool, bool);
-extern void (*mountProtonPack)(unsigned __int64, bool);
-extern void (*fakeFireProtonGun)(unsigned __int64, bool);
-extern char (*forceDeployTrap)(unsigned __int64, Vector);
-extern void (*cacheRappel)(unsigned __int64);
-extern void (*setRappelModeEnable)(unsigned __int64, bool);
-extern void (*startRappelSwing)(unsigned __int64);
-extern bool (*isDead)(unsigned __int64);
-extern void (*cacheStreamingCinematAndAudio)(const char*, const char*);
-extern void (*stopStreamingCinemat)(const char*);
-extern void (*cacheStreamingCinemat)(const char**);
-extern void (*cueStreamingCinemat)(const char*, float);
-extern void (*playStreamingCinemat)(const char*);
-extern void (*GTFO)(const char*, int);
-extern void (*cacheSkeletalAnimationByName)(const char*);
+extern void (*shatter)(unsigned __int64 object, Vector WShatterPos);
+extern void (*setSimEnable)(unsigned __int64 object, int flag);
+extern void (*loadCheckpoint)(const char** checkpointName);
+extern void (*setCurrentObjective)(const char** objDesc);
+extern void (*toggleReviveMode)(unsigned __int64 buster_object, bool state);
+extern int (*chainToLevel)(unsigned __int64 buster_object, const char* levelName, const char* lvlCheckpoint);
+extern void (*transferHeroshipTo)(unsigned __int64 buster_object, unsigned __int64 buster_object_whom);
+extern void (*slimeMe)(unsigned __int64 buster_object, bool fromFront, float decalDuration);
+extern void (*knockBack)(unsigned __int64 buster_object, Vector WSourcePos, float impulse);
+extern void (*pretendToDrive)(unsigned __int64 buster_object, unsigned __int64 car_object, bool driverSeatFlag, bool putTrapOnRoofFlag);
+extern void (*mountProtonPack)(unsigned __int64 buster_object, bool state);
+extern void (*fakeFireProtonGun)(unsigned __int64 buster_object, bool state);
+extern char (*forceDeployTrap)(unsigned __int64 buster_object, Vector WSourcePos);
+extern void (*cacheRappel)(unsigned __int64 buster_object);
+extern void (*setRappelModeEnable)(unsigned __int64 buster_object, bool state);
+extern void (*startRappelSwing)(unsigned __int64 buster_object);
+extern bool (*isDead)(unsigned __int64 object);
+extern void (*cacheStreamingCinematAndAudio)(const char* cinematName, const char* audioFileName);
+extern void (*stopStreamingCinemat)(const char* cinematName);
+extern void (*cacheStreamingCinemat)(const char** cinematName);
+extern void (*cueStreamingCinemat)(const char* cinematName, float intialCursorPos);
+extern void (*playStreamingCinemat)(const char* cinematName);
+extern void (*GTFO)(const char* msg, int flag);
+extern void (*cacheSkeletalAnimationByName)(const char* animationName);
 extern void (*enable)(unsigned __int64, bool*, bool);
-extern void (*setProtonBeamMaxLength)(float);
-extern void (*setAnimation)(unsigned __int64, const char*, bool, bool);
-extern void (*detonate)(unsigned __int64, float);
-extern void (*attachToActorTag)(unsigned __int64, unsigned __int64, const char*, bool);
-extern void (*setCurrentTeam)(unsigned __int64, int);
-extern bool (*isTrapDeployed)(unsigned __int64);
-extern void (*gatherAllDeployedInventoryItems)(unsigned __int64);
-extern void (*readyInventoryItem)(unsigned __int64, int, bool);
-extern void (*enableInventoryItem)(unsigned __int64, int, bool);
+extern void (*setProtonBeamMaxLength)(float length);
+extern void (*setAnimation)(unsigned __int64 object, const char* animationName, bool useSkelFileExit);
+extern void (*detonate)(unsigned __int64 car_object, float timer);
+extern void (*attachToActorTag)(unsigned __int64 global_object, unsigned __int64 object, const char* tagName, bool useCurrentRelativePosition);
+extern void (*setCurrentTeam)(unsigned __int64 object, int type);
+extern bool (*isTrapDeployed)(unsigned __int64 buster_object);
+extern void (*gatherAllDeployedInventoryItems)(unsigned __int64 buster_object);
+extern void (*readyInventoryItem)(unsigned __int64 buster_object, int itemToSwitchTo, bool state);
+extern void (*enableInventoryItem)(unsigned __int64 buster_object, int itemToSwitchTo, bool state);
 extern void (*isPackOverheated)(unsigned __int64);
-extern void (*slamGoggleLocation)(unsigned __int64, int);
-extern void (*setGoggleLocation)(unsigned __int64, int);
-extern void (*setFacialExpression)(unsigned __int64, int);
-extern void (*stopControllingActor)(unsigned __int64);
-extern int (*warpTo)(unsigned __int64, Vector, Vector);
-extern int (*warpToActorSeamless)(unsigned __int64, unsigned __int64);
-extern void (*fakePossession)(unsigned __int64, bool);
-extern void (*toggleflashlight)(unsigned __int64, int);
-extern void (*setFlashlightMode)(unsigned __int64, int);
-extern void (*commitSuicide)(unsigned __int64);
+extern void (*slamGoggleLocation)(unsigned __int64 buster_object, int location);
+extern void (*setGoggleLocation)(unsigned __int64 buster_object, int location);
+extern void (*setFacialExpression)(unsigned __int64 buster_object, int newExpression);
+extern void (*stopControllingActor)(unsigned __int64 buster_object);
+extern int (*warpTo)(unsigned __int64 object, Vector pos, Vector orient);
+extern int (*warpToActorSeamless)(unsigned __int64 object, unsigned __int64 global_object);
+extern void (*fakePossession)(unsigned __int64 buster_object, bool state);
+extern void (*setFlashlightMode)(unsigned __int64 buster_object, int newMode);
+extern void (*toggleflashlight)(unsigned __int64 buster_object, int newMode);
+extern void (*commitSuicide)(unsigned __int64 buster_object);
 extern void (*setHealth)(unsigned __int64, float);
-extern void (*setNothingEquipped)(unsigned __int64, bool);
+extern void (*setNothingEquipped)(unsigned __int64 buster_object, bool state);
 extern void (*enableAllLights)(bool*);
 extern void (*DanteVMaddExport)(const char*, const char*, int);
-extern void (*buttonPrompt)(int, float);
-extern void (*setAllowDamageTally)(bool*);
-extern void (*fade)(float, float, float, float, float);
-extern void (*displaySplashScreen)(const char*, float, bool, bool);
-extern void (*CreateActor)(const char*, Vector);
-extern void (*CacheEffect)(const char**);
-extern int (*StartEffect)(const char*, Vector, Vector);
-extern void (*CreateExplosion)(Vector, float, float, float);
-extern void (*SetGravity)(Vector);
-extern void (*AddLight)(Vector, float, Vector, float, float, float, float);
-extern int (*DisplayText)(int, const char*, float);
-extern int (*DisplayTextLegacy)(int, const char*, const char*, char);
+extern void (*buttonPrompt)(int buttonAction, float duration);
+extern void (*setAllowDamageTally)(bool* state);
+extern void (*fade)(float opacity, float r, float g, float b, float duration);
+extern void (*displaySplashScreen)(const char* textureName, float duration, bool stretch, bool clear);
+extern void (*CacheEffect)(const char** effectName);
+extern int (*StartEffect)(const char* effectName, Vector position, Vector orientation);
+extern void (*CreateExplosion)(Vector pos, float radius, float damageStrength, float speed);
+extern void (*SetGravity)(Vector velocity);
+extern void (*AddLight)(Vector pos, float radius, Vector rgb, float intensity, float duration, float rampUp, float rampDown);
+extern void (*CreateActor)(const char* className, Vector wPos);
+extern int (*DisplayText)(int messageId, const char* text, float duration);
+extern int (*DisplayTextLegacy)(int messageId, const char* textDown, const char* textUp, char);
 
 DWORD WINAPI DLLAttach(HMODULE hModule);
 void __stdcall HookedFunction(char* Buffer, __int64 adr1, __int64 adr2, __int64 adr3);
+void __fastcall hookDanteLogic(__int64 a1, char* a2, __int64 a3);
 void HandleInput();
 std::string GetCurLevel();

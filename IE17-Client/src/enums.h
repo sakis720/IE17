@@ -1,3 +1,6 @@
+#ifndef ENUMS_E
+#define ENUMS_E
+
 #pragma once
 
 enum EFlashlightMode
@@ -120,3 +123,6 @@ enum ETextLegacyPrintTypes
     TEXTL_Default = 1u,
     TEXTL_YesCancelOption = 2,
 };
+
+
+#endif

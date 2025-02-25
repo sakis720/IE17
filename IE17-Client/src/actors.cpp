@@ -2,11 +2,6 @@
 #include "actors.h"
 #include "main.h"
 #include <iostream>
-#include <thread>
-#include <cstring>
-#include <chrono>
-
-using namespace std;
 
 unsigned __int64 egon = 0;
 unsigned __int64 winston = 0;

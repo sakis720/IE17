@@ -1,3 +1,6 @@
+#ifndef CON_NAMESPACE
+#define CON_NAMESPACE
+
 #pragma once
 
 namespace info {
@@ -10,3 +13,6 @@ namespace errorMsg {
     const char* crashedgametittle = "Game Crashed";
     const char* crashedgame = "If you are seeing this the game has crashed, this 'Legacy' print function is parsley broken";
 }
+
+
+#endif

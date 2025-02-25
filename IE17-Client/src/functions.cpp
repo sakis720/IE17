@@ -1,31 +1,19 @@
 #include "main.h"
-#include "ImGuiConsole.h"
-#include "enums.h"
-#include "player.h"
-#include "actors.h"
-#include "script.h"
-#include "gameconstants.h"
 #include "functions.h"
-#include <stdio.h>
+#include "enums.h"
+#include "gameconstants.h"
+#include "actors.h"
+#include "player.h"
 #include <iostream>
-#include <chrono>
-#include <fstream>
 #include <thread>
-#include <cstdint> 
-#include <filesystem> 
-#include <cstring>
-#include <string>
-#include <algorithm>
-#include <windows.h>
 
 
-using namespace std;
 
 void TextDisplayCountdown(const char* message, int seconds)
 {
     for (int i = seconds; i > 0; --i)
     {
-        DisplayText(TEXT_Top, (message + to_string(i) + " sec").c_str(), 1.0f);
+        DisplayText(TEXT_Top, (message + std::to_string(i) + " sec").c_str(), 1.0f);
         Sleep(1000);
     }
 }
@@ -104,7 +92,7 @@ void OpenShop(Vector GhostbusterSpawn) {
 
     while (GetTickCount64() - startTime < shopDuration) { // Use GetTickCount64 for comparisons.
         ULONGLONG remainingTime = shopDuration - (GetTickCount64() - startTime);
-        DisplayText(TEXT_Top, ("Shop closes in: " + to_string(remainingTime / 1000) + " seconds").c_str(), 1.0f);
+        DisplayText(TEXT_Top, ("Shop closes in: " + std::to_string(remainingTime / 1000) + " seconds").c_str(), 1.0f);
 
         // check for player input
         choice = CheckPlayerInput();
@@ -152,7 +140,7 @@ void HandleShopChoice(int choice, Vector pos) {
         break;
     }
 
-    DisplayText(TEXT_Top, ("Remaining Cash: $" + to_string(playerCash)).c_str(), 3.0f);
+    DisplayText(TEXT_Top, ("Remaining Cash: $" + std::to_string(playerCash)).c_str(), 3.0f);
     Sleep(3000);
 }
 
@@ -181,55 +169,6 @@ void knockBackActor(unsigned __int64 actor)
 	knockBack(actor, playerPos, 30.0f);
 }
 
-void gbloaded() //ImGui ver
-{
-    if (localplayer != 0)
-    {
-        Log("Player                  LOADED.");
-    }
-    else
-    {
-        Log("Player                  NOT loaded.");
-    }
-
-    if (egon != 0)
-    {
-        Log("Egon                    LOADED.");
-    }
-    else
-    {
-        Log("Egon                    NOT loaded.");
-    }
-
-    if (winston != 0)
-    {
-        Log("Winston                 LOADED.");
-    }
-    else
-    {
-        Log("Winston                 NOT loaded.");
-    }
-
-    if (venkman != 0)
-    {
-        Log("Venkman                 LOADED.");
-    }
-    else
-    {
-        Log("Venkman                 NOT loaded.");
-    }
-
-    if (ray != 0)
-    {
-        Log("Ray                     LOADED.");
-    }
-    else
-    {
-        Log("Ray                     NOT LOADED.");
-    }
-
-}
-
 void warpToPlayer(unsigned __int64 actor)
 {
     GetPlayerPosition();
@@ -238,7 +177,7 @@ void warpToPlayer(unsigned __int64 actor)
 
 void playAnim(unsigned __int64 actor, const char* anim)
 {
-    setAnimation(actor, anim, false, false);
+    setAnimation(actor, anim, false);
 }
 
 void loadLevel(const char* level)
@@ -304,9 +243,9 @@ void RunMod()
             int ghostsToSpawn = baseGhostsPerWave + (wave - 1) * 1;  // increase ghost count with waves
             float spawnDelay = 1.0f;
 
-            TextDisplayCountdown(("Wave " + to_string(wave) + " starting in: ").c_str(), 5);
+            TextDisplayCountdown(("Wave " + std::to_string(wave) + " starting in: ").c_str(), 5);
 
-            DisplayText(TEXT_Top, ("Wave " + to_string(wave) + " begins!").c_str(), 5.0f);
+            DisplayText(TEXT_Top, ("Wave " + std::to_string(wave) + " begins!").c_str(), 5.0f);
 
             //const char* selectedGhostType = ghostTypes[(wave - 1) / 2 % ghostTypeCount]; //select ghost type on based wave every 2 waves pick one
 
@@ -361,7 +300,7 @@ void RunMod()
 
     }
     else if (currentLevel == requiredLevelCemetery2) {
-        cout << "DEBUG: Level Cemetery 2 \n";
+        std::cout << "DEBUG: Level Cemetery 2 \n";
 
         Vector GhostSpawner1{ 82.21f, 13.24f, -144.59f };
         Vector GhostSpawner2{ 97.70f, 16.30f, -235.15f };
@@ -384,7 +323,7 @@ void RunMod()
         setGoggleLocation(localplayer, eGogglesOnFace);
         readyInventoryItem(localplayer, eInventoryNothing, true);
 
-        setAnimation(localplayer, ani, false, false);
+        setAnimation(localplayer, ani, false);
         //setAnimation(localplayer, "amb_scratch_pke", false, false);
 
 
@@ -392,7 +331,7 @@ void RunMod()
 
         fadein();
         CacheEffect(&effectname); //cache effect because if not the game will pop up a error
-        cout << "DEBUG: Effect Cached\n";
+        std::cout << "DEBUG: Effect Cached\n";
 
 
         while (wave <= maxWaves)
@@ -402,12 +341,12 @@ void RunMod()
             if (isplayeralive)
             {
                 //DisplayText(TEXT_Top, "Player is Dead, Ending Game", 5.0f);
-                cout << "DEBUG: Player is Dead\n";
+                std::cout << "DEBUG: Player is Dead\n";
                 //break;
             }
             else
             {
-                cout << "DEBUG: Player is Alive\n";
+                std::cout << "DEBUG: Player is Alive\n";
             }
 
 
@@ -416,9 +355,9 @@ void RunMod()
             int ghostsToSpawn = baseGhostsPerWave + (wave - 1) * 1;  // increase ghost count with waves
             float spawnDelay = 1.0f;
 
-            TextDisplayCountdown(("Wave " + to_string(wave) + " starting in: ").c_str(), 5);
+            TextDisplayCountdown(("Wave " + std::to_string(wave) + " starting in: ").c_str(), 5);
 
-            DisplayText(TEXT_Top, ("Wave " + to_string(wave) + " begins!").c_str(), 5.0f);
+            DisplayText(TEXT_Top, ("Wave " + std::to_string(wave) + " begins!").c_str(), 5.0f);
 
 
             for (int i = 0; i < ghostsToSpawn; ++i)
@@ -467,7 +406,7 @@ void RunMod()
                 if (wave == maxWaves)
                 {
                     cacheSkeletalAnimationByName("amb_wave_to_crowd");
-                    setAnimation(localplayer, "amb_wave_to_crowd", false, false);
+                    setAnimation(localplayer, "amb_wave_to_crowd", false);
                     DisplayText(TEXT_Top, "Survival Mode Complete! Well done.", 10.0f);
                     readyInventoryItem(localplayer, eInventoryNothing, true);
                     Sleep(10000);
@@ -475,13 +414,13 @@ void RunMod()
                 }
                 else
                 {
-                    DisplayText(TEXT_Top, ("Wave " + to_string(wave - 1) + " complete! Bonus: $" + to_string(waveCompletionBonus) + " | Total Cash: $" + to_string(playerCash)).c_str(), 5.0f);
+                    DisplayText(TEXT_Top, ("Wave " + std::to_string(wave - 1) + " complete! Bonus: $" + std::to_string(waveCompletionBonus) + " | Total Cash: $" + std::to_string(playerCash)).c_str(), 5.0f);
                 }
 
                 Sleep(5000);
 
                 OpenShop(GhostbusterSpawn);
-                cout << "DEBUG: OpenShop must be called\n";
+                std::cout << "DEBUG: OpenShop must be called\n";
 
                 DisplayText(TEXT_Top, "Prepare for the next wave!", 5.0f);
                 Sleep(5000);
@@ -492,7 +431,7 @@ void RunMod()
     else {
         chainToLevel(localplayer, "cemetery2.lvl", "Underground");
         Sleep(2000);
-        cout << "You have to call survivalmode again.\n";
+        std::cout << "You have to call survivalmode again.\n";
     }
 
 

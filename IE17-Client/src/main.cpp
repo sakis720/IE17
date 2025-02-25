@@ -1,22 +1,11 @@
 #include "main.h"
-#include "player.h"
-#include "enums.h"
-#include "script.h"
-#include "actors.h"
 #include "functions.h"
-#include <stdio.h>
+#include "enums.h"
+#include "actors.h"
+#include "player.h"
 #include <iostream>
-#include <chrono>
-#include <fstream>
 #include <thread>
-#include <cstdint> 
-#include <filesystem> 
-#include <cstring>
-#include <string>
-#include <algorithm>
-#include <windows.h>
-#include <conio.h>
-#include <ImGuiConsole.h>
+#include <fstream>
 
 using namespace std;
 
@@ -39,80 +28,81 @@ char* g_modBase = nullptr;
 
 int playerCash = 0;
 
-void (*blockHeroMovement)(unsigned __int64*, bool*);
-void (*toggleHuntMode)(unsigned __int64*, bool*);
-void (*enableProtonTorpedo)(unsigned __int64*, bool*);
-void (*setCommandCrossBeam)(unsigned __int64);
-void (*startFakePackOverheat)(unsigned __int64*);
-void (*letterbox)(bool*);
-void (*queueVideo)(const char**);
-void (*setMovieCaptureEnable)(bool*);
-void (*allowEnemyAttack)(bool*);
-void (*allowHeroControls)(bool*);
-void (*allowHeroDamage)(bool*);
-void (*play)(unsigned __int64, bool, int, float, float);
+void (*die)(unsigned __int64 object);
+void (*blockHeroMovement)(unsigned __int64* buster_object, bool* state);
+void (*toggleHuntMode)(unsigned __int64* object, bool* state);
+void (*enableProtonTorpedo)(unsigned __int64* buster_object, bool* state);
+void (*setCommandCrossBeam)(unsigned __int64 buster_object);
+void (*startFakePackOverheat)(unsigned __int64* buster_object);
+void (*letterbox)(bool* state);
+void (*queueVideo)(const char** videoname);
+void (*setMovieCaptureEnable)(bool* state);
+void (*allowEnemyAttack)(bool* state);
+void (*allowHeroControls)(bool* state);
+void (*allowHeroDamage)(bool* state);
+void (*play)(unsigned __int64 object, bool foward, int pattern, float newSpeed, float rampTime);
 void (*setCameraPathActor)(unsigned __int64, unsigned __int64, float, float, float);
-void (*shatter)(unsigned __int64, Vector);
-void (*setSimEnable)(unsigned __int64, int);
-void (*loadCheckpoint)(const char**);
-void (*setCurrentObjective)(const char**);
-void (*toggleReviveMode)(unsigned __int64, bool);
-int (*chainToLevel)(unsigned __int64, const char*, const char*);
-void (*transferHeroshipTo)(unsigned __int64, unsigned __int64);
-void (*slimeMe)(unsigned __int64, bool, float);
-void (*knockBack)(unsigned __int64, Vector, float);
-void (*pretendToDrive)(unsigned __int64, unsigned __int64, bool, bool);
-void (*mountProtonPack)(unsigned __int64, bool);
-void (*fakeFireProtonGun)(unsigned __int64, bool);
-char (*forceDeployTrap)(unsigned __int64, Vector);
-void (*cacheRappel)(unsigned __int64);
-void (*setRappelModeEnable)(unsigned __int64, bool);
-void (*startRappelSwing)(unsigned __int64);
-bool (*isDead)(unsigned __int64);
-void (*cacheStreamingCinematAndAudio)(const char*, const char*);
-void (*stopStreamingCinemat)(const char*);
-void (*cacheStreamingCinemat)(const char**);
-void (*cueStreamingCinemat)(const char*, float);
-void (*playStreamingCinemat)(const char*);
-void (*GTFO)(const char*, int);
-void (*cacheSkeletalAnimationByName)(const char*);
-void (*enable)(unsigned __int64, bool*, bool);
-void (*setProtonBeamMaxLength)(float);
-void (*setAnimation)(unsigned __int64, const char*, bool, bool);
-void (*detonate)(unsigned __int64, float);
-void (*attachToActorTag)(unsigned __int64, unsigned __int64, const char*, bool);
-void (*setCurrentTeam)(unsigned __int64, int);
-bool (*isTrapDeployed)(unsigned __int64);
-void (*gatherAllDeployedInventoryItems)(unsigned __int64);
-void (*readyInventoryItem)(unsigned __int64, int, bool);
-void (*enableInventoryItem)(unsigned __int64, int, bool);
-void (*isPackOverheated)(unsigned __int64);
-void (*slamGoggleLocation)(unsigned __int64, int);
-void (*setGoggleLocation)(unsigned __int64, int);
-void (*setFacialExpression)(unsigned __int64, int);
-void (*stopControllingActor)(unsigned __int64);
-int (*warpTo)(unsigned __int64, Vector, Vector);
-int (*warpToActorSeamless)(unsigned __int64, unsigned __int64);
-void (*fakePossession)(unsigned __int64, bool);
-void (*setFlashlightMode)(unsigned __int64, int);
-void (*toggleflashlight)(unsigned __int64, int); // toggleflashlight and setFlashlightMode are diffrent functions
-void (*commitSuicide)(unsigned __int64);
-void (*setHealth)(unsigned __int64, float);
-void (*setNothingEquipped)(unsigned __int64, bool);
+void (*shatter)(unsigned __int64 object, Vector WShatterPos);
+void (*setSimEnable)(unsigned __int64 object, int flag);
+void (*loadCheckpoint)(const char** checkpointName);
+void (*setCurrentObjective)(const char** objDesc);
+void (*toggleReviveMode)(unsigned __int64 buster_object, bool state);
+int (*chainToLevel)(unsigned __int64 buster_object, const char* levelName, const char* lvlCheckpoint);
+void (*transferHeroshipTo)(unsigned __int64 buster_object, unsigned __int64 buster_object_whom);
+void (*slimeMe)(unsigned __int64 buster_object, bool fromFront, float decalDuration);
+void (*knockBack)(unsigned __int64 buster_object, Vector WSourcePos, float impulse);
+void (*pretendToDrive)(unsigned __int64 buster_object, unsigned __int64 car_object, bool driverSeatFlag, bool putTrapOnRoofFlag);
+void (*mountProtonPack)(unsigned __int64 buster_object, bool state);
+void (*fakeFireProtonGun)(unsigned __int64 buster_object, bool state);
+char (*forceDeployTrap)(unsigned __int64 buster_object, Vector WSourcePos);
+void (*cacheRappel)(unsigned __int64 buster_object);
+void (*setRappelModeEnable)(unsigned __int64 buster_object, bool state);
+void (*startRappelSwing)(unsigned __int64 buster_object);
+bool (*isDead)(unsigned __int64 object);
+void (*cacheStreamingCinematAndAudio)(const char* cinematName, const char* audioFileName);
+void (*stopStreamingCinemat)(const char* cinematName);
+void (*cacheStreamingCinemat)(const char** cinematName);
+void (*cueStreamingCinemat)(const char* cinematName, float intialCursorPos);
+void (*playStreamingCinemat)(const char* cinematName);
+void (*GTFO)(const char* msg, int flag);
+void (*cacheSkeletalAnimationByName)(const char* animationName);
+void (*enable)(unsigned __int64, bool*, bool); //broken
+void (*setProtonBeamMaxLength)(float length);
+void (*setAnimation)(unsigned __int64 object, const char* animationName, bool useSkelFileExit);
+void (*detonate)(unsigned __int64 car_object, float timer);
+void (*attachToActorTag)(unsigned __int64 global_object, unsigned __int64 object, const char* tagName, bool useCurrentRelativePosition);
+void (*setCurrentTeam)(unsigned __int64 object, int type);
+bool (*isTrapDeployed)(unsigned __int64 buster_object);
+void (*gatherAllDeployedInventoryItems)(unsigned __int64 buster_object);
+void (*readyInventoryItem)(unsigned __int64 buster_object, int itemToSwitchTo, bool state); //look at EInventoryItem
+void (*enableInventoryItem)(unsigned __int64 buster_object, int itemToSwitchTo, bool state); //look at EInventoryItem
+void (*isPackOverheated)(unsigned __int64); //need to check if this is correct
+void (*slamGoggleLocation)(unsigned __int64 buster_object, int location); //look at EGoggles
+void (*setGoggleLocation)(unsigned __int64 buster_object, int location); // look at EGoggles
+void (*setFacialExpression)(unsigned __int64 buster_object, int newExpression); // look at EGhostbusterFacialExpression
+void (*stopControllingActor)(unsigned __int64 buster_object);
+int (*warpTo)(unsigned __int64 object, Vector pos, Vector orient);
+int (*warpToActorSeamless)(unsigned __int64 object, unsigned __int64 global_object);
+void (*fakePossession)(unsigned __int64 buster_object, bool state);
+void (*setFlashlightMode)(unsigned __int64 buster_object, int newMode); //look at EFlashlightMode
+void (*toggleflashlight)(unsigned __int64 buster_object, int newMode); // toggleflashlight and setFlashlightMode are diffrent functions
+void (*commitSuicide)(unsigned __int64 buster_object);
+void (*setHealth)(unsigned __int64, float); // need to be fixed
+void (*setNothingEquipped)(unsigned __int64 buster_object, bool state);
 void (*enableAllLights)(bool*);
 void (*DanteVMaddExport)(const char*, const char*, int);
-void (*buttonPrompt)(int, float);
-void (*setAllowDamageTally)(bool*);
-void (*fade)(float, float, float, float, float);
-void (*displaySplashScreen)(const char*, float, bool, bool);
-void (*CacheEffect)(const char**);
-int (*StartEffect)(const char*, Vector, Vector);
-void (*CreateExplosion)(Vector, float, float, float);
-void (*SetGravity)(Vector);
-void (*AddLight)(Vector, float, Vector, float, float, float, float);
-void (*CreateActor)(const char*, Vector);
-int (*DisplayText)(int, const char*, float);
-int (*DisplayTextLegacy)(int, const char*, const char*, char);
+void (*buttonPrompt)(int buttonAction, float duration); //look at EButtonAction
+void (*setAllowDamageTally)(bool* state);
+void (*fade)(float opacity, float r, float g, float b, float duration);
+void (*displaySplashScreen)(const char* textureName, float duration, bool stretch, bool clear);
+void (*CacheEffect)(const char** effectName);
+int (*StartEffect)(const char* effectName, Vector position, Vector orientation);
+void (*CreateExplosion)(Vector pos, float radius, float damageStrength, float speed);
+void (*SetGravity)(Vector velocity);
+void (*AddLight)(Vector pos, float radius, Vector rgb, float intensity, float duration, float rampUp, float rampDown);
+void (*CreateActor)(const char* className, Vector wPos);
+int (*DisplayText)(int messageId, const char* text, float duration); // look at EHudMessage
+int (*DisplayTextLegacy)(int messageId, const char* textDown, const char* textUp, char);
 
 
 using _SlewFun = void(__cdecl*)();
@@ -138,6 +128,10 @@ _resgravity resetgravity;
 typedef void (*OriginalFunctionType)(char* Buffer, __int64 adr1, __int64 adr2, __int64 adr3);
 OriginalFunctionType originalFunction = nullptr;
 
+typedef void(__fastcall* danteLogic_t)(__int64 a1, char* a2, __int64 a3);
+danteLogic_t originalDanteLogic = nullptr;
+
+
 void __stdcall HookedFunction(char* Buffer, __int64 adr1, __int64 adr2, __int64 adr3) {
 
     bool debugMode = false;  // change this to true if you want to enable logging
@@ -150,11 +144,6 @@ void __stdcall HookedFunction(char* Buffer, __int64 adr1, __int64 adr2, __int64 
         std::cout << "Local Object Address 1: 0x" << adr1 << std::hex << std::endl;
         std::cout << "Local Object Address 2: 0x" << adr2 << std::hex << std::endl;
         std::cout << "Local Object Address 3: 0x" << adr3 << std::hex << std::endl;
-
-        LogFormatted("Buffer (Type of): %s", (Buffer ? Buffer : "NULL"));
-        LogFormatted("Local Object Address 1: 0x%p", adr1);
-        LogFormatted("Local Object Address 2: 0x%p", adr2);
-        LogFormatted("Local Object Address 3: 0x%p", adr3);
 
         logFile << "Buffer (Type of): " << (Buffer ? Buffer : "NULL") << std::endl;
         logFile << "Local Object Address 1: 0x" << std::hex << adr1 << std::endl;
@@ -176,6 +165,21 @@ void __stdcall HookedFunction(char* Buffer, __int64 adr1, __int64 adr2, __int64 
 	getEmmit(Buffer, adr1);
 }
 
+void __fastcall hookDanteLogic(__int64 a1, char* a2, __int64 a3) {
+
+    bool debuginfo = false;
+
+    if (debuginfo)
+    {
+        std::cout << "Hooked danteLogic called!" << std::endl;
+        std::cout << "a1: " << a1 << ", a2: " << (a2 ? a2 : "null") << ", a3: " << a3 << std::endl;
+
+        originalDanteLogic(a1, a2, a3);
+
+        std::cout << "Finished danteLogic." << std::endl;
+    }
+}
+
 // Continuously check for key presses in a separate thread
 void HandleKeyPresses()
 {
@@ -193,53 +197,55 @@ void HandleKeyPresses()
         if (GetAsyncKeyState(VK_F1) & 1) {
             Slew();  // Call the Slew function
             Sleep(500);  // Prevent multiple triggers within a short time
-        } else if (GetAsyncKeyState(VK_F2) & 1) {
+        }
+        else if (GetAsyncKeyState(VK_F2) & 1) {
             animDebug();  // Call the animDebug function
             Sleep(500);  // Prevent multiple triggers within a short time
-        } else if (GetAsyncKeyState(VK_F3) & 1) {
+        }
+        else if (GetAsyncKeyState(VK_F3) & 1) {
             chanDebug();  // Call the chanDebug function
             Sleep(500);  // Prevent multiple triggers within a short time
-        } else if (GetAsyncKeyState(VK_F4) & 1) { 
+        }
+        else if (GetAsyncKeyState(VK_F4) & 1) {
             cinematDebug();  // Call the cinematDebug function
-            Sleep(500);  // Prevent multiple triggers within a short time
-        }else if (GetAsyncKeyState(VK_F6) & 1) { 
-            //script();  // Call the cinematDebug function
             Sleep(500);  // Prevent multiple triggers within a short time
         }
         else if (GetAsyncKeyState(VK_F5) & 1) { //enable all equipment
 
-			enableInventoryItem(localplayer, eInventoryProtonGun, true);
-			enableInventoryItem(localplayer, eInventorySlimeGun, true);
-			enableInventoryItem(localplayer, eInventoryRailgun, true);
-			enableInventoryItem(localplayer, eInventoryShotgun, true);
+            enableInventoryItem(localplayer, eInventoryProtonGun, true);
+            enableInventoryItem(localplayer, eInventorySlimeGun, true);
+            enableInventoryItem(localplayer, eInventoryRailgun, true);
+            enableInventoryItem(localplayer, eInventoryShotgun, true);
 
-			//blockHeroMovement(&player, &state);
-			//toggleHuntMode(&player, &state); idk what exactly this does.
-			//const char* video = "logo";
-			//queueVideo(&video);
+            unsigned __int64 player = localplayer;
+
+            startFakePackOverheat(&player);
+
+            //const char* video = "logo";
+            //queueVideo(&video);
             //bool state = true;
             //setMovieCaptureEnable(&state);
             //Sleep(2500);
             //shatter(emmit, playerPos);
             //shatter(emmit2, playerPos);
-			//const char* checkpoint = "Underground";
-			//loadCheckpoint(&checkpoint);
-			//attachToActorTag(localplayer, emmit, "mouth", false); // R_hand/L mouth
-			//warpToActorSeamless(localplayer, egon);
-			//pretendToDrive(egon, ecto, false, false); // for some reason player(localplayer) can't drive or sit as a passenger
-			//cacheRappel(localplayer);
-			//setRappelModeEnable(localplayer, true);
+            //const char* checkpoint = "Underground";
+            //loadCheckpoint(&checkpoint);
+            //attachToActorTag(localplayer, emmit, "mouth", false); // R_hand/L mouth
+            //warpToActorSeamless(localplayer, egon);
+            //pretendToDrive(egon, ecto, false, false); // for some reason player(localplayer) can't drive or sit as a passenger
+            //cacheRappel(localplayer);
+            //setRappelModeEnable(localplayer, true);
             //Sleep(2000);
             //setRappelModeEnable(localplayer, false);
-			//startRappelSwing(localplayer);
+            //startRappelSwing(localplayer);
             //const char* cinemat06 = "cs_cem_01.cinemat";
             //cacheStreamingCinemat(&cinemat06);
             //Sleep(3000);
-			//cueStreamingCinemat(cinemat06, 0.0f);
-			//playStreamingCinemat(cinemat06);
+            //cueStreamingCinemat(cinemat06, 0.0f);
+            //playStreamingCinemat(cinemat06);
             //GTFO("Game Crashed idk why", -10);
-			//setProtonBeamMaxLength(15.0f); //max 400.0f
-			//const char* ani = "upgrading_pack"; 
+            //setProtonBeamMaxLength(15.0f); //max 400.0f
+            //const char* ani = "upgrading_pack"; 
             //setAnimation(localplayer, ani, false, false);
             //cout << "Animaiton set to: " << ani << "\n";
 
@@ -266,14 +272,14 @@ void HandleKeyPresses()
             Sleep(500);  // Prevent multiple triggers within a short time
         }
         else if (GetAsyncKeyState('E') & 1) {
-			if (localplayer != 0) {  // Call the function only if localplayer value is set
-				g_modBase = (char*)GetModuleHandle(NULL);  // Update g_modBase value
-				//setFlashlightMode(localplayer, eFlashlightModeUVLight);
-				toggleflashlight(localplayer, eFlashlightModeNormal); //the eFlashlightModeNormal is useless for toggleflashlight
-				Sleep(500);  // Prevent multiple triggers within a short time
-			}
+            if (localplayer != 0) {  // Call the function only if localplayer value is set
+                g_modBase = (char*)GetModuleHandle(NULL);  // Update g_modBase value
+                //setFlashlightMode(localplayer, eFlashlightModeUVLight);
+                toggleflashlight(localplayer, eFlashlightModeNormal); //the eFlashlightModeNormal is useless for toggleflashlight
+                Sleep(500);  // Prevent multiple triggers within a short time
+            }
         }
-        else if (GetAsyncKeyState('=') & 1) {
+        else if (GetAsyncKeyState('Z') & 1) {
             if (localplayer != 0) {  // call the function only if localplayer value is set
                 g_modBase = (char*)GetModuleHandle(NULL);  // update g_modBase value
                 // call IsTrapDeployed to check if a trap is deployed
@@ -287,36 +293,39 @@ void HandleKeyPresses()
                 Sleep(500);  // Prevent multiple triggers within a short time
             }
         }
-        else if (GetAsyncKeyState(']') & 1) {
-			if (localplayer != 0) {  // Call the function only if localplayer value is set
-				g_modBase = (char*)GetModuleHandle(NULL);  // Update g_modBase value
-				if (!fakePossessionStatus) {
-					fakePossession(localplayer, true);
-				} else {
-					fakePossession(localplayer, false);
-				}
-				fakePossessionStatus = !fakePossessionStatus;
-				Sleep(500);  // Prevent multiple triggers within a short time
-			}
+        else if (GetAsyncKeyState('P') & 1) {
+            if (localplayer != 0) {  // Call the function only if localplayer value is set
+                g_modBase = (char*)GetModuleHandle(NULL);  // Update g_modBase value
+                if (!fakePossessionStatus) {
+                    fakePossession(localplayer, true);
+                }
+                else {
+                    fakePossession(localplayer, false);
+                }
+                fakePossessionStatus = !fakePossessionStatus;
+                Sleep(500);  // Prevent multiple triggers within a short time
+            }
         }
-        else if (GetAsyncKeyState('[') & 1) {
-			if (localplayer != 0) {  // Call the function only if localplayer value is set
-				g_modBase = (char*)GetModuleHandle(NULL);  // Update g_modBase value
-				if (eGogglesStatus == 0) {
-					eGogglesStatus = eGogglesOnFace;
-					setGoggleLocation(localplayer, eGogglesOnFace);
-				} else if (eGogglesStatus == 1) {
-					eGogglesStatus = eGogglesOnBelt;
-					setGoggleLocation(localplayer, eGogglesOnBelt);
-				} else if (eGogglesStatus == 2) {
-					eGogglesStatus = eGogglesOnHead;
-					setGoggleLocation(localplayer, eGogglesOnHead);
-				}
-				Sleep(500);  // Prevent multiple triggers within a short time
-			}
+        else if (GetAsyncKeyState('G') & 1) {
+            if (localplayer != 0) {  // Call the function only if localplayer value is set
+                g_modBase = (char*)GetModuleHandle(NULL);  // Update g_modBase value
+                if (eGogglesStatus == 0) {
+                    eGogglesStatus = eGogglesOnFace;
+                    setGoggleLocation(localplayer, eGogglesOnFace);
+                }
+                else if (eGogglesStatus == 1) {
+                    eGogglesStatus = eGogglesOnBelt;
+                    setGoggleLocation(localplayer, eGogglesOnBelt);
+                }
+                else if (eGogglesStatus == 2) {
+                    eGogglesStatus = eGogglesOnHead;
+                    setGoggleLocation(localplayer, eGogglesOnHead);
+                }
+                Sleep(500);  // Prevent multiple triggers within a short time
+            }
         }
         if (GetAsyncKeyState('Q') & 0x8000) {  // Check if 'Q' is currently pressed
-            if (!wasQPressed) {  
+            if (!wasQPressed) {
                 wasQPressed = true;  // mark 'Q' as pressed
 
                 if (localplayer != 0) {  // Call the function only if localplayer value is set
@@ -674,18 +683,19 @@ void SetTerminalOnTop()
 DWORD WINAPI DLLAttach(HMODULE hModule)
 {
     MH_Initialize();
-    //AllocConsole();
-    //SetConsoleTitleA("IE17 Build " STR(IE17ver));
+    AllocConsole();
+    SetConsoleTitleA("IE17 Build " STR(IE17ver));
 
-    //freopen_s((FILE**)stdin, "CONIN$", "r", stdin);
-    //freopen_s((FILE**)stdout, "CONOUT$", "w", stdout);
+    freopen_s((FILE**)stdin, "CONIN$", "r", stdin);
+    freopen_s((FILE**)stdout, "CONOUT$", "w", stdout);
 
-    //cout << "*************************** \n";
-    //cout << "     IE17 is hooked! \n";
-    //cout << "*************************** \n";
-    //cout << "Version: " STR(IE17ver) "\n";
+    cout << "*************************** \n";
+    cout << "     IE17 is hooked! \n";
+    cout << "*************************** \n";
+    cout << "Version: " STR(IE17ver) "\n";
 
     g_modBase = (char*)GetModuleHandle(NULL);
+    die = (void(*)(unsigned __int64))(g_modBase + 0x3B27B0); //CBreaker
     blockHeroMovement = (void(*)(unsigned __int64*, bool*))(g_modBase + 0xED660);
     toggleHuntMode = (void(*)(unsigned __int64*, bool*))(g_modBase + 0xED480);
     enableProtonTorpedo = (void(*)(unsigned __int64*, bool*))(g_modBase + 0xEDE30);
@@ -725,7 +735,7 @@ DWORD WINAPI DLLAttach(HMODULE hModule)
     cacheSkeletalAnimationByName = (void(*)(const char*))(g_modBase + 0x2D9AF0);
     enable = (void(*)(unsigned __int64, bool*, bool))(g_modBase + 0x2DA340);
     setProtonBeamMaxLength = (void(*)(float))(g_modBase + 0x277A50); // min 10.0f  max 400.0f
-    setAnimation = (void(*)(unsigned __int64, const char*, bool, bool))(g_modBase + 0x77440);
+    setAnimation = (void(*)(unsigned __int64, const char*, bool))(g_modBase + 0x77440);
     detonate = (void(*)(unsigned __int64, float))(g_modBase + 0x690F0); //car function
     attachToActorTag = (void(*)(unsigned __int64, unsigned __int64, const char*, bool))(g_modBase + 0x2BEE80);
     setCurrentTeam = (void(*)(unsigned __int64, int))(g_modBase + 0x15B20);
@@ -761,6 +771,7 @@ DWORD WINAPI DLLAttach(HMODULE hModule)
     DisplayText = (int(*)(int, const char*, float))(g_modBase + 0x2494A0); //hudtype msg duration
     DisplayTextLegacy = (int(*)(int, const char*, const char*, char))(g_modBase + 0x2A6C90); //int hudtype, const char* msgtittle, const char* msg, int ?(duration??)
 	void* GlobalRegisterFunc1 = (void*)((uintptr_t)GetModuleHandle(NULL) + 0x2CED00); //Thanks Malte0641 for the address
+    void* Register1 = reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(GetModuleHandle(NULL)) + 0x2CF280); //Thanks Malte0641 for the address
 
     // create the hook
     if (MH_CreateHook(GlobalRegisterFunc1, &HookedFunction, reinterpret_cast<LPVOID*>(&originalFunction)) != MH_OK) {
@@ -768,6 +779,17 @@ DWORD WINAPI DLLAttach(HMODULE hModule)
         MH_Uninitialize();
         return 1;
     }
+
+    if (MH_CreateHook(Register1, &hookDanteLogic, reinterpret_cast<void**>(&originalDanteLogic)) != MH_OK) {
+        std::cerr << "Failed to create hook!" << std::endl;
+        return -1;
+    }
+
+    if (MH_EnableHook(Register1) != MH_OK) {
+        std::cerr << "Failed to enable hook!" << std::endl;
+        return -1;
+    }
+
 
     // enable the hook
     if (MH_EnableHook(GlobalRegisterFunc1) != MH_OK) {
@@ -806,9 +828,10 @@ DWORD WINAPI DLLAttach(HMODULE hModule)
 
     MH_Uninitialize();
     MH_DisableHook(GlobalRegisterFunc1);
-    //fclose((FILE*)stdin);
-    //fclose((FILE*)stdout);
-    //FreeConsole();
+    MH_DisableHook(Register1);
+    fclose((FILE*)stdin);
+    fclose((FILE*)stdout);
+    FreeConsole();
     FreeLibraryAndExitThread(hModule, 0);
     return 1;
 }

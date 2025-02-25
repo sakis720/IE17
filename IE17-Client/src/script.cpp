@@ -1,28 +1,20 @@
-#include "main.h"
-#include "player.h"
-#include "enums.h"
-#include "actors.h"
 #include "script.h"
-#include "functions.h"
-#include <stdio.h>
+#include "main.h"
+#include "enums.h"
 #include <iostream>
-#include <chrono>
-#include <fstream>
-#include <thread>
-#include <cstdint> 
-#include <filesystem> 
-#include <cstring>
-#include <string>
-#include <algorithm>
-#include <windows.h>
-#include <conio.h>
-
-
-//using namespace std;
 
 //created script.cpp to have a clean cpp file and for testing functions.
 
 void script()
 {
+    const char* aggelosgay = "O Aggelos einai gay";
 
+    setCurrentObjective(&aggelosgay);
+    Sleep(10000);
+
+    DisplayText(TEXT_Top, aggelosgay, 5.0f);
+
+    Sleep(6000);
+
+    displaySplashScreen("ui\\aggelos.tga", 20.0f, true, true);
 }

@@ -15,7 +15,6 @@ void OpenShop(Vector);
 void HandleShopChoice(int, Vector);
 int CheckPlayerInput();
 void RunMod();
-void gbloaded();
 void unlockall(unsigned __int64);
 void knockBackActor(unsigned __int64 actor);
 void warpToPlayer(unsigned __int64 actor);

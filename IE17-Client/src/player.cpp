@@ -3,10 +3,6 @@
 #include "actors.h"
 #include <iostream>
 #include <thread>
-#include <cstring>
-#include <chrono>
-
-using namespace std;
 
 unsigned __int64 localplayer = 0; // global variable
 Vector playerPos;
