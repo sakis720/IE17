@@ -216,47 +216,17 @@ void HandleKeyPresses()
             enableInventoryItem(localplayer, eInventorySlimeGun, true);
             enableInventoryItem(localplayer, eInventoryRailgun, true);
             enableInventoryItem(localplayer, eInventoryShotgun, true);
-
-            GetPlayerPackValue();
-            //const char* video = "logo";
-            //queueVideo(&video);
-            //bool state = true;
-            //setMovieCaptureEnable(&state);
-            //Sleep(2500);
-            //shatter(emmit, playerPos);
-            //shatter(emmit2, playerPos);
-            //const char* checkpoint = "Underground";
-            //loadCheckpoint(&checkpoint);
-            //attachToActorTag(localplayer, emmit, "mouth", false); // R_hand/L mouth
-            //warpToActorSeamless(localplayer, egon);
-            //pretendToDrive(egon, ecto, false, false); // for some reason player(localplayer) can't drive or sit as a passenger
-            //cacheRappel(localplayer);
-            //setRappelModeEnable(localplayer, true);
-            //Sleep(2000);
-            //setRappelModeEnable(localplayer, false);
-            //startRappelSwing(localplayer);
-            //const char* cinemat06 = "cs_cem_01.cinemat";
-            //cacheStreamingCinemat(&cinemat06);
-            //Sleep(3000);
-            //cueStreamingCinemat(cinemat06, 0.0f);
-            //playStreamingCinemat(cinemat06);
-            //GTFO("Game Crashed idk why", -10);
-            //setProtonBeamMaxLength(15.0f); //max 400.0f
-            //const char* ani = "upgrading_pack"; 
-            //setAnimation(localplayer, ani, false, false);
-            //cout << "Animaiton set to: " << ani << "\n";
-
-            Sleep(500);  // Prevent multiple triggers within a short time
+            Sleep(500);
         }
         else if (GetAsyncKeyState('8') & 1) {
-            GetPlayerPosition();  // Call the cinematDebug function
+            GetPlayerPosition();
 
             std::cout << "Player Position: ("
                 << playerPos.x << ", "
                 << playerPos.y << ", "
                 << playerPos.z << ")" << std::endl;
 
-            Sleep(500);  // Prevent multiple triggers within a short time
+			Sleep(500);  // Prevent multiple triggers within a short time
         }
         else if (GetAsyncKeyState('9') & 1) {
             SpawnActor();
@@ -278,7 +248,6 @@ void HandleKeyPresses()
         }
         else if (GetAsyncKeyState('Z') & 1) {
             if (localplayer != 0) {  // call the function only if localplayer value is set
-                g_modBase = (char*)GetModuleHandle(NULL);  // update g_modBase value
                 // call IsTrapDeployed to check if a trap is deployed
                 bool trapDeployed = isTrapDeployed(localplayer);
                 if (trapDeployed) {
@@ -292,7 +261,6 @@ void HandleKeyPresses()
         }
         else if (GetAsyncKeyState('P') & 1) {
             if (localplayer != 0) {  // Call the function only if localplayer value is set
-                g_modBase = (char*)GetModuleHandle(NULL);  // Update g_modBase value
                 if (!fakePossessionStatus) {
                     fakePossession(localplayer, true);
                 }
@@ -305,7 +273,6 @@ void HandleKeyPresses()
         }
         else if (GetAsyncKeyState('G') & 1) {
             if (localplayer != 0) {  // Call the function only if localplayer value is set
-                g_modBase = (char*)GetModuleHandle(NULL);  // Update g_modBase value
                 if (eGogglesStatus == 0) {
                     eGogglesStatus = eGogglesOnFace;
                     setGoggleLocation(localplayer, eGogglesOnFace);
@@ -326,7 +293,6 @@ void HandleKeyPresses()
                 wasQPressed = true;  // mark 'Q' as pressed
 
                 if (localplayer != 0) {  // Call the function only if localplayer value is set
-                    g_modBase = (char*)GetModuleHandle(NULL);  // Update g_modBase value
                     if (!holsterStatus) {
                         readyInventoryItem(localplayer, eInventoryNothing, true);
                         // setGoggleLocation(localplayer, eGogglesOnHead);

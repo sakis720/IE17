@@ -53,7 +53,7 @@ void GetPlayerPosition() {
 void GetPlayerPackValue()
 {
 	if (localplayer != 0) {
-        float packValue = *(reinterpret_cast<float*>(localplayer + 0x24E28)); // 0x1C0 offset for pack value
+        float packValue = *(reinterpret_cast<float*>(localplayer + 0x24E28)); 
 		std::cout << "Pack value: " << packValue << std::endl;
 	}
 	else {
