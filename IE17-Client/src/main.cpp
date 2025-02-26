@@ -217,10 +217,7 @@ void HandleKeyPresses()
             enableInventoryItem(localplayer, eInventoryRailgun, true);
             enableInventoryItem(localplayer, eInventoryShotgun, true);
 
-            unsigned __int64 player = localplayer;
-
-            startFakePackOverheat(&player);
-
+            GetPlayerPackValue();
             //const char* video = "logo";
             //queueVideo(&video);
             //bool state = true;

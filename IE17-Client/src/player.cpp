@@ -50,6 +50,17 @@ void GetPlayerPosition() {
     }
 }
 
+void GetPlayerPackValue()
+{
+	if (localplayer != 0) {
+        float packValue = *(reinterpret_cast<float*>(localplayer + 0x24E28)); // 0x1C0 offset for pack value
+		std::cout << "Pack value: " << packValue << std::endl;
+	}
+	else {
+		std::cout << "Error: Failed to get player pack value or localplayer is null." << std::endl;
+	}
+
+}
 
 void MonitorLevel() {
     std::string lastLevel = ""; // to track the last detected level
