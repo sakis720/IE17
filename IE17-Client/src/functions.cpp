@@ -6,8 +6,14 @@
 #include "player.h"
 #include <iostream>
 #include <thread>
+#include <unordered_set>
+#include <chrono>
+#include <vector>
 
 
+typedef unsigned __int64(__cdecl* SINGLETON_newActor)(const char* className, Vector position);
+
+std::unordered_set<unsigned __int64> activeGhosts;
 
 void TextDisplayCountdown(const char* message, int seconds)
 {
@@ -40,17 +46,6 @@ void AboutMod()
     const char* setMsg = m_about ? info::about : info::aboutbuild;
 
     DisplayText(TEXT_HelpMessage, setMsg, 10.0f);
-}
-
-void SpawnActor()
-{
-    b_spawnactor = !b_spawnactor;
-
-    GetPlayerPosition();
-
-    DisplayText(TEXT_HelpMessage, "Spawned Actor: Ghostbuster", 1.5f);
-    CreateActor("CGhostbuster", playerPos);
-
 }
 
 void TestLegacyText()
@@ -118,7 +113,7 @@ void HandleShopChoice(int choice, Vector pos) {
     case 1:
         if (playerCash >= 250) { // if player money over 100
             playerCash -= 250; //players cash - 100
-            CreateActor("CGhostbuster", pos); // spawn actor
+            CreateNewActor("CGhostbuster", pos); // spawn actor
             DisplayText(TEXT_Top, "Help is here!", 3.0f);
             Sleep(3000);
         }
@@ -190,6 +185,93 @@ void slimeGB(unsigned __int64 actor)
     slimeMe(actor, true, 20.0f);
 }
 
+void gbLoaded()
+{
+	if (localplayer != 0)
+	{
+		std::cout << "Player             LOADED\n";
+	}
+	else
+	{
+		std::cout << "Player             NOT LOADED\n";
+	}
+
+    if (egon != 0)
+    {
+        std::cout << "Egon               LOADED\n";
+    }
+    else
+    {
+        std::cout << "Egon               NOT LOADED\n";
+    }
+
+    if (venkman != 0)
+    {
+        std::cout << "Venkman            LOADED\n";
+    }
+	else
+	{
+		std::cout << "Venkman            NOT LOADED\n";
+	}
+
+    if (winston != 0)
+    {
+        std::cout << "Winston            LOADED\n";
+    }
+    else
+	{
+		std::cout << "Winston            NOT LOADED\n";
+	}
+
+    if (ray != 0)
+    {
+        std::cout << "Ray                LOADED\n";
+    }
+    else
+    {
+        std::cout << "Ray                NOT LOADED\n";
+    }
+}
+
+unsigned __int64 CreateNewActor(const char* className, Vector wPos)
+{
+    bool debug = false;
+
+    unsigned __int64 addr = Singleton_newActor(className, wPos);
+
+    if (debug)
+    {
+        std::cout << "Actor " << className << " created at address: 0x" << std::hex << addr << std::dec << std::endl;
+    }
+
+    // return the address
+    return addr;
+}
+
+bool AreAllGhostsDefeated()
+{
+    for (auto it = activeGhosts.begin(); it != activeGhosts.end();)
+    {
+        bool debug = false;
+        bool dead = isDead(*it);
+
+        if (debug)
+        {
+            std::cout << "Checking ghost at address: 0x" << std::hex << *it << std::dec << " | Is dead: " << dead << std::endl;
+        }
+
+        if (dead)
+        {
+            it = activeGhosts.erase(it); // Remove defeated ghosts from the set
+        }
+        else
+        {
+            ++it;
+        }
+    }
+    return activeGhosts.empty(); // Return true if no ghosts are left
+}
+
 void RunMod()
 {
     /*
@@ -199,122 +281,38 @@ void RunMod()
     Note that this prototype is very w.i.p., and the coordinates that are displayed below(GhostSpawner1, GhostSpawner2, GhostSpawner3)
 
     TODO:
-    *Track the ghost that have been spawned, isDead function seems to be the way to go for this only need to find the ghosts adress and not muanually set it.
     *Make a clear state function that clears everything(Ghostbusters, Ghosts, Objects etc)
     */
 
     const std::string requiredLevelTimesSquare2 = "timessquare2.lvl"; // Target level name
     const std::string requiredLevelCemetery2 = "cemetery2.lvl"; // Target level name
 
-    std::string currentLevel = GetCurLevel(); //get current level
+    std::string currentLevel = GetCurLevel(); // Get current level
 
     int wave = 1;
     int maxWaves = 10;
-    int baseGhostsPerWave = 1;  // initial ghost count per wave
+    int baseGhostsPerWave = 1;  // Initial ghost count per wave
+
+    bool debugstrings = false;
 
     bool state = false;
 
     setProtonBeamMaxLength(400.0f);
-
     setAllowDamageTally(&state);
 
-    //const char* ghostTypes[] = { "CSlimer", "CBiped" }; //ghost type CSlime and CBiped
-    //int ghostTypeCount = sizeof(ghostTypes) / sizeof(ghostTypes[0]);
-
-    //check if the current level is the same as the required level timessquare2.lvl
-    if (currentLevel == requiredLevelTimesSquare2) {
-        // std::cout << "DEBUG: Level Times Sq 2" << std::endl;
-
-        Vector GhostSpawner1{ 703.5f, 95.67f, -816.0f };
-        Vector GhostSpawner2{ 719.5f, 95.54f, -907.5f };
-        Vector GhostSpawner3{ 724.0f, 95.5f, -823.5f };
-
-        Vector GhostSpawnerOrientation{ 90 };
-
-        const char* effectname = "chief_spawn.tfb";
-
-        fadein();
-        CacheEffect(&effectname); //cache effect because if not the game will pop up a error
-
-        while (wave <= maxWaves)
-        {
-
-
-            int ghostsToSpawn = baseGhostsPerWave + (wave - 1) * 1;  // increase ghost count with waves
-            float spawnDelay = 1.0f;
-
-            TextDisplayCountdown(("Wave " + std::to_string(wave) + " starting in: ").c_str(), 5);
-
-            DisplayText(TEXT_Top, ("Wave " + std::to_string(wave) + " begins!").c_str(), 5.0f);
-
-            //const char* selectedGhostType = ghostTypes[(wave - 1) / 2 % ghostTypeCount]; //select ghost type on based wave every 2 waves pick one
-
-            //if ghost type CBiped increase the ghost spawn by 6
-            //if (strcmp(selectedGhostType, "CBiped") == 0)
-            //{
-            //    ghostsToSpawn += 6;
-            //}
-
-            for (int i = 0; i < ghostsToSpawn; ++i)
-            {
-                // randomize spawn location (pick one of the spawners)
-                Vector selectedSpawner;
-                switch (rand() % 3) {
-                case 0: selectedSpawner = GhostSpawner1; break;
-                case 1: selectedSpawner = GhostSpawner2; break;
-                case 2: selectedSpawner = GhostSpawner3; break;
-                default: selectedSpawner = GhostSpawner1; // Fallback in case something unexpected happens.
-                }
-
-
-                CreateActor("CSlimer", selectedSpawner);
-                StartEffect(effectname, selectedSpawner, GhostSpawnerOrientation);
-
-                Sleep(static_cast<DWORD>(spawnDelay * 1000));
-            }
-
-            // if wave is 3 the waveDuration goes to 50 sec, and after 4 onwards all of the waves get 40 sec more
-            DWORD waveDuration = 30000;
-            if (wave == 4 || wave > 4)
-            {
-                waveDuration += 40000;
-            }
-            else if (wave == 3)
-            {
-                waveDuration += 20000;
-            }
-
-
-            Sleep(waveDuration);
-
-            // increment wave
-            ++wave;
-
-
-            if (wave <= maxWaves)
-            {
-                DisplayText(TEXT_Top, "Prepare for the next wave!", 5.0f);
-                Sleep(5000);
-            }
-        }
-
-    }
-    else if (currentLevel == requiredLevelCemetery2) {
-        std::cout << "DEBUG: Level Cemetery 2 \n";
-
+    if (currentLevel == requiredLevelCemetery2)
+    {
         Vector GhostSpawner1{ 82.21f, 13.24f, -144.59f };
         Vector GhostSpawner2{ 97.70f, 16.30f, -235.15f };
         Vector GhostSpawner3{ 51.86f, 16.21f, -215.04f };
 
         Vector GhostbusterSpawn{ 31.57f, 8.45f, -134.15f };
-
         Vector playerSpawn{ 26.29f, 7.23f, -122.33f };
         Vector playerOrient{ 26.29f, 7.23f, -122.33f };
 
         Vector GhostSpawnerOrientation{ 90 };
 
         const char* ani = "put_on_pack";
-
         const char* effectname = "chief_spawn.tfb";
         const char* msg = "Welcome to Survival Mode";
 
@@ -322,47 +320,33 @@ void RunMod()
         warpTo(localplayer, playerSpawn, playerOrient);
         setGoggleLocation(localplayer, eGogglesOnFace);
         readyInventoryItem(localplayer, eInventoryNothing, true);
-
         setAnimation(localplayer, ani, false);
-        //setAnimation(localplayer, "amb_scratch_pke", false, false);
-
 
         toggleReviveMode(ray, false);
 
         fadein();
-        CacheEffect(&effectname); //cache effect because if not the game will pop up a error
-        std::cout << "DEBUG: Effect Cached\n";
-
+        CacheEffect(&effectname); // Cache effect to avoid errors
 
         while (wave <= maxWaves)
         {
-            //doesn't work because in the current level our companion Ray is alive so it will never say isDead until Ray is dead too.
-            bool isplayeralive = isDead(localplayer);
-            if (isplayeralive)
+            bool isplayeralive = !isDead(localplayer);
+            if (!isplayeralive)
             {
-                //DisplayText(TEXT_Top, "Player is Dead, Ending Game", 5.0f);
-                std::cout << "DEBUG: Player is Dead\n";
-                //break;
+                DisplayText(TEXT_Top, "Player is Dead, Ending Game", 5.0f);
+                break;
             }
-            else
-            {
-                std::cout << "DEBUG: Player is Alive\n";
-            }
-
 
             readyInventoryItem(localplayer, eInventoryProtonGun, true);
 
-            int ghostsToSpawn = baseGhostsPerWave + (wave - 1) * 1;  // increase ghost count with waves
+            int ghostsToSpawn = baseGhostsPerWave + (wave - 1) * 1;  // Increase ghost count with waves
             float spawnDelay = 1.0f;
 
             TextDisplayCountdown(("Wave " + std::to_string(wave) + " starting in: ").c_str(), 5);
-
             DisplayText(TEXT_Top, ("Wave " + std::to_string(wave) + " begins!").c_str(), 5.0f);
-
 
             for (int i = 0; i < ghostsToSpawn; ++i)
             {
-                // randomize spawn location (pick one of the spawners)
+                // Randomize spawn location (pick one of the spawners)
                 Vector selectedSpawner;
                 switch (rand() % 3) {
                 case 0: selectedSpawner = GhostSpawner1; break;
@@ -371,38 +355,36 @@ void RunMod()
                 default: selectedSpawner = GhostSpawner1; // Fallback in case something unexpected happens.
                 }
 
+                unsigned __int64 ghostAddress = CreateNewActor("CSlimer", selectedSpawner);
 
-                CreateActor("CSlimer", selectedSpawner);
+                // add the ghost to the tracking list
+                activeGhosts.insert(ghostAddress);
+                //std::cout << "Ghost added to tracking list. Address: 0x" << std::hex << ghostAddress << std::dec << std::endl;
+
                 StartEffect(effectname, selectedSpawner, GhostSpawnerOrientation);
 
                 Sleep(static_cast<DWORD>(spawnDelay * 1000));
             }
 
-
-            // if wave is 3 the waveDuration goes to 50 sec, and after 4 onwards all of the waves get 40 sec more
-            DWORD waveDuration = 30000;
-            if (wave == 4 || wave > 4)
+            if (debugstrings)
             {
-                waveDuration += 40000;
-            }
-            else if (wave == 3)
-            {
-                waveDuration += 20000;
+                std::cout << "Number of active ghosts: " << activeGhosts.size() << std::endl;
             }
 
-
-            Sleep(waveDuration);
+            // wait until all ghosts are defeated
+            while (!AreAllGhostsDefeated())
+            {
+                std::this_thread::sleep_for(std::chrono::milliseconds(100)); // Check every 100ms
+            }
 
             // increment wave
             ++wave;
-
 
             if (wave <= maxWaves)
             {
                 int waveCompletionBonus = wave * 50;
                 playerCash += waveCompletionBonus;
 
-                // check if the current wave is the last wave (maxWaves)
                 if (wave == maxWaves)
                 {
                     cacheSkeletalAnimationByName("amb_wave_to_crowd");
@@ -420,19 +402,15 @@ void RunMod()
                 Sleep(5000);
 
                 OpenShop(GhostbusterSpawn);
-                std::cout << "DEBUG: OpenShop must be called\n";
-
                 DisplayText(TEXT_Top, "Prepare for the next wave!", 5.0f);
                 Sleep(5000);
             }
         }
     }
-    //if not the same level
-    else {
+    else
+    {
         chainToLevel(localplayer, "cemetery2.lvl", "Underground");
         Sleep(2000);
         std::cout << "You have to call survivalmode again.\n";
     }
-
-
 }

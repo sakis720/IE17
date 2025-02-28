@@ -1,8 +1,10 @@
 #include "player.h"
 #include "main.h"
 #include "actors.h"
+#include "enums.h"
 #include <iostream>
 #include <thread>
+#include <string>
 
 unsigned __int64 localplayer = 0; // global variable
 Vector playerPos;
@@ -50,11 +52,26 @@ void GetPlayerPosition() {
     }
 }
 
+void GetPlayerHealth()
+{
+    if (localplayer !=0)
+    {
+        float healthValue = *(reinterpret_cast<float*>(localplayer + 0xB860));
+        std::cout << "Player Health: " << healthValue << std::endl;
+    }
+    else
+    {
+        std::cout << "Error: Failed to get player pack value or localplayer is null." << std::endl;
+    }
+}
+
 void GetPlayerPackValue()
 {
+
 	if (localplayer != 0) {
         float packValue = *(reinterpret_cast<float*>(localplayer + 0x24E28)); 
 		std::cout << "Pack value: " << packValue << std::endl;
+        DisplayText(TEXT_HelpMessage, ("Pack heat value: " + std::to_string(packValue)).c_str(), 2.0f);
 	}
 	else {
 		std::cout << "Error: Failed to get player pack value or localplayer is null." << std::endl;

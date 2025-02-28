@@ -6,6 +6,7 @@
 #include <iostream>
 #include <thread>
 #include <fstream>
+#include <script.h>
 
 using namespace std;
 
@@ -101,6 +102,7 @@ void (*CreateExplosion)(Vector pos, float radius, float damageStrength, float sp
 void (*SetGravity)(Vector velocity);
 void (*AddLight)(Vector pos, float radius, Vector rgb, float intensity, float duration, float rampUp, float rampDown);
 void (*CreateActor)(const char* className, Vector wPos);
+unsigned __int64 (*Singleton_newActor)(const char* className, Vector wPos);
 int (*DisplayText)(int messageId, const char* text, float duration); // look at EHudMessage
 int (*DisplayTextLegacy)(int messageId, const char* textDown, const char* textUp, char);
 
@@ -216,6 +218,9 @@ void HandleKeyPresses()
             enableInventoryItem(localplayer, eInventorySlimeGun, true);
             enableInventoryItem(localplayer, eInventoryRailgun, true);
             enableInventoryItem(localplayer, eInventoryShotgun, true);
+
+            //script();
+
             Sleep(500);
         }
         else if (GetAsyncKeyState('8') & 1) {
@@ -229,7 +234,9 @@ void HandleKeyPresses()
 			Sleep(500);  // Prevent multiple triggers within a short time
         }
         else if (GetAsyncKeyState('9') & 1) {
-            SpawnActor();
+            GetPlayerPosition();
+
+            CreateNewActor("CGhostbuster", playerPos);
 
             std::cout << "Ghostbuster Spawned: ("
                 << playerPos.x << ", "
@@ -392,7 +399,8 @@ void HandleInput()
         }
         else if (input == "spawnactor")
         {
-            SpawnActor();
+            GetPlayerPosition();
+            CreateNewActor("CGhostbuster", playerPos);
             cout << "Spawn Actor toggled.\n";
         }
         else if (input == "survivalmode")
@@ -658,6 +666,7 @@ DWORD WINAPI DLLAttach(HMODULE hModule)
     cout << "Version: " STR(IE17ver) "\n";
 
     g_modBase = (char*)GetModuleHandle(NULL);
+    Singleton_newActor = (unsigned __int64(*)(const char*, Vector))(g_modBase + 0x2C0D50); //yes i know its a duplicate
     die = (void(*)(unsigned __int64))(g_modBase + 0x3B27B0); //CBreaker
     blockHeroMovement = (void(*)(unsigned __int64*, bool*))(g_modBase + 0xED660);
     toggleHuntMode = (void(*)(unsigned __int64*, bool*))(g_modBase + 0xED480);

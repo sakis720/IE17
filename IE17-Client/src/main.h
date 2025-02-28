@@ -101,6 +101,7 @@ extern void (*CreateExplosion)(Vector pos, float radius, float damageStrength, f
 extern void (*SetGravity)(Vector velocity);
 extern void (*AddLight)(Vector pos, float radius, Vector rgb, float intensity, float duration, float rampUp, float rampDown);
 extern void (*CreateActor)(const char* className, Vector wPos);
+extern unsigned __int64 (*Singleton_newActor)(const char* className, Vector wPos);
 extern int (*DisplayText)(int messageId, const char* text, float duration);
 extern int (*DisplayTextLegacy)(int messageId, const char* textDown, const char* textUp, char);
 
