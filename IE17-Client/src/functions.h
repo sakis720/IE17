@@ -7,8 +7,6 @@
 
 typedef unsigned __int64(__cdecl* SINGLETON_newActor)(const char* className, Vector position);
 
-std::unordered_set<unsigned __int64> activeGhosts;
-
 void AboutMod();
 void ResLevel();
 void TextDisplayCountdown(const char* message, int seconds);

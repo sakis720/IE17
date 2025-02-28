@@ -28,6 +28,9 @@ extern bool wasQPressed;
 extern int playerCash;
 extern Vector playerPos;
 
+extern void (*removeSlimeDecals)(unsigned __int64 buster_object);
+extern void (*dbNarrativeStop)();
+extern float (*dbNarrative)(unsigned __int64 dbEntryTag);
 extern void (*die)(unsigned __int64 object);
 extern void (*blockHeroMovement)(unsigned __int64* buster_object, bool* state);
 extern void (*toggleHuntMode)(unsigned __int64* object, bool* state);

@@ -29,6 +29,9 @@ char* g_modBase = nullptr;
 
 int playerCash = 0;
 
+void (*removeSlimeDecals)(unsigned __int64 buster_object);
+void (*dbNarrativeStop)();
+float (*dbNarrative)(unsigned __int64 dbEntryTag);
 void (*die)(unsigned __int64 object);
 void (*blockHeroMovement)(unsigned __int64* buster_object, bool* state);
 void (*toggleHuntMode)(unsigned __int64* object, bool* state);
@@ -219,7 +222,6 @@ void HandleKeyPresses()
             enableInventoryItem(localplayer, eInventoryRailgun, true);
             enableInventoryItem(localplayer, eInventoryShotgun, true);
 
-            //script();
 
             Sleep(500);
         }
@@ -666,6 +668,9 @@ DWORD WINAPI DLLAttach(HMODULE hModule)
     cout << "Version: " STR(IE17ver) "\n";
 
     g_modBase = (char*)GetModuleHandle(NULL);
+    removeSlimeDecals = (void(*)(unsigned __int64))(g_modBase + 0x30D620);
+    dbNarrativeStop = (void(*)())(g_modBase + 0x1F8410);
+    dbNarrative = (float(*)(unsigned __int64))(g_modBase + 0x1ECEB0);
     Singleton_newActor = (unsigned __int64(*)(const char*, Vector))(g_modBase + 0x2C0D50); //yes i know its a duplicate
     die = (void(*)(unsigned __int64))(g_modBase + 0x3B27B0); //CBreaker
     blockHeroMovement = (void(*)(unsigned __int64*, bool*))(g_modBase + 0xED660);

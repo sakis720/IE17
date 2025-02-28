@@ -54,7 +54,7 @@ void getCMainView(char* Buffer, __int64 adr1) {
 
 void getEmmit(char* Buffer, __int64 adr1) {
 
-    if (strstr(Buffer, "CAniModel ani_npcRescue0") != nullptr) {
+    if (strstr(Buffer, "CDialogDatabaseEntry Diag_Ray_HT1_PU_029_b") != nullptr) {
         emmit = static_cast<unsigned __int64>(adr1);
     }
 
