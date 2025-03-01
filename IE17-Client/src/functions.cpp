@@ -77,11 +77,11 @@ void OpenShop(Vector GhostbusterSpawn) {
     DisplayText(TEXT_Top, "Welcome to the Shop!", 5.0f);
     Sleep(5000);
     DisplayText(TEXT_HelpMessage, "1. Call Help - $250", 5.0f);
-    Sleep(5000);
+    Sleep(2000);
     DisplayText(TEXT_HelpMessage, "2. Skip Shop - Proceed to Next Wave", 5.0f);
-    Sleep(5000);
+    Sleep(3000);
 
-    const ULONGLONG shopDuration = 20000; // Use ULONGLONG for 64-bit values.
+    const ULONGLONG shopDuration = 10000; // Use ULONGLONG for 64-bit values.
     ULONGLONG startTime = GetTickCount64(); // Use GetTickCount64 instead of GetTickCount.
     int choice = -1;
 
@@ -284,7 +284,6 @@ void RunMod()
     *Make a clear state function that clears everything(Ghostbusters, Ghosts, Objects etc)
     */
 
-    const std::string requiredLevelTimesSquare2 = "timessquare2.lvl"; // Target level name
     const std::string requiredLevelCemetery2 = "cemetery2.lvl"; // Target level name
 
     std::string currentLevel = GetCurLevel(); // Get current level
@@ -385,25 +384,31 @@ void RunMod()
                 int waveCompletionBonus = wave * 50;
                 playerCash += waveCompletionBonus;
 
-                if (wave == maxWaves)
-                {
-                    cacheSkeletalAnimationByName("amb_wave_to_crowd");
-                    setAnimation(localplayer, "amb_wave_to_crowd", false);
-                    DisplayText(TEXT_Top, "Survival Mode Complete! Well done.", 10.0f);
-                    readyInventoryItem(localplayer, eInventoryNothing, true);
-                    Sleep(10000);
-                    readyInventoryItem(localplayer, eInventoryProtonGun, true);
-                }
-                else
-                {
-                    DisplayText(TEXT_Top, ("Wave " + std::to_string(wave - 1) + " complete! Bonus: $" + std::to_string(waveCompletionBonus) + " | Total Cash: $" + std::to_string(playerCash)).c_str(), 5.0f);
-                }
+                DisplayText(TEXT_Top, ("Wave " + std::to_string(wave - 1) + " complete! Bonus: $" + std::to_string(waveCompletionBonus) + " | Total Cash: $" + std::to_string(playerCash)).c_str(), 5.0f);
 
                 Sleep(5000);
 
-                OpenShop(GhostbusterSpawn);
-                DisplayText(TEXT_Top, "Prepare for the next wave!", 5.0f);
-                Sleep(5000);
+                    if (wave == maxWaves)
+                    {
+                        // Perform actions for completing the final wave
+                        readyInventoryItem(localplayer, eInventoryNothing, true); // Clear inventory
+
+                        cacheSkeletalAnimationByName("amb_wave_to_crowd"); // Cache animation
+                        setAnimation(localplayer, "amb_wave_to_crowd", false); // Play animation
+
+                        DisplayText(TEXT_Top, "Survival Mode Complete! Well done.", 10.0f); // Display completion message
+
+                        Sleep(10000); // Wait for 10 seconds
+
+                        readyInventoryItem(localplayer, eInventoryProtonGun, true); // Equip Proton Gun
+                    }
+                    else
+                    {
+                        // Open the shop and prepare for the next wave (for non-final waves)
+                        OpenShop(GhostbusterSpawn);
+                        DisplayText(TEXT_Top, "Prepare for the next wave!", 5.0f);
+                        Sleep(5000);
+                    }
             }
         }
     }

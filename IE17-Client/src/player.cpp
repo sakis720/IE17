@@ -9,7 +9,11 @@
 unsigned __int64 localplayer = 0; // global variable
 Vector playerPos;
 
-void getPlayer(char* Buffer, __int64 adr1) {
+void getPlayer(char* Buffer, __int64 adr1)
+{
+    if (!Buffer) {
+        return;
+    }
 
 	std::string level = GetCurLevel(); //adding this here because MonitorLevel() is freaking out
 

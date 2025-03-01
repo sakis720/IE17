@@ -6,6 +6,7 @@
 #include <iostream>
 #include <thread>
 #include <fstream>
+#include <chrono>
 #include <script.h>
 
 using namespace std;
@@ -31,7 +32,7 @@ int playerCash = 0;
 
 void (*removeSlimeDecals)(unsigned __int64 buster_object);
 void (*dbNarrativeStop)();
-float (*dbNarrative)(unsigned __int64 dbEntryTag);
+float (*dbNarrative)(unsigned __int64 database_entry);
 void (*die)(unsigned __int64 object);
 void (*blockHeroMovement)(unsigned __int64* buster_object, bool* state);
 void (*toggleHuntMode)(unsigned __int64* object, bool* state);
@@ -133,23 +134,25 @@ _resgravity resetgravity;
 typedef void (*OriginalFunctionType)(char* Buffer, __int64 adr1, __int64 adr2, __int64 adr3);
 OriginalFunctionType originalFunction = nullptr;
 
-typedef void(__fastcall* danteLogic_t)(__int64 a1, char* a2, __int64 a3);
-danteLogic_t originalDanteLogic = nullptr;
-
-
 void __stdcall HookedFunction(char* Buffer, __int64 adr1, __int64 adr2, __int64 adr3) {
 
-    bool debugMode = false;  // change this to true if you want to enable logging
+    bool debugMode = true;  // change this to true if you want to enable logging
 
     if (debugMode) {
 
         std::ofstream logFile("dante_reg.txt", std::ios_base::app);
 
-        std::cout << "Buffer (Type of): " << (Buffer ? Buffer : "NULL") << std::endl;
-        std::cout << "Local Object Address 1: 0x" << adr1 << std::hex << std::endl;
-        std::cout << "Local Object Address 2: 0x" << adr2 << std::hex << std::endl;
-        std::cout << "Local Object Address 3: 0x" << adr3 << std::hex << std::endl;
+        auto now = std::chrono::system_clock::now();
+        auto now_time_t = std::chrono::system_clock::to_time_t(now);
+        std::tm tm_buffer;
+        localtime_s(&tm_buffer, &now_time_t); // Use localtime_s
 
+        //std::cout << "Buffer (Type of): " << (Buffer ? Buffer : "NULL") << std::endl;
+        //std::cout << "Local Object Address 1: 0x" << adr1 << std::hex << std::endl;
+        //std::cout << "Local Object Address 2: 0x" << adr2 << std::hex << std::endl;
+        //std::cout << "Local Object Address 3: 0x" << adr3 << std::hex << std::endl;
+
+        logFile << "[" << std::put_time(&tm_buffer, "%Y-%m-%d %H:%M:%S") << "] ";
         logFile << "Buffer (Type of): " << (Buffer ? Buffer : "NULL") << std::endl;
         logFile << "Local Object Address 1: 0x" << std::hex << adr1 << std::endl;
         logFile << "Local Object Address 2: 0x" << std::hex << adr2 << std::endl;
@@ -158,31 +161,28 @@ void __stdcall HookedFunction(char* Buffer, __int64 adr1, __int64 adr2, __int64 
         logFile.close();
     }
 
+    if (!Buffer) {
+        if (debugMode) {
+            std::cout << "Buffer is null!" << std::endl;
+        }
+        return;
+    }
+
     // call the original function if needed
     if (originalFunction) {
         originalFunction(Buffer, adr1, adr2, adr3);
+    }
+    else {
+        if (debugMode) {
+            std::cout << "originalFunction is null!" << std::endl;
+        }
     }
 
     getPlayer(Buffer, adr1);
 	getGhostbusters(Buffer, adr1);
 	getEcto(Buffer, adr1);
-	getCMainView(Buffer, adr1);
-	getEmmit(Buffer, adr1);
-}
-
-void __fastcall hookDanteLogic(__int64 a1, char* a2, __int64 a3) {
-
-    bool debuginfo = false;
-
-    if (debuginfo)
-    {
-        std::cout << "Hooked danteLogic called!" << std::endl;
-        std::cout << "a1: " << a1 << ", a2: " << (a2 ? a2 : "null") << ", a3: " << a3 << std::endl;
-
-        originalDanteLogic(a1, a2, a3);
-
-        std::cout << "Finished danteLogic." << std::endl;
-    }
+	//getCMainView(Buffer, adr1);
+	//getEmmit(Buffer, adr1);
 }
 
 // Continuously check for key presses in a separate thread
@@ -748,23 +748,12 @@ DWORD WINAPI DLLAttach(HMODULE hModule)
     DisplayText = (int(*)(int, const char*, float))(g_modBase + 0x2494A0); //hudtype msg duration
     DisplayTextLegacy = (int(*)(int, const char*, const char*, char))(g_modBase + 0x2A6C90); //int hudtype, const char* msgtittle, const char* msg, int ?(duration??)
 	void* GlobalRegisterFunc1 = (void*)((uintptr_t)GetModuleHandle(NULL) + 0x2CED00); //Thanks Malte0641 for the address
-    void* Register1 = reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(GetModuleHandle(NULL)) + 0x2CF280); //Thanks Malte0641 for the address
 
     // create the hook
     if (MH_CreateHook(GlobalRegisterFunc1, &HookedFunction, reinterpret_cast<LPVOID*>(&originalFunction)) != MH_OK) {
         MessageBoxA(NULL, "Failed to create hook.", "Error", MB_OK | MB_ICONERROR);
         MH_Uninitialize();
         return 1;
-    }
-
-    if (MH_CreateHook(Register1, &hookDanteLogic, reinterpret_cast<void**>(&originalDanteLogic)) != MH_OK) {
-        std::cerr << "Failed to create hook!" << std::endl;
-        return -1;
-    }
-
-    if (MH_EnableHook(Register1) != MH_OK) {
-        std::cerr << "Failed to enable hook!" << std::endl;
-        return -1;
     }
 
 
@@ -805,7 +794,6 @@ DWORD WINAPI DLLAttach(HMODULE hModule)
 
     MH_Uninitialize();
     MH_DisableHook(GlobalRegisterFunc1);
-    MH_DisableHook(Register1);
     fclose((FILE*)stdin);
     fclose((FILE*)stdout);
     FreeConsole();
