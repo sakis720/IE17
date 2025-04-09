@@ -3,13 +3,18 @@
 #include "enums.h"
 #include "actors.h"
 #include "player.h"
+#include "lua_functions.h"
 #include <iostream>
 #include <thread>
 #include <fstream>
 #include <chrono>
 #include <script.h>
+#include <filesystem> 
 
-using namespace std;
+namespace fs = std::filesystem;
+
+// create new state global
+lua_State* L = luaL_newstate();
 
 bool holsterStatus = false;
 int eGogglesStatus = 0;
@@ -25,11 +30,16 @@ bool g_fRestartLevel = false;
 
 // Flag to keep the main thread running
 bool runProgram = true;
+
+std::atomic<bool> isLuaRunning(true);
  
 char* g_modBase = nullptr;
 
 int playerCash = 0;
 
+unsigned __int64 (*Singleton_getRoom)(unsigned __int64 object);
+unsigned __int64 (*setMusic)(unsigned __int64 database_entry);
+unsigned __int64 (*hideHack)(unsigned __int64* buster_object);
 void (*removeSlimeDecals)(unsigned __int64 buster_object);
 void (*dbNarrativeStop)();
 float (*dbNarrative)(unsigned __int64 database_entry);
@@ -71,7 +81,7 @@ void (*cueStreamingCinemat)(const char* cinematName, float intialCursorPos);
 void (*playStreamingCinemat)(const char* cinematName);
 void (*GTFO)(const char* msg, int flag);
 void (*cacheSkeletalAnimationByName)(const char* animationName);
-void (*enable)(unsigned __int64, bool*, bool); //broken
+void (*enable)(unsigned __int64, unsigned __int64*, bool); //broken
 void (*setProtonBeamMaxLength)(float length);
 void (*setAnimation)(unsigned __int64 object, const char* animationName, bool useSkelFileExit);
 void (*detonate)(unsigned __int64 car_object, float timer);
@@ -140,12 +150,12 @@ void __stdcall HookedFunction(char* Buffer, __int64 adr1, __int64 adr2, __int64 
 
     if (debugMode) {
 
-        std::ofstream logFile("dante_reg.txt", std::ios_base::app);
-
         auto now = std::chrono::system_clock::now();
         auto now_time_t = std::chrono::system_clock::to_time_t(now);
         std::tm tm_buffer;
         localtime_s(&tm_buffer, &now_time_t); // Use localtime_s
+
+        std::ofstream logFile("dante_reg.txt", std::ios_base::app);
 
         //std::cout << "Buffer (Type of): " << (Buffer ? Buffer : "NULL") << std::endl;
         //std::cout << "Local Object Address 1: 0x" << adr1 << std::hex << std::endl;
@@ -181,8 +191,62 @@ void __stdcall HookedFunction(char* Buffer, __int64 adr1, __int64 adr2, __int64 
     getPlayer(Buffer, adr1);
 	getGhostbusters(Buffer, adr1);
 	getEcto(Buffer, adr1);
-	//getCMainView(Buffer, adr1);
+	getCMainView(Buffer, adr1);
 	//getEmmit(Buffer, adr1);
+}
+
+void RunLuaScript(lua_State* L, const std::string& scriptPath) {
+    if (luaL_dofile(L, scriptPath.c_str()) != LUA_OK) {
+        std::cout << "Error loading Lua script: " << lua_tostring(L, -1) << std::endl;
+    }
+}
+
+void LuaThread()
+{
+    while (isLuaRunning) {
+        lua_getglobal(L, "update");
+        if (lua_isfunction(L, -1)) {
+            if (lua_pcall(L, 0, 0, 0) != LUA_OK) {
+                std::cerr << "Error calling Lua update: " << lua_tostring(L, -1) << std::endl;
+                lua_pop(L, 1);
+            }
+        }
+        else {
+            std::cerr << "No 'update' function found in Lua." << std::endl;
+            lua_pop(L, 1);
+        }
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(16));  // ~60 FPS
+    }
+}
+
+void LoadLuaScripts()
+{
+
+	// re-register, might need to do it diffrently
+    lua_register(L, "DisplayText", Lua_DisplayText);
+    lua_register(L, "CreateNewActor", Lua_CreateNewActor);
+    lua_register(L, "GetPlayerPosition", Lua_GetPlayerPosition);
+
+    lua_register(L, "isKeyDown", Lua_isKeyDown);
+
+
+    //reload script from folder
+    std::string modDir = "IE17_Mods";
+    bool foundLuaFiles = false;
+
+    for (const auto& entry : fs::directory_iterator(modDir)) {
+        if (entry.is_regular_file() && entry.path().extension() == ".lua") {
+            foundLuaFiles = true;
+            std::string scriptPath = entry.path().string();
+            std::cout << "Loading LUA: " << scriptPath << std::endl;
+            RunLuaScript(L, scriptPath);
+        }
+    }
+
+    if (!foundLuaFiles) {
+        std::cout << "No Lua files found in the IE17_Mods directory." << std::endl;
+    }
 }
 
 // Continuously check for key presses in a separate thread
@@ -260,10 +324,10 @@ void HandleKeyPresses()
                 // call IsTrapDeployed to check if a trap is deployed
                 bool trapDeployed = isTrapDeployed(localplayer);
                 if (trapDeployed) {
-                    cout << "Trap is deployed!\n";
+                    std::cout << "Trap is deployed!\n";
                 }
                 else {
-                    cout << "Trap isn't deployed.\n";
+                    std::cout << "Trap isn't deployed.\n";
                 }
                 Sleep(500);  // Prevent multiple triggers within a short time
             }
@@ -324,64 +388,69 @@ void HandleKeyPresses()
 //need to put this somewhere else takes too much of a space
 void HandleInput()
 {
-    string input;
+    std::string input;
     while (runProgram)
     {
-        cout << "> "; 
-        if (!getline(cin, input))
+        std::cout << "> ";
+        if (!getline(std::cin, input))
         {
             break;
         }
 
         size_t first = input.find_first_not_of(" \t");
-        if (first == string::npos)
+        if (first == std::string::npos)
             continue; // Empty input
         input = input.substr(first, input.find_last_not_of(" \t") - first + 1);
 
         if (input == "slew")
         {
             Slew();
-            cout << "Slew (Noclip) toggled.\n";
+            std::cout << "Slew (Noclip) toggled.\n";
         }
         else if (input == "quitlevel")
         {
             quitLevel();
-            cout << "Level Quitted.\n";
+            std::cout << "Level Quitted.\n";
         }
         else if (input == "animdebug")
         {
             animDebug();
-            cout << "Animation debug overlay function was called.\n";
+            std::cout << "Animation debug overlay function was called.\n";
         }
         else if (input == "cinematdebug")
         {
             cinematDebug();
-            cout << "Cinemat debug overlay function was called.\n";
+            std::cout << "Cinemat debug overlay function was called.\n";
         }
         else if (input == "channeldebug")
         {
             chanDebug();
-            cout << "Channel debug overlay function was called.\n";
+            std::cout << "Channel debug overlay function was called.\n";
         }
         else if (input == "cancelwalk")
         {
             CancelWalkAll();
-            cout << "Walk is disabled on all AI??????.\n";
+            std::cout << "Walk is disabled on all AI??????.\n";
+        }
+        else if (input == "reloadlua")
+        {
+            LoadLuaScripts();
+            std::cout << "Lua scripts reloaded.\n";
         }
         else if (input == "ghostviewer")
         {
             GhostViewer();
-            cout << "Ghost Viewer toggled.\n";
+            std::cout << "Ghost Viewer toggled.\n";
         }
         else if (input == "resetgravity")
         {
             resetgravity();
-            cout << "Gravity Reseted.\n";
+            std::cout << "Gravity Reseted.\n";
         }
         else if (input == "about")
         {
             AboutMod();
-            cout << "About information toggled.\n";
+            std::cout << "About information toggled.\n";
         }
         /*
         else if (input == "getlevel")
@@ -392,123 +461,154 @@ void HandleInput()
         else if (input == "restart")
         {
             ResLevel();
-            cout << "Restarting level...\n";
+            std::cout << "Restarting level...\n";
         }
         else if (input == "legacytext")
         {
             TestLegacyText();
-            cout << "Legacy text display toggled.\n";
+            std::cout << "Legacy text display toggled.\n";
         }
         else if (input == "spawnactor")
         {
             GetPlayerPosition();
             CreateNewActor("CGhostbuster", playerPos);
-            cout << "Spawn Actor toggled.\n";
+            std::cout << "Spawn Actor toggled.\n";
         }
         else if (input == "survivalmode")
         {
             RunMod();
             //cout << "Survival Mode(Prototype).\n";
         }
+        else if (input == "loadlevel")
+        {
+            std::cout << "Enter the level name: ";
+
+            std::string levelName;
+            std::getline(std::cin, levelName);
+
+            GetPlayerPosition();
+
+            loadLevel(levelName.c_str());
+        }
+        else if (input == "spawnactoroftype")
+        {
+			std::cout << "Enter the class to create: ";
+
+			std::string className;
+			std::getline(std::cin, className);
+
+            GetPlayerPosition();
+
+			CreateNewActor(className.c_str(), playerPos);
+        }
+        else if (input == "playCinemat")
+        {
+            std::cout << "Enter the name of the cinematic: ";
+
+            std::string cinemat;
+            std::getline(std::cin, cinemat);
+
+			playCinemat(cinemat.c_str());
+        }
         else if (input == "gbloaded")
         {
 			if (localplayer != 0)
 			{
-				cout << "Player                  LOADED.\n";
+                std::cout << "Player                  LOADED.\n";
 			}
 			else
 			{
-				cout << "Player                  NOT loaded.\n";
+                std::cout << "Player                  NOT loaded.\n";
 			}
 
             if (egon != 0)
             {
-                cout << "Egon                    LOADED.\n";
+                std::cout << "Egon                    LOADED.\n";
             }
             else
             {
-                cout << "Egon                    NOT loaded.\n";
+                std::cout << "Egon                    NOT loaded.\n";
             }
 
             if (winston != 0)
             {
-                cout << "Winston                 LOADED.\n";
+                std::cout << "Winston                 LOADED.\n";
             }
             else
             {
-                cout << "Winston                 NOT loaded.\n";
+                std::cout << "Winston                 NOT loaded.\n";
             }
 
             if (venkman != 0)
             {
-                cout << "Venkman                 LOADED.\n";
+                std::cout << "Venkman                 LOADED.\n";
             }
             else
             {
-                cout << "Venkman                 NOT loaded.\n";
+                std::cout << "Venkman                 NOT loaded.\n";
             }
 
             if (ray != 0)
             {
-                cout << "Ray                     LOADED.\n";
+                std::cout << "Ray                     LOADED.\n";
             }
             else
             {
-                cout << "Ray                     NOT LOADED.\n";
+                std::cout << "Ray                     NOT LOADED.\n";
             }
         }
         else if (input == "explosion")
         {
-            cout << "Enter explosion parameters (x y z radius strength speed): ";
+            std::cout << "Enter explosion parameters (x y z radius strength speed): ";
             float x, y, z, radius, strength, speed;
-            if (cin >> x >> y >> z >> radius >> strength >> speed)
+            if (std::cin >> x >> y >> z >> radius >> strength >> speed)
             {
                 Vector position{ x, y, z };
                 CreateExplosion(position, radius, strength, speed);
-                cout << "Explosion created at (" << x << ", " << y << ", " << z 
+                std::cout << "Explosion created at (" << x << ", " << y << ", " << z 
                      << ") with radius " << radius 
                      << ", strength " << strength 
                      << ", and speed " << speed << ".\n";
             }
             else
             {
-                cin.clear(); // Clear the error state
-                cin.ignore();
-                cout << "Invalid parameters. Please enter numeric values.\n";
+                std::cin.clear(); // Clear the error state
+                std::cin.ignore();
+                std::cout << "Invalid parameters. Please enter numeric values.\n";
             }
         }
         else if (input == "createlight")
         {
-            cout << "Enter position (x y z), radius, RGB color (r g b), intensity, duration, ramp-up, and ramp-down: ";
-            float px, py, pz, radius, r, g, b, intensity, duration, rampUp, rampDown;
-            cin >> px >> py >> pz >> radius >> r >> g >> b >> intensity >> duration >> rampUp >> rampDown;
+            std::cout << "Enter radius, RGB color (r g b), intensity, duration, ramp-up, and ramp-down: ";
+            float radius, r, g, b, intensity, duration, rampUp, rampDown;
+            std::cin >> radius >> r >> g >> b >> intensity >> duration >> rampUp >> rampDown;
 
-            if (!cin.fail())
+            if (!std::cin.fail())
             {
-                Vector position{ px, py, pz };
+                GetPlayerPosition();
                 Vector color{ r, g, b };
 
-                AddLight(position, radius, color, intensity, duration, rampUp, rampDown);
-                cout << "Light added at (" << px << ", " << py << ", " << pz << ") with radius " << radius
+                AddLight(playerPos, radius, color, intensity, duration, rampUp, rampDown);
+                std::cout << "Light added with radius " << radius
                     << ", color (" << r << ", " << g << ", " << b << "), intensity " << intensity
                     << ", duration " << duration << ", ramp-up " << rampUp << ", and ramp-down " << rampDown << ".\n";
             }
             else
             {
-                cin.clear();
-                cin.ignore();
-                cout << "Invalid input. Please enter valid numeric values for the light parameters.\n";
+                std::cin.clear();
+                std::cin.ignore();
+                std::cout << "Invalid input. Please enter valid numeric values for the light parameters.\n";
             }
         }
         else if (input == "createffect")
         {
-            cout << "Enter effect file name, position (x y z), and orientation (x y z): ";
-            string effectFilename;
+            std::cout << "Enter effect file name, position (x y z), and orientation (x y z): ";
+            std::string effectFilename;
             float px, py, pz, ox, oy, oz;
 
-            cin >> effectFilename >> px >> py >> pz >> ox >> oy >> oz;
+            std::cin >> effectFilename >> px >> py >> pz >> ox >> oy >> oz;
 
-            if (!cin.fail())
+            if (!std::cin.fail())
             {
                 Vector position{ px, py, pz };
                 Vector orientation{ ox, oy, oz };
@@ -516,83 +616,87 @@ void HandleInput()
                 int result = StartEffect(effectFilename.c_str(), position, orientation);
                 if (result >= 0)
                 {
-                    cout << "Effect '" << effectFilename << "' started at (" << px << ", " << py << ", " << pz
+                    std::cout << "Effect '" << effectFilename << "' started at (" << px << ", " << py << ", " << pz
                         << ") with orientation (" << ox << ", " << oy << ", " << oz << ").\n";
                 }
                 else
                 {
-                    cout << "Failed to start effect '" << effectFilename << "' make sure you added .tfb at the end.\n";
+                    std::cout << "Failed to start effect '" << effectFilename << "' make sure you added .tfb at the end.\n";
                 }
             }
             else
             {
-                cin.clear();
-                cin.ignore();
-                cout << "Invalid input. Please enter a valid effect name, position, and orientation.\n";
+                std::cin.clear();
+                std::cin.ignore();
+                std::cout << "Invalid input. Please enter a valid effect name, position, and orientation.\n";
             }
         }
         else if (input == "gravity")
         {
-            cout << "Enter gravity parameters (x y z): ";
+            std::cout << "Enter gravity parameters (x y z): ";
             float x, y, z;
-            cin >> x >> y >> z;
+            std::cin >> x >> y >> z;
 
-            if (!cin.fail())
+            if (!std::cin.fail())
             {
                 Vector position{ x, y, z };
                 SetGravity(position);
-                cout << "Set gravity with values (" << x << ", " << y << ", " << z << ").\n";
+                std::cout << "Set gravity with values (" << x << ", " << y << ", " << z << ").\n";
             }
             else
             {
-                cin.clear();
-                cin.ignore();
-                cout << "Invalid input. Please enter a valid numeric coordinates.\n";
+                std::cin.clear();
+                std::cin.ignore();
+                std::cout << "Invalid input. Please enter a valid numeric coordinates.\n";
             }
         }
         else if (input.find("help") == 0)
         {
-            cout << "Available commands:\n";
-            cout << "  slew                  - Toggle Slew (Noclip)\n";
-            cout << "  quitLevel             - Quit's the current level\n";
-            cout << "  animdebug             - Enables the animation debug overlay\n";
-            cout << "  cinematdebug          - Enables the cinematics debug overlay\n";
-            cout << "  channeldebug          - Enables the channel debug overlay\n";
-            cout << "  cancelwalk            - Disables the walk animation?\n";
-            cout << "  ghostviewer           - Toggle Ghost Viewer\n";
-            cout << "  about                 - Toggle About\n";
-            cout << "  restart               - Restart Level\n";
-            cout << "  gbloaded              - Check if Ghostbuster are loaded\n";
-            cout << "  legacytext            - Toggle Legacy text display\n";
-            cout << "  spawnactor            - Spawn Actor\n";
-            cout << "  explosion             - Creates Explosion\n";
-            cout << "  createlight           - Create a light source at a given position\n";
-            cout << "  createffect           - Create a effect at a given position and orientation\n";
-            cout << "  resetgravity          - Reset the gravity\n";
-            cout << "  survivalmode          - Starts Survival Mode(Prototype very broken)\n";
-            cout << "  gravity               - Set gravity\n";
-            cout << "  help                  - Show this help message\n";
-            cout << "  exit                  - Close the console\n";
+            std::cout << "Available commands:\n";
+            std::cout << "  slew                  - Toggle Slew (Noclip)\n";
+            std::cout << "  quitLevel             - Quit's the current level\n";
+            std::cout << "  animdebug             - Enables the animation debug overlay\n";
+            std::cout << "  cinematdebug          - Enables the cinematics debug overlay\n";
+            std::cout << "  channeldebug          - Enables the channel debug overlay\n";
+            std::cout << "  cancelwalk            - Disables the walk animation?\n";
+            std::cout << "  ghostviewer           - Toggle Ghost Viewer\n";
+            std::cout << "  about                 - Toggle About\n";
+            std::cout << "  restart               - Restart Level\n";
+            std::cout << "  gbloaded              - Check if Ghostbuster are loaded\n";
+            std::cout << "  legacytext            - Toggle Legacy text display\n";
+            std::cout << "  spawnactor            - Spawn Actor\n";
+            std::cout << "  reloadlua             - Reload lua scripts\n";
+            std::cout << "  playCinemat           - Play a cinematic\n";
+            std::cout << "  explosion             - Creates Explosion\n";
+            std::cout << "  createlight           - Create a light source at a given position\n";
+            std::cout << "  createffect           - Create a effect at a given position and orientation\n";
+            std::cout << "  resetgravity          - Reset the gravity\n";
+            std::cout << "  loadlevel             - Load to a level\n";
+            std::cout << "  spawnactoroftype      - Spawns an actor of your class choice\n";
+            std::cout << "  survivalmode          - Starts Survival Mode(Prototype very broken)\n";
+            std::cout << "  gravity               - Set gravity\n";
+            std::cout << "  help                  - Show this help message\n";
+            std::cout << "  exit                  - Close the console\n";
         }
         else if (input.find("hotkeys") == 0)
         {
-            cout << "Available Hotkeys:\n";
-            cout << "  F1                    - Toggle Slew (Noclip)\n";
-            cout << "  F2                    - Enables the animation debug overlay\n";
-            cout << "  F3                    - Enables the channel debug overlay\n";
-            cout << "  F4                    - Enables the cinematics debug overlay\n";
-            cout << "  F5                    - Unlock all weapons\n";
-            cout << "  8                     - Prints players position\n";
-            cout << "  9                     - Spawn Ghostbuster at players position\n";
-            cout << "  E                     - Toggle flashlight\n";
-            cout << "  Q                     - Holster/Unholster proton wand\n";
-            cout << "  Z                     - Returns true or false if trap is deployed\n";
-            cout << "  P                     - Fake possess player\n";
-            cout << "  G                     - Toggle ecto goggles position\n";
+            std::cout << "Available Hotkeys:\n";
+            std::cout << "  F1                    - Toggle Slew (Noclip)\n";
+            std::cout << "  F2                    - Enables the animation debug overlay\n";
+            std::cout << "  F3                    - Enables the channel debug overlay\n";
+            std::cout << "  F4                    - Enables the cinematics debug overlay\n";
+            std::cout << "  F5                    - Unlock all weapons\n";
+            std::cout << "  8                     - Prints players position\n";
+            std::cout << "  9                     - Spawn Ghostbuster at players position\n";
+            std::cout << "  E                     - Toggle flashlight\n";
+            std::cout << "  Q                     - Holster/Unholster proton wand\n";
+            std::cout << "  Z                     - Returns true or false if trap is deployed\n";
+            std::cout << "  P                     - Fake possess player\n";
+            std::cout << "  G                     - Toggle ecto goggles position\n";
             }
         else if (input == "exit")
         {
-            cout << "Exiting program.\n";
+            std::cout << "Exiting program.\n";
             FreeConsole();
             runProgram = false;
         }
@@ -600,14 +704,14 @@ void HandleInput()
         {
             system("cls");
             Sleep(10);
-            cout << "*************************** \n"; //Re-print the infromation
-            cout << "     IE17 is hooked! \n";
-            cout << "*************************** \n";
-            cout << "Version: " STR(IE17ver) "\n";
+            std::cout << "*************************** \n"; //Re-print the infromation
+            std::cout << "     IE17 is hooked! \n";
+            std::cout << "*************************** \n";
+            std::cout << "Version: " STR(IE17ver) "\n";
         }
         else
         {
-            cout << "Unknown command. Type 'help' for a list of commands or 'hotkeys' for a list of hotkeys.\n";
+            std::cout << "Unknown command. Type 'help' for a list of commands or 'hotkeys' for a list of hotkeys.\n";
         }
         Sleep(10);  // Small delay to avoid high CPU usage
     }
@@ -655,19 +759,41 @@ void SetTerminalOnTop()
 
 DWORD WINAPI DLLAttach(HMODULE hModule)
 {
-    MH_Initialize();
-    AllocConsole();
+    // Initialize MinHook
+    if (MH_Initialize() != MH_OK) {
+        MessageBoxA(NULL, "Failed to initialize MinHook.", "Error", MB_OK | MB_ICONERROR);
+        return 0; // Abort injection
+    }
+
+    // Allocate console
+    if (!AllocConsole()) {
+        MessageBoxA(NULL, "Failed to allocate console.", "Error", MB_OK | MB_ICONERROR);
+        return 0; // Abort injection
+    }
+
+    // Redirect console I/O
+    if (freopen_s((FILE**)stdin, "CONIN$", "r", stdin) != 0 ||
+        freopen_s((FILE**)stdout, "CONOUT$", "w", stdout) != 0) {
+        MessageBoxA(NULL, "Failed to redirect console I/O.", "Error", MB_OK | MB_ICONERROR);
+        FreeConsole();
+        return 0; // Abort injection
+    }
+
+    luaL_openlibs(L);  //load standard Lua libraries
+
+    // Set console title
     SetConsoleTitleA("IE17 Build " STR(IE17ver));
 
-    freopen_s((FILE**)stdin, "CONIN$", "r", stdin);
-    freopen_s((FILE**)stdout, "CONOUT$", "w", stdout);
-
-    cout << "*************************** \n";
-    cout << "     IE17 is hooked! \n";
-    cout << "*************************** \n";
-    cout << "Version: " STR(IE17ver) "\n";
+    // Print welcome message
+    std::cout << "*************************** \n";
+    std::cout << "     IE17 is hooked! \n";
+    std::cout << "*************************** \n";
+    std::cout << "Version: " STR(IE17ver) "\n";
 
     g_modBase = (char*)GetModuleHandle(NULL);
+    Singleton_getRoom = (unsigned __int64(*)(unsigned __int64))(g_modBase + 0x2BDBD0);
+    setMusic = (unsigned __int64(*)(unsigned __int64))(g_modBase + 0x411FE0);
+    hideHack = (unsigned __int64(*)(unsigned __int64*))(g_modBase + 0xEE2D0);
     removeSlimeDecals = (void(*)(unsigned __int64))(g_modBase + 0x30D620);
     dbNarrativeStop = (void(*)())(g_modBase + 0x1F8410);
     dbNarrative = (float(*)(unsigned __int64))(g_modBase + 0x1ECEB0);
@@ -710,7 +836,7 @@ DWORD WINAPI DLLAttach(HMODULE hModule)
     cacheStreamingCinemat = (void(*)(const char**))(g_modBase + 0x476520);
 	GTFO = (void(*)(const char*, int))(g_modBase + 0x2D11C0); //very 2000's function | GTFO is error msg int must be -10 | good for debbuging a function like a breakpoint
     cacheSkeletalAnimationByName = (void(*)(const char*))(g_modBase + 0x2D9AF0);
-    enable = (void(*)(unsigned __int64, bool*, bool))(g_modBase + 0x2DA340);
+    enable = (void(*)(unsigned __int64, unsigned __int64*, bool))(g_modBase + 0x2DA340);
     setProtonBeamMaxLength = (void(*)(float))(g_modBase + 0x277A50); // min 10.0f  max 400.0f
     setAnimation = (void(*)(unsigned __int64, const char*, bool))(g_modBase + 0x77440);
     detonate = (void(*)(unsigned __int64, float))(g_modBase + 0x690F0); //car function
@@ -765,10 +891,11 @@ DWORD WINAPI DLLAttach(HMODULE hModule)
     }
 
     SetTerminalOnTop();
+
     //Start the key press detection in a separate thread
+    std::thread luaThread(LuaThread);
     std::thread keyPressThread(HandleKeyPresses);
     std::thread monitorThread(MonitorLevel);
-
     
     HANDLE hThread = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)HandleInput, NULL, 0, NULL);
     if (!hThread) {
@@ -784,16 +911,13 @@ DWORD WINAPI DLLAttach(HMODULE hModule)
     // Ensure the key press thread finishes before exiting the program
     keyPressThread.join();
     monitorThread.join();
+    luaThread.join();
+    WaitForSingleObject(hThread, INFINITE);
 
-    //if (!AllocConsole()) {
-    //    MessageBoxA(NULL, "Failed to allocate console.", "Error", MB_OK | MB_ICONERROR);
-    //    FreeConsole();
-    //    return 0; // Abort injection
-    //}
-
-
-    MH_Uninitialize();
+    // Clean up
     MH_DisableHook(GlobalRegisterFunc1);
+    MH_Uninitialize();
+    lua_close(L);
     fclose((FILE*)stdin);
     fclose((FILE*)stdout);
     FreeConsole();

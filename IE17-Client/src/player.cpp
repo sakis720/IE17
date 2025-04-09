@@ -15,10 +15,10 @@ void getPlayer(char* Buffer, __int64 adr1)
         return;
     }
 
+
 	std::string level = GetCurLevel(); //adding this here because MonitorLevel() is freaking out
 
 	// added CGhostbuster in all of them because if its searchs for example 'Player' it can find a diffrent object that has the 'Player' in the name.
-	// so i added CGhostbuster to make sure it finds the object that is class CGhostbuster.
     if (strstr(Buffer, "CGhostbuster Ghostbuster0") != nullptr) {
         localplayer = static_cast<unsigned __int64>(adr1);
     }
@@ -41,7 +41,7 @@ void getPlayer(char* Buffer, __int64 adr1)
         localplayer = static_cast<unsigned __int64>(adr1);
     }
     
-    
+   
 }
 
 
@@ -98,6 +98,7 @@ void MonitorLevel() {
 
         if (level != lastLevel) {
             std::cout << "Detected level: " << level << std::endl;
+			LoadLuaScripts();
 
             lastLevel = level;
 

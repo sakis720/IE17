@@ -13,6 +13,8 @@
 
 typedef unsigned __int64(__cdecl* SINGLETON_newActor)(const char* className, Vector position);
 
+typedef unsigned __int64(__cdecl* SINGLETON_getRoom)(unsigned __int64 actor);
+
 std::unordered_set<unsigned __int64> activeGhosts;
 
 void TextDisplayCountdown(const char* message, int seconds)
@@ -248,6 +250,29 @@ unsigned __int64 CreateNewActor(const char* className, Vector wPos)
     return addr;
 }
 
+void playCinemat(const char* cinemat)
+{
+    cacheStreamingCinemat(&cinemat);
+
+	Sleep(1000);
+
+    cueStreamingCinemat(cinemat, 0.0f);
+	playStreamingCinemat(cinemat);
+}
+
+unsigned __int64 getRoom(unsigned __int64 actor)
+{
+    bool debug = false;
+
+    //need fixing returning error "Called on NULL object"
+    unsigned __int64 roomName = Singleton_getRoom(actor);
+
+    std::cout << "Actor: " << std::hex << actor << " is in the room: " << std::hex << roomName << std::endl;
+
+    // return the address
+    return roomName;
+}
+
 bool AreAllGhostsDefeated()
 {
     for (auto it = activeGhosts.begin(); it != activeGhosts.end();)
@@ -384,7 +409,7 @@ void RunMod()
                 int waveCompletionBonus = wave * 50;
                 playerCash += waveCompletionBonus;
 
-                DisplayText(TEXT_Top, ("Wave " + std::to_string(wave - 1) + " complete! Bonus: $" + std::to_string(waveCompletionBonus) + " | Total Cash: $" + std::to_string(playerCash)).c_str(), 5.0f);
+                DisplayText(TEXT_Top, ("Wave " + std::to_string(wave - 1) + " complete! Bonus: $" + std::to_string(waveCompletionBonus) + "@@newline@@ Total Cash: $" + std::to_string(playerCash)).c_str(), 5.0f);
 
                 Sleep(5000);
 

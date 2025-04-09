@@ -59,7 +59,7 @@ void getCMainView(char* Buffer, __int64 adr1)
         return;
     }
 
-    if (strstr(Buffer, "CGameView gMainView") != nullptr) {
+    if (strstr(Buffer, "@CGameView gMainView") != nullptr) {
         mainview = static_cast<unsigned __int64>(adr1);
     }
 }

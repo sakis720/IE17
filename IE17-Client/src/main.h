@@ -1,5 +1,8 @@
 #include <iostream>
 #include "../MinHook/MinHook.h"
+
+#include "lua.hpp"
+
 #define STR_(X) #X
 #define IE17ver v0.08
 #define STR(X) STR_(X)
@@ -28,6 +31,9 @@ extern bool wasQPressed;
 extern int playerCash;
 extern Vector playerPos;
 
+extern unsigned __int64 (*Singleton_getRoom)(unsigned __int64 object);
+extern unsigned __int64 (*setMusic)(unsigned __int64 database_entry);
+extern unsigned __int64 (*hideHack)(unsigned __int64* buster_object);
 extern void (*removeSlimeDecals)(unsigned __int64 buster_object);
 extern void (*dbNarrativeStop)();
 extern float (*dbNarrative)(unsigned __int64 database_entry);
@@ -69,7 +75,7 @@ extern void (*cueStreamingCinemat)(const char* cinematName, float intialCursorPo
 extern void (*playStreamingCinemat)(const char* cinematName);
 extern void (*GTFO)(const char* msg, int flag);
 extern void (*cacheSkeletalAnimationByName)(const char* animationName);
-extern void (*enable)(unsigned __int64, bool*, bool);
+extern void (*enable)(unsigned __int64, unsigned __int64*, bool);
 extern void (*setProtonBeamMaxLength)(float length);
 extern void (*setAnimation)(unsigned __int64 object, const char* animationName, bool useSkelFileExit);
 extern void (*detonate)(unsigned __int64 car_object, float timer);
@@ -110,6 +116,7 @@ extern int (*DisplayTextLegacy)(int messageId, const char* textDown, const char*
 
 DWORD WINAPI DLLAttach(HMODULE hModule);
 void __stdcall HookedFunction(char* Buffer, __int64 adr1, __int64 adr2, __int64 adr3);
-void __fastcall hookDanteLogic(__int64 a1, char* a2, __int64 a3);
 void HandleInput();
+void RunLuaScript(lua_State* L, const std::string& filename);
+void LoadLuaScripts();
 std::string GetCurLevel();
