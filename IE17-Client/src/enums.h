@@ -124,5 +124,16 @@ enum ETextLegacyPrintTypes
     TEXTL_YesCancelOption = 2,
 };
 
+enum ETextAlignX
+{
+    eTextAlignX_Left = 0,
+    eTextAlignX_Center = 1,
+    eTextAlignX_Right = 2,
+};
 
+enum ETextAlignY
+{
+    eTextAlignY_Top = 0,
+    eTextAlignY_Center = 1,
+};
 #endif

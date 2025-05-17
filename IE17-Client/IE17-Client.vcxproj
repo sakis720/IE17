@@ -149,6 +149,7 @@
       <AdditionalIncludeDirectories>$(ProjectDir)\lib;$(ProjectDir)\src;$(ProjectDir)ThirdParty\Lua\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <WholeProgramOptimization>false</WholeProgramOptimization>
       <LanguageStandard>stdcpplatest</LanguageStandard>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>

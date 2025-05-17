@@ -13,7 +13,7 @@
 
 typedef unsigned __int64(__cdecl* SINGLETON_newActor)(const char* className, Vector position);
 
-typedef unsigned __int64(__cdecl* SINGLETON_getRoom)(unsigned __int64 actor);
+typedef unsigned __int64(__cdecl* SINGLETON_getRoom)(unsigned __int64* actor);
 
 std::unordered_set<unsigned __int64> activeGhosts;
 
@@ -54,7 +54,7 @@ void TestLegacyText()
 {
     m_legacycrash = !m_legacycrash;
 
-    DisplayTextLegacy(TEXTL_Default, errorMsg::crashedgametittle, errorMsg::crashedgame, 0);
+    DisplayTextLegacy(TEXTL_Default, errorMsg::crashedgametittle, errorMsg::crashedgame);
 
 }
 
@@ -75,12 +75,20 @@ void fadein() {
     fade(0.0f, r, g, b, duration);
 }
 
+
+
+void setObjective(const char* objective)
+{
+	// Set the current objective
+	setCurrentObjective(&objective);
+}
+
 void OpenShop(Vector GhostbusterSpawn) {
     DisplayText(TEXT_Top, "Welcome to the Shop!", 5.0f);
     Sleep(5000);
     DisplayText(TEXT_HelpMessage, "1. Call Help - $250", 5.0f);
     Sleep(2000);
-    DisplayText(TEXT_HelpMessage, "2. Skip Shop - Proceed to Next Wave", 5.0f);
+    DisplayText(TEXT_HelpMessage, "2. Skip Shop - Proceed to Next Wave", 3.0f);
     Sleep(3000);
 
     const ULONGLONG shopDuration = 10000; // Use ULONGLONG for 64-bit values.
@@ -260,9 +268,9 @@ void playCinemat(const char* cinemat)
 	playStreamingCinemat(cinemat);
 }
 
-unsigned __int64 getRoom(unsigned __int64 actor)
+unsigned __int64 getRoom(unsigned __int64* actor)
 {
-    bool debug = false;
+    bool debug = true;
 
     //need fixing returning error "Called on NULL object"
     unsigned __int64 roomName = Singleton_getRoom(actor);
@@ -314,12 +322,16 @@ void RunMod()
     std::string currentLevel = GetCurLevel(); // Get current level
 
     int wave = 1;
-    int maxWaves = 10;
     int baseGhostsPerWave = 1;  // Initial ghost count per wave
 
     bool debugstrings = false;
 
     bool state = false;
+
+    // For tracking play time
+    std::chrono::time_point<std::chrono::steady_clock> startTime;
+    std::chrono::time_point<std::chrono::steady_clock> currentTime;
+    double playTimeSeconds = 0.0;
 
     setProtonBeamMaxLength(400.0f);
     setAllowDamageTally(&state);
@@ -351,12 +363,56 @@ void RunMod()
         fadein();
         CacheEffect(&effectname); // Cache effect to avoid errors
 
-        while (wave <= maxWaves)
+        // Start the timer
+        startTime = std::chrono::steady_clock::now();
+
+        // Function to display survival stats
+        auto displaySurvivalStats = [&]() {
+            // Calculate minutes and seconds
+            int minutes = static_cast<int>(playTimeSeconds) / 60;
+            int seconds = static_cast<int>(playTimeSeconds) % 60;
+
+            // Format the time string
+            std::string timeStr = std::to_string(minutes) + "m " + std::to_string(seconds) + "s";
+
+            // Display stats
+            /*
+			std::cout << "Game Over" << std::endl;
+			std::cout << "Waves Survived: " << wave - 1 << std::endl;
+			std::cout << "Survival Time: " << timeStr << std::endl;
+			std::cout << "Total Cash: $" << playerCash << std::endl;
+			std::cout << "Total Ghosts Defeated: " << activeGhosts.size() << std::endl;
+            */
+            };
+
+        // Create a separate thread for checking player status
+        std::thread playerStatusThread([&]() {
+            while (true) {
+                // Update playtime
+                currentTime = std::chrono::steady_clock::now();
+                playTimeSeconds = std::chrono::duration<double>(currentTime - startTime).count();
+
+                // Check if player is dead
+                bool isPlayerAlive = !isDead(localplayer);
+                if (!isPlayerAlive) {
+                    displaySurvivalStats();
+                    return; // Exit the thread
+                }
+
+                // Sleep for 500ms (0.5 seconds)
+                std::this_thread::sleep_for(std::chrono::milliseconds(500));
+            }
+            });
+
+        // Detach the thread so it runs independently
+        playerStatusThread.detach();
+
+        // Infinite wave loop (removed maxWaves limit)
+        while (true)
         {
-            bool isplayeralive = !isDead(localplayer);
-            if (!isplayeralive)
-            {
-                DisplayText(TEXT_Top, "Player is Dead, Ending Game", 5.0f);
+            bool isPlayerAlive = !isDead(localplayer);
+            if (!isPlayerAlive) {
+                displaySurvivalStats();
                 break;
             }
 
@@ -370,6 +426,12 @@ void RunMod()
 
             for (int i = 0; i < ghostsToSpawn; ++i)
             {
+                // Check player status before each ghost spawn
+                if (isDead(localplayer)) {
+                    displaySurvivalStats();
+                    return;
+                }
+
                 // Randomize spawn location (pick one of the spawners)
                 Vector selectedSpawner;
                 switch (rand() % 3) {
@@ -395,46 +457,41 @@ void RunMod()
                 std::cout << "Number of active ghosts: " << activeGhosts.size() << std::endl;
             }
 
-            // wait until all ghosts are defeated
+            // wait until all ghosts are defeated or player dies
             while (!AreAllGhostsDefeated())
             {
+                if (isDead(localplayer)) {
+                    displaySurvivalStats();
+                    return;
+                }
                 std::this_thread::sleep_for(std::chrono::milliseconds(100)); // Check every 100ms
             }
 
-            // increment wave
+            // Calculate current play time for wave completion message
+            currentTime = std::chrono::steady_clock::now();
+            playTimeSeconds = std::chrono::duration<double>(currentTime - startTime).count();
+            int minutes = static_cast<int>(playTimeSeconds) / 60;
+            int seconds = static_cast<int>(playTimeSeconds) % 60;
+            std::string timeStr = std::to_string(minutes) + "m " + std::to_string(seconds) + "s";
+
+            // Wave completed, give rewards
+            int waveCompletionBonus = wave * 50;
+            playerCash += waveCompletionBonus;
+
+            DisplayText(TEXT_Top, ("Wave " + std::to_string(wave) + " complete! Bonus: $" +
+                std::to_string(waveCompletionBonus) +
+                "@@newline@@Total Cash: $" + std::to_string(playerCash) +
+                "@@newline@@Time: " + timeStr).c_str(), 5.0f);
+
+            Sleep(5000);
+
+            // Prepare for next wave
+            OpenShop(GhostbusterSpawn);
+            DisplayText(TEXT_Top, "Prepare for the next wave!", 5.0f);
+            Sleep(5000);
+
+            // Increment wave counter for next wave
             ++wave;
-
-            if (wave <= maxWaves)
-            {
-                int waveCompletionBonus = wave * 50;
-                playerCash += waveCompletionBonus;
-
-                DisplayText(TEXT_Top, ("Wave " + std::to_string(wave - 1) + " complete! Bonus: $" + std::to_string(waveCompletionBonus) + "@@newline@@ Total Cash: $" + std::to_string(playerCash)).c_str(), 5.0f);
-
-                Sleep(5000);
-
-                    if (wave == maxWaves)
-                    {
-                        // Perform actions for completing the final wave
-                        readyInventoryItem(localplayer, eInventoryNothing, true); // Clear inventory
-
-                        cacheSkeletalAnimationByName("amb_wave_to_crowd"); // Cache animation
-                        setAnimation(localplayer, "amb_wave_to_crowd", false); // Play animation
-
-                        DisplayText(TEXT_Top, "Survival Mode Complete! Well done.", 10.0f); // Display completion message
-
-                        Sleep(10000); // Wait for 10 seconds
-
-                        readyInventoryItem(localplayer, eInventoryProtonGun, true); // Equip Proton Gun
-                    }
-                    else
-                    {
-                        // Open the shop and prepare for the next wave (for non-final waves)
-                        OpenShop(GhostbusterSpawn);
-                        DisplayText(TEXT_Top, "Prepare for the next wave!", 5.0f);
-                        Sleep(5000);
-                    }
-            }
         }
     }
     else

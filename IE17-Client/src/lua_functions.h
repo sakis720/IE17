@@ -3,9 +3,10 @@
 
 #include "lua.hpp"
 
-int Lua_DisplayText(lua_State* L);
-int Lua_CreateNewActor(lua_State* L);
-int Lua_GetPlayerPosition(lua_State* L);
-int Lua_isKeyDown(lua_State* L);
+extern void RegisterGameFunctions(lua_State* L);
+extern void DispatchLuaKeyEvent(lua_State* L, const char* funcName, char key);
+extern void OnKeyDown(lua_State* L, char key);
+extern void OnKeyUp(lua_State* L, char key);
+extern void CallLuaInitFunction(lua_State* L);
 
 #endif LUA_F

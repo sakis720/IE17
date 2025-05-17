@@ -98,13 +98,16 @@ void MonitorLevel() {
 
         if (level != lastLevel) {
             std::cout << "Detected level: " << level << std::endl;
-			LoadLuaScripts();
+            //load lua scripts
+            ReloadAllLuaScripts();
 
             lastLevel = level;
 
             if (level.ends_with(".lvl")) {
                 //getPlayer(); // call getPlayer if level ends with .lvl
             }
+
+            Sleep(700);
         }
         Sleep(10);  // Small delay to avoid high CPU usage
     }

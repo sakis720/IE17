@@ -4,7 +4,7 @@
 #include "lua.hpp"
 
 #define STR_(X) #X
-#define IE17ver v0.08
+#define IE17ver v0.09
 #define STR(X) STR_(X)
 
 
@@ -31,7 +31,8 @@ extern bool wasQPressed;
 extern int playerCash;
 extern Vector playerPos;
 
-extern unsigned __int64 (*Singleton_getRoom)(unsigned __int64 object);
+extern unsigned __int64 (*flinch)(unsigned __int64 buster_object);
+extern unsigned __int64 (*Singleton_getRoom)(unsigned __int64* object);
 extern unsigned __int64 (*setMusic)(unsigned __int64 database_entry);
 extern unsigned __int64 (*hideHack)(unsigned __int64* buster_object);
 extern void (*removeSlimeDecals)(unsigned __int64 buster_object);
@@ -112,11 +113,11 @@ extern void (*AddLight)(Vector pos, float radius, Vector rgb, float intensity, f
 extern void (*CreateActor)(const char* className, Vector wPos);
 extern unsigned __int64 (*Singleton_newActor)(const char* className, Vector wPos);
 extern int (*DisplayText)(int messageId, const char* text, float duration);
-extern int (*DisplayTextLegacy)(int messageId, const char* textDown, const char* textUp, char);
+extern bool (*DisplayTextLegacy)(unsigned int messageId, const char* textDown, const char* textUp);
 
 DWORD WINAPI DLLAttach(HMODULE hModule);
 void __stdcall HookedFunction(char* Buffer, __int64 adr1, __int64 adr2, __int64 adr3);
 void HandleInput();
-void RunLuaScript(lua_State* L, const std::string& filename);
-void LoadLuaScripts();
+void LoadAllLuaScripts();
+void ReloadAllLuaScripts();
 std::string GetCurLevel();

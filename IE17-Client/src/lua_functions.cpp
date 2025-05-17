@@ -12,190 +12,135 @@
 #include <unordered_map>
 #include <filesystem> 
 
-/*
- * Windows key code
- * https://docs.microsoft.com/en-us/windows/win32/inputdev/virtual-key-codes
- */
-std::unordered_map<std::string, int> keyMap = {  //windows virtual key codes | temporary
-       {"A", 0x41},
-        {"B", 0x42},
-        {"C", 0x43},
-        {"D", 0x44},
-        {"E", 0x45},
-        {"F", 0x46},
-        {"G", 0x47},
-        {"H", 0x48},
-        {"I", 0x49},
-        {"J", 0x4A},
-        {"K", 0x4B},
-        {"L", 0x4C},
-        {"M", 0x4D},
-        {"N", 0x4E},
-        {"O", 0x4F},
-        {"P", 0x50},
-        {"Q", 0x51},
-        {"R", 0x52},
-        {"S", 0x53},
-        {"T", 0x54},
-        {"U", 0x55},
-        {"V", 0x56},
-        {"W", 0x57},
-        {"X", 0x58},
-        {"Y", 0x59},
-        {"Z", 0x5A},
+int Lua_DisplayText(lua_State* L) {
+    int hudType = static_cast<int>(luaL_checknumber(L, 1));
+    const char* message = luaL_checkstring(L, 2);
+    float duration = static_cast<float>(luaL_checknumber(L, 3));
 
-        {"0", 0x30},
-        {"1", 0x31},
-        {"2", 0x32},
-        {"3", 0x33},
-        {"4", 0x34},
-        {"5", 0x35},
-        {"6", 0x36},
-        {"7", 0x37},
-        {"8", 0x38},
-        {"9", 0x39},
+    DisplayText(hudType, message, duration);
+    return 0;
+}
 
-        {"Minus",        VK_OEM_MINUS},
-        {"Equal",        VK_OEM_PLUS},
-        {"RightBracket", VK_OEM_6},
-        {"LeftBracket",  VK_OEM_4},
-        {"Quote",        VK_OEM_7},
-        {"Semicolon",    VK_OEM_1},
-
-        {"Return",       VK_RETURN   },
-        {"Tab",          VK_TAB      },
-        {"Space",        VK_SPACE    },
-        {"Delete",       VK_BACK     },
-        {"Escape",       VK_ESCAPE   },
-        {"Command",      VK_LMENU    },   // left ALT
-        {"Shift",        VK_LSHIFT   },
-        {"CapsLock",     VK_CAPITAL  },
-        {"Option",       VK_MENU     },
-        {"Control",      VK_CONTROL  },
-        {"RightCommand", VK_RWIN     },
-        {"RightShift",   VK_RSHIFT   },
-
-        {"Home",          VK_HOME    },
-        {"PageUp",        VK_PRIOR   },
-        {"PageDown",      VK_NEXT    },
-        {"ForwardDelete", VK_DELETE  },
-        {"End",           VK_END     },
-        {"LeftArrow",     VK_LEFT    },
-        {"RightArrow",    VK_RIGHT   },
-        {"DownArrow",     VK_DOWN    },
-        {"UpArrow",       VK_UP      },
-
-        {"F1",  VK_F1},
-        {"F2",  VK_F2},
-        {"F3",  VK_F3},
-        {"F4",  VK_F4},
-        {"F5",  VK_F5},
-        {"F6",  VK_F6},
-        {"F7",  VK_F7},
-        {"F8",  VK_F8},
-        {"F9",  VK_F9},
-        {"F10", VK_F10},
-        {"F11", VK_F11},
-        {"F12", VK_F12},
-        {"F13", VK_F13},
-        {"F14", VK_F14},
-        {"F15", VK_F15},
-        {"F16", VK_F16},
-        {"F17", VK_F17},
-        {"F18", VK_F18},
-        {"F19", VK_F19},
-        {"F20", VK_F20},
-};
-
-std::unordered_map<std::string, bool> keyState; 
-
-int Lua_isKeyDown(lua_State* L) {
-    const char* keyName = luaL_checkstring(L, 1);
-    auto it = keyMap.find(keyName);
-    if (it == keyMap.end()) {
-        lua_pushboolean(L, false);
-        return 1;
-    }
-
-    int keyCode = it->second;
-    short keyStateCurrent = GetAsyncKeyState(keyCode);
-
-    bool isDown = (keyStateCurrent & 0x8000) != 0;
-    bool wasDown = keyState[keyName];  //retrieve previous state of the key
-
-    if (isDown && !wasDown) {
-        //key just pressed
-        keyState[keyName] = true;
-        lua_pushboolean(L, true);
-    }
-    else if (!isDown && wasDown) {
-        //key just released
-        keyState[keyName] = false;  //update the key state to "up"
-        lua_pushboolean(L, false); 
-    }
-    else {
-        lua_pushboolean(L, false);
-    }
-
+int Lua_GetLocalPlayer(lua_State* L) {
+    lua_pushinteger(L, static_cast<lua_Integer>(localplayer));
     return 1;
 }
 
-int Lua_DisplayText(lua_State* L)
-{
-
-    lua_Integer luaInt = luaL_checkinteger(L, 1);
-    if (luaInt > INT_MAX || luaInt < INT_MIN) {
-        lua_pushstring(L, "Message ID is out of range for int");
-        lua_error(L);
-        return 0;
-    }
-    int messageId = static_cast<int>(luaInt);
-
-    const char* text = luaL_checkstring(L, 2);
-    lua_Number luaNum = luaL_checknumber(L, 3);
-    float duration = static_cast<float>(luaNum); 
-
-    // call the C++ function
-    int result = DisplayText(messageId, text, duration);
-
-    // push the result back to Lua
-    lua_pushinteger(L, result);
+int Lua_Flinch(lua_State* L) {
+    unsigned __int64 actor = static_cast<unsigned __int64>(luaL_checkinteger(L, 1));
+    unsigned __int64 result = flinch(actor);
+    lua_pushinteger(L, static_cast<lua_Integer>(result));
     return 1;
 }
 
-int Lua_CreateNewActor(lua_State* L)
+int Lua_knockBack(lua_State* L)
 {
-    const char* className = luaL_checkstring(L, 1);
-
-    Vector wPos;
-    wPos.x = static_cast<float>(luaL_checknumber(L, 2));
-    wPos.y = static_cast<float>(luaL_checknumber(L, 3));
-    wPos.z = static_cast<float>(luaL_checknumber(L, 4));
-
-    unsigned __int64 result = CreateNewActor(className, wPos);
-
-    lua_pushinteger(L, result);
-    return 1;
+	unsigned __int64 actor = static_cast<unsigned __int64>(luaL_checkinteger(L, 1));
+    float impulse = static_cast<float>(luaL_checknumber(L, 2));
+    GetPlayerPosition();
+	knockBack(actor, playerPos, impulse);
+	return 0;
 }
 
 int Lua_GetPlayerPosition(lua_State* L) {
-    //update player pos
     GetPlayerPosition();
 
-    // push the player position as a lua table onto the stack
-    lua_newtable(L); 
+    lua_newtable(L);  // Create table
 
+    //add x
     lua_pushstring(L, "x");
-    lua_pushnumber(L, playerPos.x);  // push the x position
+    lua_pushnumber(L, playerPos.x);
     lua_settable(L, -3);
 
+    //add y
     lua_pushstring(L, "y");
-    lua_pushnumber(L, playerPos.y);  // push the y position
+    lua_pushnumber(L, playerPos.y);
     lua_settable(L, -3);
 
+    //add z
     lua_pushstring(L, "z");
-    lua_pushnumber(L, playerPos.z);  // push the z position
+    lua_pushnumber(L, playerPos.z);
     lua_settable(L, -3);
 
-    return 1; 
+    return 1;
+}
+
+int Lua_loadLevel(lua_State* L)
+{
+	const char* levelName = luaL_checkstring(L, 1);
+	loadLevel(levelName);
+	return 0;
+}
+
+void RegisterGameFunctions(lua_State* L) {
+    lua_register(L, "DisplayText", Lua_DisplayText);
+    lua_register(L, "GetLocalPlayer", Lua_GetLocalPlayer);
+    lua_register(L, "Flinch", Lua_Flinch);
+    lua_register(L, "knockBack", Lua_knockBack);
+    lua_register(L, "GetPlayerPos", Lua_GetPlayerPosition);
+    lua_register(L, "loadlevel", Lua_loadLevel);
+}
+
+void CallLuaInitFunction(lua_State* L) {
+    lua_getglobal(L, "init");
+    if (lua_isfunction(L, -1)) {
+        if (lua_pcall(L, 0, 0, 0) != LUA_OK) {
+            std::cerr << "Error in init function: " << lua_tostring(L, -1) << std::endl;
+            lua_pop(L, 1);
+        }
+    }
+    else {
+        lua_pop(L, 1); // Not a function
+    }
+}
+
+void OnKeyDown(char key, lua_State* L) {
+    lua_getglobal(L, "keyDown");
+    if (lua_isfunction(L, -1)) {
+        lua_pushstring(L, std::string(1, key).c_str());
+        if (lua_pcall(L, 1, 0, 0) != LUA_OK) {
+            std::cerr << "Error in keyDown: " << lua_tostring(L, -1) << std::endl;
+            lua_pop(L, 1);
+        }
+    }
+    else {
+        lua_pop(L, 1); // Not a function
+    }
+}
+
+void OnKeyUp(char key, lua_State* L) {
+    lua_getglobal(L, "keyUp");
+    if (lua_isfunction(L, -1)) {
+        lua_pushstring(L, std::string(1, key).c_str());
+        if (lua_pcall(L, 1, 0, 0) != LUA_OK) {
+            std::cerr << "Error in keyUp: " << lua_tostring(L, -1) << std::endl;
+            lua_pop(L, 1);
+        }
+    }
+    else {
+        lua_pop(L, 1);
+    }
+}
+
+void DispatchLuaKeyEvent(lua_State* L, const char* funcName, char key) {
+    lua_getglobal(L, funcName);
+    if (lua_isfunction(L, -1)) {
+        char keyStr[2] = { key, '\0' };
+        lua_pushstring(L, keyStr);
+        if (lua_pcall(L, 1, 0, 0) != LUA_OK) {
+            std::cerr << "Lua error in " << funcName << ": " << lua_tostring(L, -1) << std::endl;
+            lua_pop(L, 1);  // remove error message
+        }
+    }
+    else {
+        lua_pop(L, 1);  // not a function, pop nil
+    }
+}
+
+void OnKeyDown(lua_State* L, char key) {
+    DispatchLuaKeyEvent(L, "keyDown", key);
+}
+
+void OnKeyUp(lua_State* L, char key) {
+    DispatchLuaKeyEvent(L, "keyUp", key);
 }

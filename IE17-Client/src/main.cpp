@@ -10,18 +10,15 @@
 #include <chrono>
 #include <script.h>
 #include <filesystem> 
+#include <unordered_map>
 
 namespace fs = std::filesystem;
-
-// create new state global
-lua_State* L = luaL_newstate();
 
 bool holsterStatus = false;
 int eGogglesStatus = 0;
 bool fakePossessionStatus = false;
 
 bool wasQPressed = false;
-
 
 bool m_about = false;
 bool m_legacycrash = false;
@@ -31,13 +28,18 @@ bool g_fRestartLevel = false;
 // Flag to keep the main thread running
 bool runProgram = true;
 
-std::atomic<bool> isLuaRunning(true);
+std::vector<lua_State*> activeLuaStates;
+
+std::unordered_map<char, bool> keyStates;
+
  
 char* g_modBase = nullptr;
 
 int playerCash = 0;
 
-unsigned __int64 (*Singleton_getRoom)(unsigned __int64 object);
+char (*setGhostbusterHeatlhState)(unsigned __int64 bustet_object, int state);
+unsigned __int64 (*flinch)(unsigned __int64 buster_object);
+unsigned __int64 (*Singleton_getRoom)(unsigned __int64* object);
 unsigned __int64 (*setMusic)(unsigned __int64 database_entry);
 unsigned __int64 (*hideHack)(unsigned __int64* buster_object);
 void (*removeSlimeDecals)(unsigned __int64 buster_object);
@@ -118,7 +120,7 @@ void (*AddLight)(Vector pos, float radius, Vector rgb, float intensity, float du
 void (*CreateActor)(const char* className, Vector wPos);
 unsigned __int64 (*Singleton_newActor)(const char* className, Vector wPos);
 int (*DisplayText)(int messageId, const char* text, float duration); // look at EHudMessage
-int (*DisplayTextLegacy)(int messageId, const char* textDown, const char* textUp, char);
+bool (*DisplayTextLegacy)(unsigned int messageId, const char* textDown, const char* textUp);
 
 
 using _SlewFun = void(__cdecl*)();
@@ -129,6 +131,7 @@ using _animation = void(__cdecl*)();
 using _cinemat = void(__cdecl*)();
 using _channels = void(__cdecl*)();
 using _resgravity = void(__cdecl*)();
+using _danteThreads = void(__cdecl*)();
 
 
 _SlewFun Slew;
@@ -139,6 +142,7 @@ _animation animDebug;
 _cinemat cinematDebug;
 _channels chanDebug;
 _resgravity resetgravity;
+_danteThreads danteThreads;
 
 
 typedef void (*OriginalFunctionType)(char* Buffer, __int64 adr1, __int64 adr2, __int64 adr3);
@@ -195,60 +199,6 @@ void __stdcall HookedFunction(char* Buffer, __int64 adr1, __int64 adr2, __int64 
 	//getEmmit(Buffer, adr1);
 }
 
-void RunLuaScript(lua_State* L, const std::string& scriptPath) {
-    if (luaL_dofile(L, scriptPath.c_str()) != LUA_OK) {
-        std::cout << "Error loading Lua script: " << lua_tostring(L, -1) << std::endl;
-    }
-}
-
-void LuaThread()
-{
-    while (isLuaRunning) {
-        lua_getglobal(L, "update");
-        if (lua_isfunction(L, -1)) {
-            if (lua_pcall(L, 0, 0, 0) != LUA_OK) {
-                std::cerr << "Error calling Lua update: " << lua_tostring(L, -1) << std::endl;
-                lua_pop(L, 1);
-            }
-        }
-        else {
-            std::cerr << "No 'update' function found in Lua." << std::endl;
-            lua_pop(L, 1);
-        }
-
-        std::this_thread::sleep_for(std::chrono::milliseconds(16));  // ~60 FPS
-    }
-}
-
-void LoadLuaScripts()
-{
-
-	// re-register, might need to do it diffrently
-    lua_register(L, "DisplayText", Lua_DisplayText);
-    lua_register(L, "CreateNewActor", Lua_CreateNewActor);
-    lua_register(L, "GetPlayerPosition", Lua_GetPlayerPosition);
-
-    lua_register(L, "isKeyDown", Lua_isKeyDown);
-
-
-    //reload script from folder
-    std::string modDir = "IE17_Mods";
-    bool foundLuaFiles = false;
-
-    for (const auto& entry : fs::directory_iterator(modDir)) {
-        if (entry.is_regular_file() && entry.path().extension() == ".lua") {
-            foundLuaFiles = true;
-            std::string scriptPath = entry.path().string();
-            std::cout << "Loading LUA: " << scriptPath << std::endl;
-            RunLuaScript(L, scriptPath);
-        }
-    }
-
-    if (!foundLuaFiles) {
-        std::cout << "No Lua files found in the IE17_Mods directory." << std::endl;
-    }
-}
-
 // Continuously check for key presses in a separate thread
 void HandleKeyPresses()
 {
@@ -257,12 +207,14 @@ void HandleKeyPresses()
     CancelWalkAll = (_CancelWalkAll)(g_modBase + 0x1F81B0);
     quitLevel = (_QuitLevel)(g_modBase + 0x1F8170);
     animDebug = (_animation)(g_modBase + 0x1F7FB0);
-    cinematDebug = (_cinemat)(g_modBase + 0x1F7FC0);
+    cinematDebug = (_cinemat)(g_modBase + 0x1EC310);
     chanDebug = (_channels)(g_modBase + 0x1F7FD0);
     resetgravity = (_resgravity)(g_modBase + 0x1F82E0);
+    danteThreads = (_danteThreads)(g_modBase + 0x1F2610);
 
     while (runProgram)
     {
+
         if (GetAsyncKeyState(VK_F1) & 1) {
             Slew();  // Call the Slew function
             Sleep(500);  // Prevent multiple triggers within a short time
@@ -285,7 +237,6 @@ void HandleKeyPresses()
             enableInventoryItem(localplayer, eInventorySlimeGun, true);
             enableInventoryItem(localplayer, eInventoryRailgun, true);
             enableInventoryItem(localplayer, eInventoryShotgun, true);
-
 
             Sleep(500);
         }
@@ -381,6 +332,45 @@ void HandleKeyPresses()
         else {
             wasQPressed = false;  // reset the flag when 'Q' is released
         }
+
+        for (char key = '0'; key <= '9'; ++key) {
+            SHORT keyState = GetAsyncKeyState(key);
+            bool isDown = (keyState & 0x8000) != 0;
+            bool wasDown = keyStates[key];
+
+            if (isDown && !wasDown) {
+                for (auto L : activeLuaStates) {
+                    DispatchLuaKeyEvent(L, "keyDown", key);
+                }
+            }
+            else if (!isDown && wasDown) {
+                for (auto L : activeLuaStates) {
+                    DispatchLuaKeyEvent(L, "keyUp", key);
+                }
+            }
+
+            keyStates[key] = isDown;
+        }
+        for (char key = 'A'; key <= 'Z'; ++key) {
+            SHORT keyState = GetAsyncKeyState(key);
+            bool isDown = (keyState & 0x8000) != 0;
+            bool wasDown = keyStates[key];
+
+            if (isDown && !wasDown) {
+                for (auto L : activeLuaStates) {
+                    DispatchLuaKeyEvent(L, "keyDown", key);
+                }
+            }
+            else if (!isDown && wasDown) {
+                for (auto L : activeLuaStates) {
+                    DispatchLuaKeyEvent(L, "keyUp", key);
+                }
+            }
+
+            keyStates[key] = isDown;
+        }
+
+
         Sleep(10);  // Small delay to avoid high CPU usage
     }
 }
@@ -432,16 +422,19 @@ void HandleInput()
             CancelWalkAll();
             std::cout << "Walk is disabled on all AI??????.\n";
         }
-        else if (input == "reloadlua")
-        {
-            LoadLuaScripts();
-            std::cout << "Lua scripts reloaded.\n";
-        }
         else if (input == "ghostviewer")
         {
             GhostViewer();
             std::cout << "Ghost Viewer toggled.\n";
         }
+        else if (input == "setObjective")
+        {
+			std::cout << "Enter the objective description: ";
+			std::string objective;
+			std::getline(std::cin, objective);
+			setObjective(objective.c_str());
+			std::cout << "Objective set to: " << objective << "\n";
+		}
         else if (input == "resetgravity")
         {
             resetgravity();
@@ -451,6 +444,19 @@ void HandleInput()
         {
             AboutMod();
             std::cout << "About information toggled.\n";
+        }
+        else if (input == "playFX")
+        {
+			std::cout << "Enter the name of the effect: ";
+			std::string effectName;
+			std::getline(std::cin, effectName);
+
+            const char* effectNameCStr = effectName.c_str();
+
+            GetPlayerPosition();
+            CacheEffect(&effectNameCStr);
+			StartEffect(effectName.c_str(), playerPos, playerPos);
+            
         }
         /*
         else if (input == "getlevel")
@@ -462,6 +468,10 @@ void HandleInput()
         {
             ResLevel();
             std::cout << "Restarting level...\n";
+        }
+        else if (input == "reloadlua")
+        {
+            ReloadAllLuaScripts();
         }
         else if (input == "legacytext")
         {
@@ -557,6 +567,18 @@ void HandleInput()
                 std::cout << "Ray                     NOT LOADED.\n";
             }
         }
+        else if (input == "ectoloaded")
+        {
+            if (ecto != 0)
+            {
+                std::cout << "Ecto                    LOADED.\n";
+            }
+            else
+            {
+                std::cout << "Ecto                    NOT loaded.\n";
+            }
+
+            }
         else if (input == "explosion")
         {
             std::cout << "Enter explosion parameters (x y z radius strength speed): ";
@@ -717,6 +739,50 @@ void HandleInput()
     }
 }
 
+void LoadAllLuaScripts() {
+    const std::string folder = "IE17_Mods";
+
+    for (const auto& entry : fs::directory_iterator(folder)) {
+        if (entry.path().extension() == ".lua") {
+            lua_State* L = luaL_newstate();
+            luaL_openlibs(L);
+
+			RegisterGameFunctions(L);
+
+            //attempt to load and execute the Lua file
+            std::string path = entry.path().string();
+            if (luaL_dofile(L, path.c_str()) != LUA_OK) {
+                std::string error = lua_tostring(L, -1);
+                std::cerr << "[Lua Error] Failed to load " << path << ":\n" << error << "\n";
+                std::cerr << "[Lua Error] " << path << ": " << error << "\n";
+
+                lua_pop(L, 1);
+                lua_close(L);
+            }
+            else {
+                std::cout << "[Lua] Loaded: " << entry.path().filename() << "\n";
+
+                CallLuaInitFunction(L);
+
+                activeLuaStates.push_back(L);
+            }
+
+            std::this_thread::sleep_for(std::chrono::milliseconds(500));
+        }
+    }
+}
+
+void ReloadAllLuaScripts() {
+    //close all previous Lua states
+    for (lua_State* L : activeLuaStates) {
+        lua_close(L);
+    }
+    activeLuaStates.clear();
+
+    //reload all scripts
+    LoadAllLuaScripts();
+}
+
 std::string GetCurLevel()
 {
     uintptr_t pointeradr = 0x2C72528; //adr
@@ -746,6 +812,28 @@ std::string GetCurLevel()
     //std::cout << "Level Name : " << buffer << std::endl;
 
     return std::string(buffer); // return the level name as a std::string
+}
+
+void CreateModsFolder()
+{
+    const std::string modsFolder = "IE17_Mods";
+
+    if (!fs::exists(modsFolder)) {
+        try {
+            if (fs::create_directory(modsFolder)) {
+                //std::cout << "Folder '" << modsFolder << "' created successfully\n";
+            }
+            else {
+                //std::cout << "Failed to create folder '" << modsFolder << "'.\n";
+            }
+        }
+        catch (const fs::filesystem_error&) {
+            //std::cerr << "Filesystem error: " << e.what() << '\n';
+        }
+    }
+    else {
+        //std::cout << "Folder '" << modsFolder << "' already exists\n";
+    }
 }
 
 void SetTerminalOnTop()
@@ -779,7 +867,6 @@ DWORD WINAPI DLLAttach(HMODULE hModule)
         return 0; // Abort injection
     }
 
-    luaL_openlibs(L);  //load standard Lua libraries
 
     // Set console title
     SetConsoleTitleA("IE17 Build " STR(IE17ver));
@@ -791,7 +878,9 @@ DWORD WINAPI DLLAttach(HMODULE hModule)
     std::cout << "Version: " STR(IE17ver) "\n";
 
     g_modBase = (char*)GetModuleHandle(NULL);
-    Singleton_getRoom = (unsigned __int64(*)(unsigned __int64))(g_modBase + 0x2BDBD0);
+    setGhostbusterHeatlhState = (char(*)(unsigned __int64, int))(g_modBase + 0xD0280);
+    flinch = (unsigned __int64(*)(unsigned __int64))(g_modBase + 0xD18B0);
+    Singleton_getRoom = (unsigned __int64(*)(unsigned __int64*))(g_modBase + 0x2BDBD0);
     setMusic = (unsigned __int64(*)(unsigned __int64))(g_modBase + 0x411FE0);
     hideHack = (unsigned __int64(*)(unsigned __int64*))(g_modBase + 0xEE2D0);
     removeSlimeDecals = (void(*)(unsigned __int64))(g_modBase + 0x30D620);
@@ -872,7 +961,7 @@ DWORD WINAPI DLLAttach(HMODULE hModule)
     AddLight = (void(*)(Vector, float, Vector, float, float, float, float))(g_modBase + 0x1ECB20); //vector pos, float radius, vector rgb, float intensity, float duration, float rampUp = 0.0, float rampDown = 0.0
     CreateActor = (void(*)(const char*, Vector))(g_modBase + 0x2C0D50); //const char class, vector pos(x,y,z)
     DisplayText = (int(*)(int, const char*, float))(g_modBase + 0x2494A0); //hudtype msg duration
-    DisplayTextLegacy = (int(*)(int, const char*, const char*, char))(g_modBase + 0x2A6C90); //int hudtype, const char* msgtittle, const char* msg, int ?(duration??)
+    DisplayTextLegacy = (bool(*)(unsigned int, const char*, const char*))(g_modBase + 0x2A6C90); //int hudtype, const char* msgtittle, const char* msg, int ?(duration??)
 	void* GlobalRegisterFunc1 = (void*)((uintptr_t)GetModuleHandle(NULL) + 0x2CED00); //Thanks Malte0641 for the address
 
     // create the hook
@@ -890,10 +979,15 @@ DWORD WINAPI DLLAttach(HMODULE hModule)
         return 1;
     }
 
+    CreateModsFolder();
     SetTerminalOnTop();
 
+    lua_State* L = luaL_newstate();
+    luaL_openlibs(L);
+
+    RegisterGameFunctions(L);
+
     //Start the key press detection in a separate thread
-    std::thread luaThread(LuaThread);
     std::thread keyPressThread(HandleKeyPresses);
     std::thread monitorThread(MonitorLevel);
     
@@ -911,16 +1005,17 @@ DWORD WINAPI DLLAttach(HMODULE hModule)
     // Ensure the key press thread finishes before exiting the program
     keyPressThread.join();
     monitorThread.join();
-    luaThread.join();
     WaitForSingleObject(hThread, INFINITE);
 
     // Clean up
     MH_DisableHook(GlobalRegisterFunc1);
     MH_Uninitialize();
-    lua_close(L);
     fclose((FILE*)stdin);
     fclose((FILE*)stdout);
     FreeConsole();
+
+    lua_close(L);
+
     FreeLibraryAndExitThread(hModule, 0);
     return 1;
 }

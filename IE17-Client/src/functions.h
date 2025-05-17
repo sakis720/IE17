@@ -23,9 +23,9 @@ void playAnim(unsigned __int64 actor, const char* anim);
 void loadLevel(const char* level);
 void slimeGB(unsigned __int64 actor);
 void gbLoaded();
-unsigned __int64 getMasterPtr(unsigned __int64 actor);
+void setObjective(const char* objective);
 unsigned __int64 CreateNewActor(const char* className, Vector wPos);
-unsigned __int64 getRoom(unsigned __int64 actor);
+unsigned __int64 getRoom(unsigned __int64* actor);
 void playCinemat(const char* cinemat);
 bool AreAllGhostsDefeated();
 
