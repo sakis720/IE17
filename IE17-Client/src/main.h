@@ -115,6 +115,7 @@ extern unsigned __int64 (*Singleton_newActor)(const char* className, Vector wPos
 extern int (*DisplayText)(int messageId, const char* text, float duration);
 extern bool (*DisplayTextLegacy)(unsigned int messageId, const char* textDown, const char* textUp);
 
+
 DWORD WINAPI DLLAttach(HMODULE hModule);
 void __stdcall HookedFunction(char* Buffer, __int64 adr1, __int64 adr2, __int64 adr3);
 void HandleInput();

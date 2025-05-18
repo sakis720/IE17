@@ -1,6 +1,6 @@
 #include "script.h"
-#include "main.h"
 #include "enums.h"
+#include "main.h"
 #include "player.h"
 #include <iostream>
 

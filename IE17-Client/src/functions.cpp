@@ -75,12 +75,10 @@ void fadein() {
     fade(0.0f, r, g, b, duration);
 }
 
-
-
 void setObjective(const char* objective)
 {
-	// Set the current objective
-	setCurrentObjective(&objective);
+    // Set the current objective
+    setCurrentObjective(&objective);
 }
 
 void OpenShop(Vector GhostbusterSpawn) {
@@ -170,14 +168,14 @@ void unlockall(unsigned __int64 actor)
 
 void knockBackActor(unsigned __int64 actor)
 {
-	GetPlayerPosition();
-	knockBack(actor, playerPos, 30.0f);
+    GetPlayerPosition();
+    knockBack(actor, playerPos, 30.0f);
 }
 
 void warpToPlayer(unsigned __int64 actor)
 {
     GetPlayerPosition();
-	warpTo(actor, playerPos, playerPos);
+    warpTo(actor, playerPos, playerPos);
 }
 
 void playAnim(unsigned __int64 actor, const char* anim)
@@ -197,14 +195,14 @@ void slimeGB(unsigned __int64 actor)
 
 void gbLoaded()
 {
-	if (localplayer != 0)
-	{
-		std::cout << "Player             LOADED\n";
-	}
-	else
-	{
-		std::cout << "Player             NOT LOADED\n";
-	}
+    if (localplayer != 0)
+    {
+        std::cout << "Player             LOADED\n";
+    }
+    else
+    {
+        std::cout << "Player             NOT LOADED\n";
+    }
 
     if (egon != 0)
     {
@@ -219,19 +217,19 @@ void gbLoaded()
     {
         std::cout << "Venkman            LOADED\n";
     }
-	else
-	{
-		std::cout << "Venkman            NOT LOADED\n";
-	}
+    else
+    {
+        std::cout << "Venkman            NOT LOADED\n";
+    }
 
     if (winston != 0)
     {
         std::cout << "Winston            LOADED\n";
     }
     else
-	{
-		std::cout << "Winston            NOT LOADED\n";
-	}
+    {
+        std::cout << "Winston            NOT LOADED\n";
+    }
 
     if (ray != 0)
     {
@@ -262,10 +260,10 @@ void playCinemat(const char* cinemat)
 {
     cacheStreamingCinemat(&cinemat);
 
-	Sleep(1000);
+    Sleep(1000);
 
     cueStreamingCinemat(cinemat, 0.0f);
-	playStreamingCinemat(cinemat);
+    playStreamingCinemat(cinemat);
 }
 
 unsigned __int64 getRoom(unsigned __int64* actor)
@@ -377,11 +375,11 @@ void RunMod()
 
             // Display stats
             /*
-			std::cout << "Game Over" << std::endl;
-			std::cout << "Waves Survived: " << wave - 1 << std::endl;
-			std::cout << "Survival Time: " << timeStr << std::endl;
-			std::cout << "Total Cash: $" << playerCash << std::endl;
-			std::cout << "Total Ghosts Defeated: " << activeGhosts.size() << std::endl;
+            std::cout << "Game Over" << std::endl;
+            std::cout << "Waves Survived: " << wave - 1 << std::endl;
+            std::cout << "Survival Time: " << timeStr << std::endl;
+            std::cout << "Total Cash: $" << playerCash << std::endl;
+            std::cout << "Total Ghosts Defeated: " << activeGhosts.size() << std::endl;
             */
             };
 

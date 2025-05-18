@@ -71,7 +71,7 @@ void getEmmit(char* Buffer, __int64 adr1)
         return;
     }
 
-    if (strstr(Buffer, "CDialogDatabaseEntry Diag_Ray_HT1_PU_029_b") != nullptr) {
+    if (strstr(Buffer, "CDialogDatabaseEntry Diag_RescueF_GEN_E_001") != nullptr) {
         emmit = static_cast<unsigned __int64>(adr1);
     }
 

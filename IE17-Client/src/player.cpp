@@ -1,7 +1,7 @@
 #include "player.h"
-#include "main.h"
 #include "actors.h"
 #include "enums.h"
+#include "main.h"
 #include <iostream>
 #include <thread>
 #include <string>

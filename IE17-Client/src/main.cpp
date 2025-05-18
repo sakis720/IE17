@@ -32,7 +32,7 @@ std::vector<lua_State*> activeLuaStates;
 
 std::unordered_map<char, bool> keyStates;
 
- 
+
 char* g_modBase = nullptr;
 
 int playerCash = 0;
@@ -193,10 +193,10 @@ void __stdcall HookedFunction(char* Buffer, __int64 adr1, __int64 adr2, __int64 
     }
 
     getPlayer(Buffer, adr1);
-	getGhostbusters(Buffer, adr1);
-	getEcto(Buffer, adr1);
-	getCMainView(Buffer, adr1);
-	//getEmmit(Buffer, adr1);
+    getGhostbusters(Buffer, adr1);
+    getEcto(Buffer, adr1);
+    getCMainView(Buffer, adr1);
+    //getEmmit(Buffer, adr1);
 }
 
 // Continuously check for key presses in a separate thread
@@ -240,6 +240,10 @@ void HandleKeyPresses()
 
             Sleep(500);
         }
+        else if (GetAsyncKeyState(VK_F6) & 1) { //enable all equipment
+            ReloadAllLuaScripts();
+            Sleep(500);
+        }
         else if (GetAsyncKeyState('8') & 1) {
             GetPlayerPosition();
 
@@ -248,7 +252,7 @@ void HandleKeyPresses()
                 << playerPos.y << ", "
                 << playerPos.z << ")" << std::endl;
 
-			Sleep(500);  // Prevent multiple triggers within a short time
+            Sleep(500);  // Prevent multiple triggers within a short time
         }
         else if (GetAsyncKeyState('9') & 1) {
             GetPlayerPosition();
@@ -429,12 +433,12 @@ void HandleInput()
         }
         else if (input == "setObjective")
         {
-			std::cout << "Enter the objective description: ";
-			std::string objective;
-			std::getline(std::cin, objective);
-			setObjective(objective.c_str());
-			std::cout << "Objective set to: " << objective << "\n";
-		}
+            std::cout << "Enter the objective description: ";
+            std::string objective;
+            std::getline(std::cin, objective);
+            setObjective(objective.c_str());
+            std::cout << "Objective set to: " << objective << "\n";
+        }
         else if (input == "resetgravity")
         {
             resetgravity();
@@ -447,16 +451,16 @@ void HandleInput()
         }
         else if (input == "playFX")
         {
-			std::cout << "Enter the name of the effect: ";
-			std::string effectName;
-			std::getline(std::cin, effectName);
+            std::cout << "Enter the name of the effect: ";
+            std::string effectName;
+            std::getline(std::cin, effectName);
 
             const char* effectNameCStr = effectName.c_str();
 
             GetPlayerPosition();
             CacheEffect(&effectNameCStr);
-			StartEffect(effectName.c_str(), playerPos, playerPos);
-            
+            StartEffect(effectName.c_str(), playerPos, playerPos);
+
         }
         /*
         else if (input == "getlevel")
@@ -502,14 +506,14 @@ void HandleInput()
         }
         else if (input == "spawnactoroftype")
         {
-			std::cout << "Enter the class to create: ";
+            std::cout << "Enter the class to create: ";
 
-			std::string className;
-			std::getline(std::cin, className);
+            std::string className;
+            std::getline(std::cin, className);
 
             GetPlayerPosition();
 
-			CreateNewActor(className.c_str(), playerPos);
+            CreateNewActor(className.c_str(), playerPos);
         }
         else if (input == "playCinemat")
         {
@@ -518,18 +522,18 @@ void HandleInput()
             std::string cinemat;
             std::getline(std::cin, cinemat);
 
-			playCinemat(cinemat.c_str());
+            playCinemat(cinemat.c_str());
         }
         else if (input == "gbloaded")
         {
-			if (localplayer != 0)
-			{
+            if (localplayer != 0)
+            {
                 std::cout << "Player                  LOADED.\n";
-			}
-			else
-			{
+            }
+            else
+            {
                 std::cout << "Player                  NOT loaded.\n";
-			}
+            }
 
             if (egon != 0)
             {
@@ -578,7 +582,7 @@ void HandleInput()
                 std::cout << "Ecto                    NOT loaded.\n";
             }
 
-            }
+        }
         else if (input == "explosion")
         {
             std::cout << "Enter explosion parameters (x y z radius strength speed): ";
@@ -587,10 +591,10 @@ void HandleInput()
             {
                 Vector position{ x, y, z };
                 CreateExplosion(position, radius, strength, speed);
-                std::cout << "Explosion created at (" << x << ", " << y << ", " << z 
-                     << ") with radius " << radius 
-                     << ", strength " << strength 
-                     << ", and speed " << speed << ".\n";
+                std::cout << "Explosion created at (" << x << ", " << y << ", " << z
+                    << ") with radius " << radius
+                    << ", strength " << strength
+                    << ", and speed " << speed << ".\n";
             }
             else
             {
@@ -715,7 +719,7 @@ void HandleInput()
             std::cout << "  Z                     - Returns true or false if trap is deployed\n";
             std::cout << "  P                     - Fake possess player\n";
             std::cout << "  G                     - Toggle ecto goggles position\n";
-            }
+        }
         else if (input == "exit")
         {
             std::cout << "Exiting program.\n";
@@ -747,7 +751,7 @@ void LoadAllLuaScripts() {
             lua_State* L = luaL_newstate();
             luaL_openlibs(L);
 
-			RegisterGameFunctions(L);
+            RegisterGameFunctions(L);
 
             //attempt to load and execute the Lua file
             std::string path = entry.path().string();
@@ -893,9 +897,9 @@ DWORD WINAPI DLLAttach(HMODULE hModule)
     enableProtonTorpedo = (void(*)(unsigned __int64*, bool*))(g_modBase + 0xEDE30);
     setCommandCrossBeam = (void(*)(unsigned __int64))(g_modBase + 0xEC640);
     startFakePackOverheat = (void(*)(unsigned __int64*))(g_modBase + 0xED750);
-	letterbox = (void(*)(bool*))(g_modBase + 0x2D87A0); // don't know what it enables or disables
+    letterbox = (void(*)(bool*))(g_modBase + 0x2D87A0); // don't know what it enables or disables
     queueVideo = (void(*)(const char**))(g_modBase + 0x2D87E0);
-	setMovieCaptureEnable = (void(*)(bool*))(g_modBase + 0x2D8850); //make the game fast like the old movies this why its called movie capture
+    setMovieCaptureEnable = (void(*)(bool*))(g_modBase + 0x2D8850); //make the game fast like the old movies this why its called movie capture
     allowEnemyAttack = (void(*)(bool*))(g_modBase + 0x2D8420);
     allowHeroControls = (void(*)(bool*))(g_modBase + 0x2D8440);
     allowHeroDamage = (void(*)(bool*))(g_modBase + 0x2D8460);
@@ -917,13 +921,13 @@ DWORD WINAPI DLLAttach(HMODULE hModule)
     forceDeployTrap = (char(*)(unsigned __int64, Vector))(g_modBase + 0xE4C80);
     setRappelModeEnable = (void(*)(unsigned __int64, bool))(g_modBase + 0xE1F70);
     startRappelSwing = (void(*)(unsigned __int64))(g_modBase + 0xE21E0);
-	isDead = (bool(*)(unsigned __int64))(g_modBase + 0x7B170); //we can use this for the survival mode
+    isDead = (bool(*)(unsigned __int64))(g_modBase + 0x7B170); //we can use this for the survival mode
     cacheStreamingCinematAndAudio = (void(*)(const char*, const char*))(g_modBase + 0x477500);
     stopStreamingCinemat = (void(*)(const char*))(g_modBase + 0x477B60);
     playStreamingCinemat = (void(*)(const char*))(g_modBase + 0x478930);
     cueStreamingCinemat = (void(*)(const char*, float))(g_modBase + 0x4779B0);
     cacheStreamingCinemat = (void(*)(const char**))(g_modBase + 0x476520);
-	GTFO = (void(*)(const char*, int))(g_modBase + 0x2D11C0); //very 2000's function | GTFO is error msg int must be -10 | good for debbuging a function like a breakpoint
+    GTFO = (void(*)(const char*, int))(g_modBase + 0x2D11C0); //very 2000's function | GTFO is error msg int must be -10 | good for debbuging a function like a breakpoint
     cacheSkeletalAnimationByName = (void(*)(const char*))(g_modBase + 0x2D9AF0);
     enable = (void(*)(unsigned __int64, unsigned __int64*, bool))(g_modBase + 0x2DA340);
     setProtonBeamMaxLength = (void(*)(float))(g_modBase + 0x277A50); // min 10.0f  max 400.0f
@@ -962,7 +966,7 @@ DWORD WINAPI DLLAttach(HMODULE hModule)
     CreateActor = (void(*)(const char*, Vector))(g_modBase + 0x2C0D50); //const char class, vector pos(x,y,z)
     DisplayText = (int(*)(int, const char*, float))(g_modBase + 0x2494A0); //hudtype msg duration
     DisplayTextLegacy = (bool(*)(unsigned int, const char*, const char*))(g_modBase + 0x2A6C90); //int hudtype, const char* msgtittle, const char* msg, int ?(duration??)
-	void* GlobalRegisterFunc1 = (void*)((uintptr_t)GetModuleHandle(NULL) + 0x2CED00); //Thanks Malte0641 for the address
+    void* GlobalRegisterFunc1 = (void*)((uintptr_t)GetModuleHandle(NULL) + 0x2CED00); //Thanks Malte0641 for the address
 
     // create the hook
     if (MH_CreateHook(GlobalRegisterFunc1, &HookedFunction, reinterpret_cast<LPVOID*>(&originalFunction)) != MH_OK) {
@@ -985,12 +989,10 @@ DWORD WINAPI DLLAttach(HMODULE hModule)
     lua_State* L = luaL_newstate();
     luaL_openlibs(L);
 
-    RegisterGameFunctions(L);
-
     //Start the key press detection in a separate thread
     std::thread keyPressThread(HandleKeyPresses);
     std::thread monitorThread(MonitorLevel);
-    
+
     HANDLE hThread = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)HandleInput, NULL, 0, NULL);
     if (!hThread) {
         MessageBoxA(NULL, "Failed to create input handling thread.", "Error", MB_OK | MB_ICONERROR);
