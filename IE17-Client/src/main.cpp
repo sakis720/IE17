@@ -39,7 +39,7 @@ int playerCash = 0;
 
 bool enableDebug = false;
 
-void enableDebugMenu();
+void enableDebugMenu(bool flag);
 
 unsigned __int64 (*startTalking)(unsigned __int64, const char*);
 unsigned __int64 (*startPreparedTalking)(unsigned __int64, const char*, int);
@@ -244,8 +244,6 @@ void HandleKeyPresses()
             enableInventoryItem(localplayer, eInventoryRailgun, true);
             enableInventoryItem(localplayer, eInventoryShotgun, true);
 
-            //enable(test, ray, false);
-
             Sleep(500);
         }
         else if (GetAsyncKeyState(VK_F6) & 0x8000) { //enable all equipment
@@ -253,7 +251,8 @@ void HandleKeyPresses()
             Sleep(500);
         }
         else if (GetAsyncKeyState(VK_F7) & 1) {
-            enableDebugMenu();  // This now toggles the patch on/off
+            enableDebug = !enableDebug;
+            enableDebugMenu(enableDebug);  // This now toggles the patch on/off
             Sleep(500);
         }
         else if (GetAsyncKeyState('8') & 0x8000) {
@@ -726,6 +725,8 @@ void HandleInput()
             std::cout << "  F3                    - Enables the channel debug overlay\n";
             std::cout << "  F4                    - Enables the cinematics debug overlay\n";
             std::cout << "  F5                    - Unlock all weapons\n";
+            std::cout << "  F6                    - Reload Lua\n";
+            std::cout << "  F7                    - Enable debug menu\n";
             std::cout << "  8                     - Prints players position\n";
             std::cout << "  9                     - Spawn Ghostbuster at players position\n";
             std::cout << "  E                     - Toggle flashlight\n";
@@ -801,44 +802,19 @@ void ReloadAllLuaScripts() {
     LoadAllLuaScripts();
 }
 
-void enableDebugMenu() {
-    static uintptr_t debugMenu = 0x7FF6495E4915;
-    static uintptr_t enableDebugTweak = 0x7FF64956E050 + 0x1D8;
+void enableDebugMenu(bool enableDebug) {
+    BYTE* debugFlag = reinterpret_cast<BYTE*>(g_modBase + 0x20D4915);
+    *debugFlag = enableDebug ? 1 : 0;
 
-    static int originalValue1 = 0;
-    static int originalValue2 = 0;
-
-    DWORD oldProtect1, oldProtect2;
-
-    if (!enableDebug) {
-        VirtualProtect(reinterpret_cast<void*>(debugMenu), sizeof(int), PAGE_EXECUTE_READWRITE, &oldProtect1);
-        VirtualProtect(reinterpret_cast<void*>(enableDebugTweak), sizeof(int), PAGE_EXECUTE_READWRITE, &oldProtect2);
-
-        originalValue1 = *reinterpret_cast<int*>(debugMenu);
-        originalValue2 = *reinterpret_cast<int*>(enableDebugTweak);
-
-        *reinterpret_cast<int*>(debugMenu) = 1;
-        *reinterpret_cast<int*>(enableDebugTweak) = 1;
-
-        VirtualProtect(reinterpret_cast<void*>(debugMenu), sizeof(int), oldProtect1, &oldProtect1);
-        VirtualProtect(reinterpret_cast<void*>(enableDebugTweak), sizeof(int), oldProtect2, &oldProtect2);
-
+    uintptr_t* basePtr = reinterpret_cast<uintptr_t*>(g_modBase + 0xDCF680);
+    if (basePtr && *basePtr) {
+        BYTE* secondFlag = reinterpret_cast<BYTE*>(*basePtr + 0x1D8);
+        *secondFlag = enableDebug ? 1 : 0;
     }
     else {
-        VirtualProtect(reinterpret_cast<void*>(debugMenu), sizeof(int), PAGE_EXECUTE_READWRITE, &oldProtect1);
-        VirtualProtect(reinterpret_cast<void*>(enableDebugTweak), sizeof(int), PAGE_EXECUTE_READWRITE, &oldProtect2);
-
-        *reinterpret_cast<int*>(debugMenu) = originalValue1;
-        *reinterpret_cast<int*>(enableDebugTweak) = originalValue2;
-
-        VirtualProtect(reinterpret_cast<void*>(debugMenu), sizeof(int), oldProtect1, &oldProtect1);
-        VirtualProtect(reinterpret_cast<void*>(enableDebugTweak), sizeof(int), oldProtect2, &oldProtect2);
-
+        std::cerr << "Pointer chain is null.\n";
     }
-
-    enableDebug = !enableDebug;
 }
-
 
 std::string GetCurLevel()
 {
