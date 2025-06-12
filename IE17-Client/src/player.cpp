@@ -50,6 +50,12 @@ void GetPlayerPosition() {
         playerPos.x = *(reinterpret_cast<float*>(localplayer + 0x54)); // 0x54 offset for X
         playerPos.y = *(reinterpret_cast<float*>(localplayer + 0x58)); // 0x58 offset for Y
         playerPos.z = *(reinterpret_cast<float*>(localplayer + 0x5C)); // 0x5C offset for Z
+        /*
+        * Collider B658
+        colliderPos.x = *(reinterpret_cast<float*>(pCollider + 0x90)); 
+		colliderPos.y = *(reinterpret_cast<float*>(pCollider + 0x94));
+		colliderPos.z = *(reinterpret_cast<float*>(pCollider + 0x98));
+        */
     }
     else {
         std::cout << "Error: Failed to get player position or localplayer is null." << std::endl;

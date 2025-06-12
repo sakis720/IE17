@@ -37,6 +37,12 @@ char* g_modBase = nullptr;
 
 int playerCash = 0;
 
+bool enableDebug = false;
+
+void enableDebugMenu();
+
+unsigned __int64 (*startTalking)(unsigned __int64, const char*);
+unsigned __int64 (*startPreparedTalking)(unsigned __int64, const char*, int);
 char (*setGhostbusterHeatlhState)(unsigned __int64 bustet_object, int state);
 unsigned __int64 (*flinch)(unsigned __int64 buster_object);
 unsigned __int64 (*Singleton_getRoom)(unsigned __int64* object);
@@ -83,7 +89,7 @@ void (*cueStreamingCinemat)(const char* cinematName, float intialCursorPos);
 void (*playStreamingCinemat)(const char* cinematName);
 void (*GTFO)(const char* msg, int flag);
 void (*cacheSkeletalAnimationByName)(const char* animationName);
-void (*enable)(unsigned __int64, unsigned __int64*, bool); //broken
+int (*enable)(unsigned __int64 CGameBase, unsigned __int64 actor, bool flag); //broken
 void (*setProtonBeamMaxLength)(float length);
 void (*setAnimation)(unsigned __int64 object, const char* animationName, bool useSkelFileExit);
 void (*detonate)(unsigned __int64 car_object, float timer);
@@ -215,36 +221,42 @@ void HandleKeyPresses()
     while (runProgram)
     {
 
-        if (GetAsyncKeyState(VK_F1) & 1) {
+        if (GetAsyncKeyState(VK_F1) & 0x8000) {
             Slew();  // Call the Slew function
             Sleep(500);  // Prevent multiple triggers within a short time
         }
-        else if (GetAsyncKeyState(VK_F2) & 1) {
+        else if (GetAsyncKeyState(VK_F2) & 0x8000) {
             animDebug();  // Call the animDebug function
             Sleep(500);  // Prevent multiple triggers within a short time
         }
-        else if (GetAsyncKeyState(VK_F3) & 1) {
+        else if (GetAsyncKeyState(VK_F3) & 0x8000) {
             chanDebug();  // Call the chanDebug function
             Sleep(500);  // Prevent multiple triggers within a short time
         }
-        else if (GetAsyncKeyState(VK_F4) & 1) {
+        else if (GetAsyncKeyState(VK_F4) & 0x8000) {
             cinematDebug();  // Call the cinematDebug function
             Sleep(500);  // Prevent multiple triggers within a short time
         }
-        else if (GetAsyncKeyState(VK_F5) & 1) { //enable all equipment
+        else if (GetAsyncKeyState(VK_F5) & 0x8000) { //enable all equipment
 
             enableInventoryItem(localplayer, eInventoryProtonGun, true);
             enableInventoryItem(localplayer, eInventorySlimeGun, true);
             enableInventoryItem(localplayer, eInventoryRailgun, true);
             enableInventoryItem(localplayer, eInventoryShotgun, true);
 
+            //enable(test, ray, false);
+
             Sleep(500);
         }
-        else if (GetAsyncKeyState(VK_F6) & 1) { //enable all equipment
+        else if (GetAsyncKeyState(VK_F6) & 0x8000) { //enable all equipment
             ReloadAllLuaScripts();
             Sleep(500);
         }
-        else if (GetAsyncKeyState('8') & 1) {
+        else if (GetAsyncKeyState(VK_F7) & 1) {
+            enableDebugMenu();  // This now toggles the patch on/off
+            Sleep(500);
+        }
+        else if (GetAsyncKeyState('8') & 0x8000) {
             GetPlayerPosition();
 
             std::cout << "Player Position: ("
@@ -254,7 +266,7 @@ void HandleKeyPresses()
 
             Sleep(500);  // Prevent multiple triggers within a short time
         }
-        else if (GetAsyncKeyState('9') & 1) {
+        else if (GetAsyncKeyState('9') & 0x8000) {
             GetPlayerPosition();
 
             CreateNewActor("CGhostbuster", playerPos);
@@ -266,7 +278,7 @@ void HandleKeyPresses()
 
             Sleep(500);  // Prevent multiple triggers within a short time
         }
-        else if (GetAsyncKeyState('E') & 1) {
+        else if (GetAsyncKeyState('E') & 0x8000) {
             if (localplayer != 0) {  // Call the function only if localplayer value is set
                 g_modBase = (char*)GetModuleHandle(NULL);  // Update g_modBase value
                 //setFlashlightMode(localplayer, eFlashlightModeUVLight);
@@ -274,7 +286,7 @@ void HandleKeyPresses()
                 Sleep(500);  // Prevent multiple triggers within a short time
             }
         }
-        else if (GetAsyncKeyState('Z') & 1) {
+        else if (GetAsyncKeyState('Z') & 0x8000) {
             if (localplayer != 0) {  // call the function only if localplayer value is set
                 // call IsTrapDeployed to check if a trap is deployed
                 bool trapDeployed = isTrapDeployed(localplayer);
@@ -287,7 +299,7 @@ void HandleKeyPresses()
                 Sleep(500);  // Prevent multiple triggers within a short time
             }
         }
-        else if (GetAsyncKeyState('P') & 1) {
+        else if (GetAsyncKeyState('P') & 0x8000) {
             if (localplayer != 0) {  // Call the function only if localplayer value is set
                 if (!fakePossessionStatus) {
                     fakePossession(localplayer, true);
@@ -299,7 +311,7 @@ void HandleKeyPresses()
                 Sleep(500);  // Prevent multiple triggers within a short time
             }
         }
-        else if (GetAsyncKeyState('G') & 1) {
+        else if (GetAsyncKeyState('G') & 0x8000) {
             if (localplayer != 0) {  // Call the function only if localplayer value is set
                 if (eGogglesStatus == 0) {
                     eGogglesStatus = eGogglesOnFace;
@@ -355,6 +367,8 @@ void HandleKeyPresses()
 
             keyStates[key] = isDown;
         }
+        
+
         for (char key = 'A'; key <= 'Z'; ++key) {
             SHORT keyState = GetAsyncKeyState(key);
             bool isDown = (keyState & 0x8000) != 0;
@@ -787,6 +801,45 @@ void ReloadAllLuaScripts() {
     LoadAllLuaScripts();
 }
 
+void enableDebugMenu() {
+    static uintptr_t debugMenu = 0x7FF6495E4915;
+    static uintptr_t enableDebugTweak = 0x7FF64956E050 + 0x1D8;
+
+    static int originalValue1 = 0;
+    static int originalValue2 = 0;
+
+    DWORD oldProtect1, oldProtect2;
+
+    if (!enableDebug) {
+        VirtualProtect(reinterpret_cast<void*>(debugMenu), sizeof(int), PAGE_EXECUTE_READWRITE, &oldProtect1);
+        VirtualProtect(reinterpret_cast<void*>(enableDebugTweak), sizeof(int), PAGE_EXECUTE_READWRITE, &oldProtect2);
+
+        originalValue1 = *reinterpret_cast<int*>(debugMenu);
+        originalValue2 = *reinterpret_cast<int*>(enableDebugTweak);
+
+        *reinterpret_cast<int*>(debugMenu) = 1;
+        *reinterpret_cast<int*>(enableDebugTweak) = 1;
+
+        VirtualProtect(reinterpret_cast<void*>(debugMenu), sizeof(int), oldProtect1, &oldProtect1);
+        VirtualProtect(reinterpret_cast<void*>(enableDebugTweak), sizeof(int), oldProtect2, &oldProtect2);
+
+    }
+    else {
+        VirtualProtect(reinterpret_cast<void*>(debugMenu), sizeof(int), PAGE_EXECUTE_READWRITE, &oldProtect1);
+        VirtualProtect(reinterpret_cast<void*>(enableDebugTweak), sizeof(int), PAGE_EXECUTE_READWRITE, &oldProtect2);
+
+        *reinterpret_cast<int*>(debugMenu) = originalValue1;
+        *reinterpret_cast<int*>(enableDebugTweak) = originalValue2;
+
+        VirtualProtect(reinterpret_cast<void*>(debugMenu), sizeof(int), oldProtect1, &oldProtect1);
+        VirtualProtect(reinterpret_cast<void*>(enableDebugTweak), sizeof(int), oldProtect2, &oldProtect2);
+
+    }
+
+    enableDebug = !enableDebug;
+}
+
+
 std::string GetCurLevel()
 {
     uintptr_t pointeradr = 0x2C72528; //adr
@@ -882,6 +935,8 @@ DWORD WINAPI DLLAttach(HMODULE hModule)
     std::cout << "Version: " STR(IE17ver) "\n";
 
     g_modBase = (char*)GetModuleHandle(NULL);
+    startTalking = (unsigned __int64(*)(unsigned __int64, const char*))(g_modBase + 0x75BB0);
+    startPreparedTalking = (unsigned __int64(*)(unsigned __int64, const char*, int))(g_modBase + 0x75A00);
     setGhostbusterHeatlhState = (char(*)(unsigned __int64, int))(g_modBase + 0xD0280);
     flinch = (unsigned __int64(*)(unsigned __int64))(g_modBase + 0xD18B0);
     Singleton_getRoom = (unsigned __int64(*)(unsigned __int64*))(g_modBase + 0x2BDBD0);
@@ -929,7 +984,7 @@ DWORD WINAPI DLLAttach(HMODULE hModule)
     cacheStreamingCinemat = (void(*)(const char**))(g_modBase + 0x476520);
     GTFO = (void(*)(const char*, int))(g_modBase + 0x2D11C0); //very 2000's function | GTFO is error msg int must be -10 | good for debbuging a function like a breakpoint
     cacheSkeletalAnimationByName = (void(*)(const char*))(g_modBase + 0x2D9AF0);
-    enable = (void(*)(unsigned __int64, unsigned __int64*, bool))(g_modBase + 0x2DA340);
+    enable = (int(*)(unsigned __int64, unsigned __int64, bool))(g_modBase + 0x2DA340);
     setProtonBeamMaxLength = (void(*)(float))(g_modBase + 0x277A50); // min 10.0f  max 400.0f
     setAnimation = (void(*)(unsigned __int64, const char*, bool))(g_modBase + 0x77440);
     detonate = (void(*)(unsigned __int64, float))(g_modBase + 0x690F0); //car function

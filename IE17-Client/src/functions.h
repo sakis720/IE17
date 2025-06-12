@@ -28,5 +28,6 @@ unsigned __int64 CreateNewActor(const char* className, Vector wPos);
 unsigned __int64 getRoom(unsigned __int64* actor);
 void playCinemat(const char* cinemat);
 bool AreAllGhostsDefeated();
+void setFOV(float fov);
 
 #endif // FUN_H

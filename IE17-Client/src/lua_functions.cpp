@@ -12,6 +12,82 @@
 #include <unordered_map>
 #include <filesystem> 
 
+/*
+char (*setGhostbusterHeatlhState)(unsigned __int64 bustet_object, int state);
+unsigned __int64 (*Singleton_getRoom)(unsigned __int64* object);
+unsigned __int64 (*setMusic)(unsigned __int64 database_entry);
+unsigned __int64 (*hideHack)(unsigned __int64* buster_object);
+void (*removeSlimeDecals)(unsigned __int64 buster_object);
+void (*dbNarrativeStop)();
+float (*dbNarrative)(unsigned __int64 database_entry);
+void (*die)(unsigned __int64 object);
+void (*blockHeroMovement)(unsigned __int64* buster_object, bool* state);
+void (*toggleHuntMode)(unsigned __int64* object, bool* state);
+void (*enableProtonTorpedo)(unsigned __int64* buster_object, bool* state);
+void (*setCommandCrossBeam)(unsigned __int64 buster_object);
+void (*startFakePackOverheat)(unsigned __int64* buster_object);
+void (*letterbox)(bool* state);
+void (*queueVideo)(const char** videoname);
+void (*setMovieCaptureEnable)(bool* state);
+void (*allowEnemyAttack)(bool* state);
+void (*allowHeroControls)(bool* state);
+void (*allowHeroDamage)(bool* state);
+void (*play)(unsigned __int64 object, bool foward, int pattern, float newSpeed, float rampTime);
+void (*setCameraPathActor)(unsigned __int64, unsigned __int64, float, float, float);
+void (*shatter)(unsigned __int64 object, Vector WShatterPos);
+void (*setSimEnable)(unsigned __int64 object, int flag);
+void (*loadCheckpoint)(const char** checkpointName);
+void (*setCurrentObjective)(const char** objDesc);
+void (*toggleReviveMode)(unsigned __int64 buster_object, bool state);
+void (*transferHeroshipTo)(unsigned __int64 buster_object, unsigned __int64 buster_object_whom);
+void (*slimeMe)(unsigned __int64 buster_object, bool fromFront, float decalDuration);
+void (*pretendToDrive)(unsigned __int64 buster_object, unsigned __int64 car_object, bool driverSeatFlag, bool putTrapOnRoofFlag);
+void (*mountProtonPack)(unsigned __int64 buster_object, bool state);
+void (*fakeFireProtonGun)(unsigned __int64 buster_object, bool state);
+char (*forceDeployTrap)(unsigned __int64 buster_object, Vector WSourcePos);
+void (*cacheRappel)(unsigned __int64 buster_object);
+void (*setRappelModeEnable)(unsigned __int64 buster_object, bool state);
+void (*startRappelSwing)(unsigned __int64 buster_object);
+bool (*isDead)(unsigned __int64 object);
+void (*cacheStreamingCinematAndAudio)(const char* cinematName, const char* audioFileName);
+void (*stopStreamingCinemat)(const char* cinematName);
+void (*cacheStreamingCinemat)(const char** cinematName);
+void (*cueStreamingCinemat)(const char* cinematName, float intialCursorPos);
+void (*playStreamingCinemat)(const char* cinematName);
+void (*GTFO)(const char* msg, int flag);
+void (*enable)(unsigned __int64, unsigned __int64*, bool); //broken
+void (*setProtonBeamMaxLength)(float length);
+void (*detonate)(unsigned __int64 car_object, float timer);
+void (*attachToActorTag)(unsigned __int64 global_object, unsigned __int64 object, const char* tagName, bool useCurrentRelativePosition);
+void (*setCurrentTeam)(unsigned __int64 object, int type);
+bool (*isTrapDeployed)(unsigned __int64 buster_object);
+void (*gatherAllDeployedInventoryItems)(unsigned __int64 buster_object);
+void (*isPackOverheated)(unsigned __int64); //need to check if this is correct
+void (*slamGoggleLocation)(unsigned __int64 buster_object, int location); //look at EGoggles
+void (*setGoggleLocation)(unsigned __int64 buster_object, int location); // look at EGoggles
+void (*setFacialExpression)(unsigned __int64 buster_object, int newExpression); // look at EGhostbusterFacialExpression
+void (*stopControllingActor)(unsigned __int64 buster_object);
+int (*warpTo)(unsigned __int64 object, Vector pos, Vector orient);
+void (*fakePossession)(unsigned __int64 buster_object, bool state);
+void (*setFlashlightMode)(unsigned __int64 buster_object, int newMode); //look at EFlashlightMode
+void (*toggleflashlight)(unsigned __int64 buster_object, int newMode); // toggleflashlight and setFlashlightMode are diffrent functions
+void (*commitSuicide)(unsigned __int64 buster_object);
+void (*setHealth)(unsigned __int64, float); // need to be fixed
+void (*setNothingEquipped)(unsigned __int64 buster_object, bool state);
+void (*enableAllLights)(bool*);
+void (*DanteVMaddExport)(const char*, const char*, int);
+void (*buttonPrompt)(int buttonAction, float duration); //look at EButtonAction
+void (*setAllowDamageTally)(bool* state);
+void (*fade)(float opacity, float r, float g, float b, float duration);
+void (*displaySplashScreen)(const char* textureName, float duration, bool stretch, bool clear);
+void (*CacheEffect)(const char** effectName);
+int (*StartEffect)(const char* effectName, Vector position, Vector orientation);
+void (*CreateExplosion)(Vector pos, float radius, float damageStrength, float speed);
+void (*SetGravity)(Vector velocity);
+void (*AddLight)(Vector pos, float radius, Vector rgb, float intensity, float duration, float rampUp, float rampDown);
+bool (*DisplayTextLegacy)(unsigned int messageId, const char* textDown, const char* textUp);
+*/
+
 #define REGISTER_WORLD_FUNCTION(L, name) \
     lua_pushcfunction(L, World::Lua_##name); \
     lua_setfield(L, -2, #name);
@@ -65,6 +141,31 @@ public:
 		lua_pushinteger(L, static_cast<lua_Integer>(actor));
 		return 1;
 	}
+
+	static int Lua_setGravity(lua_State* L) {
+		Vector gravity;
+		gravity.x = static_cast<float>(luaL_checknumber(L, 1));
+		gravity.y = static_cast<float>(luaL_checknumber(L, 2));
+		gravity.z = static_cast<float>(luaL_checknumber(L, 3));
+		SetGravity(gravity);
+		return 0;
+	}
+
+    static int Lua_warpTo(lua_State* L)
+    {
+		unsigned __int64 actor = static_cast<unsigned __int64>(luaL_checkinteger(L, 1));
+		Vector position;
+		position.x = static_cast<float>(luaL_checknumber(L, 2));
+		position.y = static_cast<float>(luaL_checknumber(L, 3));
+		position.z = static_cast<float>(luaL_checknumber(L, 4));
+		Vector orientation;
+		orientation.x = static_cast<float>(luaL_checknumber(L, 5));
+		orientation.y = static_cast<float>(luaL_checknumber(L, 6));
+		orientation.z = static_cast<float>(luaL_checknumber(L, 7));
+		int result = warpTo(actor, position, orientation);
+		lua_pushinteger(L, static_cast<lua_Integer>(result));
+		return 1;
+    }
 
 };
 
@@ -161,6 +262,13 @@ public:
 		setAnimation(actor, animationName, false);
 		return 0;
 	}
+
+	static int Lua_cacheAnimation(lua_State* L)
+	{
+		const char* animationName = luaL_checkstring(L, 1);
+		cacheSkeletalAnimationByName(animationName);
+		return 0;
+	}
 };
 
 void RegisterGameFunctions(lua_State* L) {
@@ -171,6 +279,8 @@ void RegisterGameFunctions(lua_State* L) {
     REGISTER_WORLD_FUNCTION(L, loadLevel);
 	REGISTER_WORLD_FUNCTION(L, warpToActorSeamless);
 	REGISTER_WORLD_FUNCTION(L, CreateActor);
+	REGISTER_WORLD_FUNCTION(L, setGravity);
+	REGISTER_WORLD_FUNCTION(L, warpTo);
 
     lua_setglobal(L, "world");
 
@@ -194,6 +304,7 @@ void RegisterGameFunctions(lua_State* L) {
     lua_newtable(L);
 
 	REGISTER_ACTOR_FUNCTION(L, setAnimation);
+	REGISTER_ACTOR_FUNCTION(L, cacheAnimation);
 
     lua_setglobal(L, "actor");
 }

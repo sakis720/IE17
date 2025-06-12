@@ -76,7 +76,7 @@ extern void (*cueStreamingCinemat)(const char* cinematName, float intialCursorPo
 extern void (*playStreamingCinemat)(const char* cinematName);
 extern void (*GTFO)(const char* msg, int flag);
 extern void (*cacheSkeletalAnimationByName)(const char* animationName);
-extern void (*enable)(unsigned __int64, unsigned __int64*, bool);
+extern int (*enable)(unsigned __int64, unsigned __int64, bool);
 extern void (*setProtonBeamMaxLength)(float length);
 extern void (*setAnimation)(unsigned __int64 object, const char* animationName, bool useSkelFileExit);
 extern void (*detonate)(unsigned __int64 car_object, float timer);

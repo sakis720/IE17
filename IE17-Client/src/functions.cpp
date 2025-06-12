@@ -26,6 +26,13 @@ void TextDisplayCountdown(const char* message, int seconds)
     }
 }
 
+void setFOV(float fov)
+{
+    float* fovAddress = reinterpret_cast<float*>(g_modBase + 0xDCF86C);
+    *fovAddress = fov;
+	std::cout << "FOV set to: " << fov << std::endl;
+}
+
 void ResLevel()
 {
 
