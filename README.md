@@ -9,3 +9,9 @@
 IE17 is a project aimed to reverse engineer some functions from Ghostbusters The Video Game Remastered.
 
 This project was made aimed to learn C++ and reverse engineering. Also I want to clarify the code might be poorly written.
+
+<h2>
+  The development of IE17 has been discontinued, and all work has been moved to the 
+  <a href="https://github.com/sakis720/ImmortalPatch" target="_blank">ImmortalPatch</a> 
+  repository, which continues IE17 with a much cleaner and more understandable codebase.
+</h2>
